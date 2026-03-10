@@ -1,0 +1,164 @@
+/* ═══════════════════════════════════════════════════════════
+   NAVBAR
+   Sticky, backdrop blur, mobile-first.
+   Mobile: logo + bag + hamburger
+   Desktop: logo + links + search + bag
+   ═══════════════════════════════════════════════════════════ */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-sticky);
+  height: var(--nav-height);
+  background: rgba(12, 12, 12, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.navbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  gap: var(--space-3);
+}
+
+
+/* ─── Logo ─── */
+
+.navbar__logo {
+  font-family: var(--font-display);
+  font-weight: var(--weight-extrabold);
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  color: var(--bt-text);
+  white-space: nowrap;
+  line-height: 1;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.navbar__logo:hover {
+  color: var(--bt-interactive-hover);
+}
+
+
+/* ─── Desktop Nav Links (hidden on mobile) ─── */
+
+.navbar__links {
+  display: none;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.navbar__link {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bt-text-secondary);
+  transition: color var(--duration-fast) var(--ease-out);
+  padding: var(--space-1) 0;
+  position: relative;
+}
+
+.navbar__link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--bt-text);
+  transition: width var(--duration-normal) var(--ease-out);
+}
+
+.navbar__link:hover,
+.navbar__link--active {
+  color: var(--bt-text);
+}
+
+.navbar__link:hover::after,
+.navbar__link--active::after {
+  width: 100%;
+}
+
+
+/* ─── Actions (right side) ─── */
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.navbar__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--bt-text-secondary);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.navbar__action:hover {
+  color: var(--bt-text);
+}
+
+
+/* ─── Bag with Count ─── */
+
+.navbar__bag {
+  position: relative;
+}
+
+.navbar__bag-count {
+  position: absolute;
+  top: 8px;
+  right: 6px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text-inverse);
+  background: var(--bt-text);
+  border-radius: 8px;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+
+/* ─── Mobile Menu Button (visible on mobile only) ─── */
+
+.navbar__menu-btn {
+  display: flex;
+}
+
+
+/* ─── Desktop: 768px+ ─── */
+
+@media (min-width: 768px) {
+  .navbar__logo {
+    font-size: 18px;
+  }
+
+  .navbar__links {
+    display: flex;
+  }
+
+  .navbar__menu-btn {
+    display: none;
+  }
+
+  .navbar__actions {
+    gap: var(--space-2);
+  }
+}

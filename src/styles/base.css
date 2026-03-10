@@ -1,0 +1,248 @@
+/* ═══════════════════════════════════════════════════════════
+   BLACKTRIBE FASHION — BASE STYLES
+   Font faces, body, scrollbar, selection, focus, links, 
+   images, buttons, skip link, utilities.
+   ═══════════════════════════════════════════════════════════ */
+
+
+/* ─── @font-face Declarations ─── */
+/* Font files go in src/assets/fonts/ as .woff2 */
+
+@font-face {
+  font-family: 'Syne';
+  src: url('../assets/fonts/Syne-Variable.woff2') format('woff2');
+  font-weight: 400 800;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Outfit';
+  src: url('../assets/fonts/Outfit-Variable.woff2') format('woff2');
+  font-weight: 200 600;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('../assets/fonts/CormorantGaramond-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('../assets/fonts/CormorantGaramond-LightItalic.woff2') format('woff2');
+  font-weight: 300;
+  font-display: swap;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('../assets/fonts/CormorantGaramond-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('../assets/fonts/CormorantGaramond-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('../assets/fonts/CormorantGaramond-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('../assets/fonts/DMMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('../assets/fonts/DMMono-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
+
+
+/* ─── Body ─── */
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--bt-text-secondary);
+  background-color: var(--bt-bg);
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* ─── Scrollbar ─── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bt-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bt-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bt-border-hover);
+}
+
+
+/* ─── Selection ─── */
+
+::selection {
+  background: var(--bt-text);
+  color: var(--bt-bg);
+}
+
+
+/* ─── Focus Visible ─── */
+/* Only show focus ring on keyboard navigation, not mouse clicks */
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+
+/* ─── Skip to Main Content ─── */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-3);
+  z-index: var(--z-toast);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bt-text);
+  color: var(--bt-text-inverse);
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: top var(--duration-fast) var(--ease-out);
+}
+
+.skip-link:focus {
+  top: var(--space-2);
+}
+
+
+/* ─── Links ─── */
+
+a {
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+
+/* ─── Images ─── */
+
+img {
+  height: auto;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+
+/* ─── Buttons Base ─── */
+
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+/* ─── Headings ─── */
+
+h1, .h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-h1);
+  font-weight: var(--weight-extrabold);
+  color: var(--bt-text);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+h2, .h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  color: var(--bt-text);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+h3, .h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+  color: var(--bt-text);
+  line-height: 1.3;
+}
+
+
+/* ─── Utility: Visually Hidden (screen readers only) ─── */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+
+/* ─── Utility: Price Display ─── */
+
+.price {
+  font-family: var(--font-mono);
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}
+
+
+/* ─── Utility: Container ─── */
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--content-padding);
+}

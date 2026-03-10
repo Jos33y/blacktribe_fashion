@@ -1,0 +1,165 @@
+/* ═══════════════════════════════════════════════════════════
+   BLACKTRIBE FASHION — ANIMATIONS
+   All @keyframes defined here, referenced by component CSS.
+   One easing curve: cubic-bezier(0.16, 1, 0.3, 1)
+   ═══════════════════════════════════════════════════════════ */
+
+
+/* ─── Keyframes ─── */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOutDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes overlayOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+
+/* ─── Reveal Classes (for scroll-triggered animations) ─── */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger children */
+.reveal-stagger > .reveal:nth-child(1) { transition-delay: 0ms; }
+.reveal-stagger > .reveal:nth-child(2) { transition-delay: 60ms; }
+.reveal-stagger > .reveal:nth-child(3) { transition-delay: 120ms; }
+.reveal-stagger > .reveal:nth-child(4) { transition-delay: 180ms; }
+.reveal-stagger > .reveal:nth-child(5) { transition-delay: 240ms; }
+.reveal-stagger > .reveal:nth-child(6) { transition-delay: 300ms; }
+
+
+/* ─── Skeleton Shimmer ─── */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bt-surface) 25%,
+    var(--bt-surface-hover) 50%,
+    var(--bt-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+
+/* ─── Page Transition ─── */
+
+.page-enter {
+  animation: fadeUp var(--duration-normal) var(--ease-out);
+}
+
+
+/* ─── Reduced Motion ─── */
+/* Respect user's system preference */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .skeleton {
+    animation: none;
+    background: var(--bt-surface);
+  }
+}

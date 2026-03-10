@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Title + SEO -->
+    <title>BlackTribe Fashion. Redefining Luxury.</title>
+    <meta name="description" content="Premium streetwear and luxury fashion. Shop limited collections, pre-order new drops, worldwide shipping. Born from culture, refined by craft." />
+    <meta name="theme-color" content="#0C0C0C" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="BlackTribe Fashion" />
+    <link rel="canonical" href="https://blacktribefashion.com" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_NG" />
+    <meta property="og:title" content="BlackTribe Fashion. Redefining Luxury." />
+    <meta property="og:description" content="Premium streetwear and luxury fashion. Shop limited collections, pre-order new drops, worldwide shipping. Born from culture, refined by craft." />
+    <meta property="og:url" content="https://blacktribefashion.com" />
+    <meta property="og:image" content="https://blacktribefashion.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="BlackTribe Fashion. Redefining Luxury." />
+    <meta property="og:site_name" content="BlackTribe Fashion" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BlackTribe Fashion. Redefining Luxury." />
+    <meta name="twitter:description" content="Premium streetwear and luxury fashion. Shop limited collections, pre-order new drops, worldwide shipping." />
+    <meta name="twitter:image" content="https://blacktribefashion.com/og-image.png" />
+    <meta name="twitter:image:alt" content="BlackTribe Fashion. Redefining Luxury." />
+
+    <!-- Favicons -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- PWA (manifest wired in Phase 7) -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BlackTribe" />
+
+    <!-- Preconnect to Supabase (speeds up first API + storage request) -->
+    <link rel="dns-prefetch" href="https://supabase.co" />
+
+    <!-- Font Preloads (critical fonts only, loaded before first render) -->
+    <link rel="preload" href="/src/assets/fonts/Outfit-Variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/assets/fonts/Syne-Variable.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!--
+      CRITICAL INLINE CSS
+      Paints dark background immediately. No white flash.
+      Styles the branded loader visible while JS bundles download.
+      Removed from the paint path once React mounts.
+    -->
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #0C0C0C;
+        color: #EDEBE8;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      #bt-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #0C0C0C;
+        transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                    visibility 0.4s;
+      }
+
+      #bt-loader.bt-loader--hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .bt-loader__wordmark {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        color: #EDEBE8;
+        user-select: none;
+        opacity: 0;
+        animation: bt-wordmark-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+      }
+
+      .bt-loader__line {
+        width: 48px;
+        height: 1px;
+        margin-top: 24px;
+        background: #2A2A2A;
+        border-radius: 1px;
+        position: relative;
+        overflow: hidden;
+        opacity: 0;
+        animation: bt-wordmark-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+      }
+
+      .bt-loader__line::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: #EDEBE8;
+        animation: bt-slide 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.4s infinite;
+      }
+
+      @keyframes bt-wordmark-in {
+        from { opacity: 0; transform: translateY(4px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes bt-slide {
+        0%   { left: -60%; }
+        100% { left: 160%; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .bt-loader__wordmark {
+          animation: none;
+          opacity: 1;
+        }
+        .bt-loader__line {
+          animation: none;
+          opacity: 1;
+        }
+        .bt-loader__line::after {
+          animation: none;
+          left: 0;
+          width: 100%;
+          opacity: 0.3;
+        }
+      }
+
+      /* Prevent empty root flash */
+      #root:empty {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Branded loader: visible instantly while JS downloads and React hydrates -->
+    <div id="bt-loader" aria-hidden="true" role="presentation">
+      <div class="bt-loader__wordmark">BLACKTRIBE</div>
+      <div class="bt-loader__line"></div>
+    </div>
+
+    <!-- React mount point -->
+    <div id="root"></div>
+
+    <!-- App entry -->
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- No-JS fallback -->
+    <noscript>
+      <style>#bt-loader { display: none !important; }</style>
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;font-family:sans-serif;color:#9B9894;">
+        <p>Enable JavaScript to shop BlackTribe Fashion.</p>
+      </div>
+    </noscript>
+
+    <!-- Safety net: force-hide loader after 8s if JS somehow fails silently -->
+    <script>
+      window.__btLoaderTimeout = setTimeout(function() {
+        var l = document.getElementById('bt-loader');
+        if (l) l.classList.add('bt-loader--hidden');
+      }, 8000);
+    </script>
+  </body>
+</html>
