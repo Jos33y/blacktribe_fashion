@@ -1,0 +1,98 @@
+/* ═══════════════════════════════════════════════════════════
+   PRODUCT CARD
+   White canvas image container. Hover shadow.
+   Product is the hero. Three jobs: show, name, price.
+   ═══════════════════════════════════════════════════════════ */
+
+.product-card {
+  position: relative;
+}
+
+.product-card__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+
+/* ─── Canvas (image container) ─── */
+
+.product-card__canvas {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  background-color: var(--bt-canvas);
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+  transition: box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.product-card__link:hover .product-card__canvas {
+  box-shadow: var(--shadow-product);
+}
+
+.product-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.product-card__link:hover .product-card__image {
+  transform: scale(1.03);
+}
+
+
+/* ─── Placeholder (no image) ─── */
+
+.product-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bt-canvas-alt);
+}
+
+.product-card__placeholder-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: #999;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+
+/* ─── Badge ─── */
+
+.product-card__badge {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: var(--z-base);
+}
+
+
+/* ─── Info ─── */
+
+.product-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-card__name {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--bt-text);
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+.product-card__price {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}

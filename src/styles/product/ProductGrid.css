@@ -1,0 +1,32 @@
+/* ═══════════════════════════════════════════════════════════
+   PRODUCT GRID
+   2-col mobile, 3-col desktop. Gap matches spacing scale.
+   ═══════════════════════════════════════════════════════════ */
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  row-gap: var(--space-5);
+}
+
+@media (min-width: 768px) {
+  .product-grid {
+    gap: var(--space-4);
+    row-gap: var(--space-6);
+  }
+
+  .product-grid--3col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .product-grid--4col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-grid--4col {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

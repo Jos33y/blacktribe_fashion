@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink } from 'react-router';
 import { SearchIcon, BagIcon, MenuIcon } from '../icons';
 import MobileNav from './MobileNav';
-import '../../styles/components/Navbar.css';
+import '../../styles/layout/Navbar.css';
 
 const navLinks = [
   { to: '/shop', label: 'Shop' },

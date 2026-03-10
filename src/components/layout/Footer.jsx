@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import '../../styles/components/Footer.css';
+import '../../styles/layout/Footer.css';
 
 const shopLinks = [
   { to: '/shop', label: 'All Pieces' },

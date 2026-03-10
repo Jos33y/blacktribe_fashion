@@ -1,4 +1,10 @@
 import { useEffect } from 'react';
+import Hero from '../../components/home/Hero';
+import InfoStrip from '../../components/home/InfoStrip';
+import FeaturedGrid from '../../components/home/FeaturedGrid';
+import EditorialSplit from '../../components/home/EditorialSplit';
+import NewsletterForm from '../../components/home/NewsletterForm';
+import '../../styles/pages/Home.css';
 
 export default function Home() {
   useEffect(() => {
@@ -6,10 +12,12 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="page-enter" style={ { minHeight: '60vh', padding: 'var(--space-6) 0' } }>
-      <div className="container">
-        <h1>BlackTribe Fashion</h1>
-      </div>
+    <div className="home page-enter">
+      <Hero />
+      <InfoStrip />
+      <FeaturedGrid />
+      <EditorialSplit />
+      <NewsletterForm />
     </div>
   );
 }

@@ -1,0 +1,58 @@
+/* ═══════════════════════════════════════════════════════════
+   EXPANDABLE SECTION
+   Used for product details: Materials, Size Guide, Shipping.
+   ═══════════════════════════════════════════════════════════ */
+
+.expandable {
+  border-top: 1px solid var(--bt-border);
+}
+
+.expandable__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 52px;
+  padding: var(--space-3) 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--bt-text);
+  text-align: left;
+}
+
+.expandable__title {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+}
+
+.expandable__icon {
+  flex-shrink: 0;
+  transition: transform var(--duration-normal) var(--ease-out);
+  color: var(--bt-text-secondary);
+}
+
+.expandable--open .expandable__icon {
+  transform: rotate(180deg);
+}
+
+.expandable__content {
+  overflow: hidden;
+}
+
+.expandable__content[hidden] {
+  display: none;
+}
+
+.expandable__inner {
+  padding-bottom: var(--space-4);
+  font-size: var(--text-small);
+  color: var(--bt-text-secondary);
+  line-height: 1.7;
+}
+
+.expandable__inner p + p {
+  margin-top: var(--space-2);
+}

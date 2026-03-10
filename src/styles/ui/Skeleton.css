@@ -1,0 +1,51 @@
+/* ═══════════════════════════════════════════════════════════
+   SKELETON
+   Shimmer loading placeholders.
+   ═══════════════════════════════════════════════════════════ */
+
+.skeleton--text {
+  height: 14px;
+  width: 100%;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton--image {
+  width: 100%;
+  aspect-ratio: 3/4;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton--circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.skeleton-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* ─── Product Card Skeleton ─── */
+
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeleton-card__image {
+  width: 100%;
+  aspect-ratio: 3/4;
+}
+
+.skeleton-card__title {
+  height: 14px;
+  width: 70%;
+}
+
+.skeleton-card__price {
+  height: 12px;
+  width: 40%;
+}

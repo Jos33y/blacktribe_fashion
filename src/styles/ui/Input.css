@@ -1,0 +1,68 @@
+/* ═══════════════════════════════════════════════════════════
+   INPUT
+   Visible label above. Error state below.
+   ═══════════════════════════════════════════════════════════ */
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.input-group__label {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+  letter-spacing: 0.02em;
+}
+
+.input-group__required {
+  color: var(--bt-text-muted);
+  font-weight: var(--weight-regular);
+}
+
+.input-group__input {
+  min-height: 44px;
+  padding: 10px 14px;
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: var(--radius-none);
+  color: var(--bt-text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.input-group__input::placeholder {
+  color: var(--bt-text-muted);
+}
+
+.input-group__input:hover {
+  border-color: var(--bt-border-hover);
+}
+
+.input-group__input:focus {
+  border-color: var(--bt-border-active);
+  background: var(--bt-bg);
+  outline: none;
+}
+
+.input-group__input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* ─── Error State ─── */
+
+.input-group--error .input-group__input {
+  border-color: var(--bt-error);
+}
+
+.input-group__error {
+  font-size: var(--text-small);
+  color: var(--bt-error);
+  margin-top: 2px;
+}

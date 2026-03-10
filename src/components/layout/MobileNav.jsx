@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router';
 import { CloseIcon } from '../icons';
-import '../../styles/components/MobileNav.css';
+import '../../styles/layout/MobileNav.css';
 
 export default function MobileNav({ isOpen, onClose, navLinks }) {
   const navRef = useRef(null);
