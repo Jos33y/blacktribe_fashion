@@ -1,0 +1,199 @@
+/* ═══════════════════════════════════════════════════════════
+   LIGHTBOX — Full-screen Media Viewer
+   
+   Rendered via Portal to document.body.
+   Classes use .lightbox-* prefix (NOT .lb-* — that's Lookbook).
+   z-index: var(--z-overlay) — above navbar, above everything.
+   ═══════════════════════════════════════════════════════════ */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: rgba(12, 12, 12, 0.96);
+  display: flex;
+  flex-direction: column;
+  animation: lightboxFadeIn 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.lightbox--closing {
+  animation: lightboxFadeOut 0.25s ease forwards;
+}
+
+@keyframes lightboxFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lightboxFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+
+/* ─── Close ─── */
+
+.lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--bt-text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.lightbox-close:hover { color: var(--bt-text); }
+.lightbox-close:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+
+/* ─── Counter ─── */
+
+.lightbox-counter {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lightbox-counter-sep { opacity: 0.5; }
+
+
+/* ─── Arrows (desktop) ─── */
+
+.lightbox-arrow {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--bt-text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.lightbox-arrow:hover { color: var(--bt-text); }
+.lightbox-arrow:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.lightbox-arrow--prev { left: 16px; }
+.lightbox-arrow--next { right: 16px; }
+
+
+/* ─── Stage ─── */
+
+.lightbox-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 60px 16px 16px;
+  touch-action: none;
+  cursor: zoom-in;
+}
+
+.lightbox-image,
+.lightbox-video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.15s ease;
+  will-change: transform;
+}
+
+.lightbox-video {
+  background: #000;
+  max-width: 90%;
+  max-height: 80%;
+}
+
+
+/* ─── Thumbnails ─── */
+
+.lightbox-thumbs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-shrink: 0;
+}
+
+.lightbox-thumbs::-webkit-scrollbar { display: none; }
+
+.lightbox-thumb {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0;
+  background: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.lightbox-thumb:hover { opacity: 0.8; }
+.lightbox-thumb--active { opacity: 1; border-color: var(--bt-text); }
+.lightbox-thumb:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+.lightbox-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lightbox-thumb-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+}
+
+
+/* ─── Desktop ─── */
+
+@media (min-width: 768px) {
+  .lightbox-arrow { display: flex; }
+  .lightbox-stage { padding: 60px 80px 16px; }
+  .lightbox-thumb { width: 56px; height: 56px; }
+}
+
+@media (min-width: 1024px) {
+  .lightbox-stage { padding: 60px 100px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox, .lightbox--closing { animation: none; }
+  .lightbox-image, .lightbox-video { transition: none; }
+}

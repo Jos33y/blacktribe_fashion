@@ -1,0 +1,34 @@
+.video-player { margin-top: 32px; }
+
+.video-player-wrapper {
+  position: relative;
+  background: var(--bt-canvas);
+  aspect-ratio: 16 / 9;
+}
+
+.video-player-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.video-play-btn {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.2s ease;
+}
+
+.video-play-btn:hover { background: rgba(0, 0, 0, 0.35); }
+
+.video-play-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}

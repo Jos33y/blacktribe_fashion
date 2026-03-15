@@ -1,32 +1,75 @@
 /* ═══════════════════════════════════════════════════════════
-   PRODUCT GRID
-   2-col mobile, 3-col desktop. Gap matches spacing scale.
+   PRODUCT GRID — Variable Density
+   1-4 column grid. Stagger reveal. Responsive.
    ═══════════════════════════════════════════════════════════ */
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-3);
-  row-gap: var(--space-5);
+  gap: 20px 12px;
 }
 
+
+/* ═══ DENSITY VARIANTS ═══ */
+
+/* Mobile defaults */
+.product-grid--1 { grid-template-columns: 1fr; }
+.product-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.product-grid--3 { grid-template-columns: repeat(2, 1fr); }
+.product-grid--4 { grid-template-columns: repeat(2, 1fr); }
+
+/* Tablet */
 @media (min-width: 768px) {
-  .product-grid {
-    gap: var(--space-4);
-    row-gap: var(--space-6);
-  }
+  .product-grid--1 { grid-template-columns: 1fr; max-width: 560px; }
+  .product-grid--2 { grid-template-columns: repeat(2, 1fr); }
+  .product-grid--3 { grid-template-columns: repeat(3, 1fr); }
+  .product-grid--4 { grid-template-columns: repeat(3, 1fr); }
 
-  .product-grid--3col {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .product-grid { gap: 24px 16px; }
+}
 
-  .product-grid--4col {
-    grid-template-columns: repeat(3, 1fr);
+/* Desktop */
+@media (min-width: 1024px) {
+  .product-grid--2 { grid-template-columns: repeat(2, 1fr); }
+  .product-grid--3 { grid-template-columns: repeat(3, 1fr); }
+  .product-grid--4 { grid-template-columns: repeat(4, 1fr); }
+
+  .product-grid { gap: 28px 18px; }
+}
+
+/* Large desktop */
+@media (min-width: 1400px) {
+  .product-grid--4 { gap: 32px 20px; }
+}
+
+
+/* ═══ STAGGER REVEAL ═══ */
+
+.product-grid__item {
+  animation: gridFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--stagger, 0) * 60ms);
+}
+
+@keyframes gridFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (min-width: 1024px) {
-  .product-grid--4col {
-    grid-template-columns: repeat(4, 1fr);
+@media (prefers-reduced-motion: reduce) {
+  .product-grid__item {
+    animation: none;
   }
+}
+
+
+/* ═══ SKELETON ═══ */
+
+.product-grid__skeleton {
+  display: flex;
+  flex-direction: column;
 }

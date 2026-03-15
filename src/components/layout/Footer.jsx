@@ -14,6 +14,8 @@ const companyLinks = [
 ];
 
 const helpLinks = [
+  { to: '/shipping-returns', label: 'Shipping & Returns' },
+  { to: '/refund-policy', label: 'Refund Policy' },
   { to: '/terms', label: 'Terms' },
   { to: '/privacy', label: 'Privacy' },
 ];
@@ -75,7 +77,7 @@ export default function Footer() {
           </p>
           <div className="footer__social">
             <a
-              href="https://instagram.com/blacktribelifestyle"
+              href="https://instagram.com/blacktribe_fashion"
               target="_blank"
               rel="noopener noreferrer"
               className="footer__social-link"

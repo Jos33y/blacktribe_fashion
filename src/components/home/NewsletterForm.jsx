@@ -2,58 +2,55 @@ import { useState } from 'react';
 
 export default function NewsletterForm() {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState(null); // null | 'success' | 'error' | 'duplicate'
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState('idle'); // idle | loading | success | error
 
-  async function handleSubmit(e) {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim() || !email.includes('@')) return;
 
-    setLoading(true);
-    // TODO: Wire to API in Phase 5
-    // Simulating success for now
-    await new Promise((r) => setTimeout(r, 600));
-    setStatus('success');
-    setLoading(false);
+    setStatus('loading');
+    // TODO: Connect to Resend in Phase 5
+    setTimeout(() => {
+      setStatus('success');
+      setEmail('');
+    }, 800);
+  };
+
+  if (status === 'success') {
+    return (
+      <section className="home-newsletter">
+        <div className="home-newsletter__inner container">
+          <p className="home-newsletter__success">You are in.</p>
+        </div>
+      </section>
+    );
   }
 
   return (
-    <section className="newsletter" aria-labelledby="newsletter-heading">
-      <div className="newsletter__inner container">
-        <h2 id="newsletter-heading" className="newsletter__title">Join the Tribe</h2>
-        <p className="newsletter__subtitle">First access to drops. No spam.</p>
+    <section className="home-newsletter">
+      <div className="home-newsletter__inner container">
+        <span className="home-newsletter__eyebrow">Stay Connected</span>
+        <h2 className="home-newsletter__title">Join the Tribe</h2>
+        <p className="home-newsletter__sub">First access to drops. No spam.</p>
 
-        {status === 'success' ? (
-          <p className="newsletter__success" role="status">You are in.</p>
-        ) : (
-          <form className="newsletter__form" onSubmit={handleSubmit}>
-            <label htmlFor="newsletter-email" className="sr-only">Email address</label>
-            <input
-              id="newsletter-email"
-              type="email"
-              className="newsletter__input"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              aria-label="Email address"
-            />
-            <button
-              type="submit"
-              className="newsletter__button"
-              disabled={loading}
-            >
-              {loading ? 'Subscribing...' : 'Subscribe'}
-            </button>
-          </form>
-        )}
-
-        {status === 'duplicate' && (
-          <p className="newsletter__error" role="alert">This email is already subscribed.</p>
-        )}
-        {status === 'error' && (
-          <p className="newsletter__error" role="alert">Something went wrong. Try again.</p>
-        )}
+        <form className="home-newsletter__form" onSubmit={handleSubmit}>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="your@email.com"
+            className="home-newsletter__input"
+            required
+            aria-label="Email address"
+          />
+          <button
+            type="submit"
+            className="home-newsletter__btn"
+            disabled={status === 'loading'}
+          >
+            {status === 'loading' ? 'Joining...' : 'Subscribe'}
+          </button>
+        </form>
       </div>
     </section>
   );

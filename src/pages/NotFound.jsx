@@ -1,40 +1,33 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router';
+import '../styles/pages/NotFound.css';
 
 export default function NotFound() {
   useEffect(() => {
-    document.title = 'Page Not Found. BlackTribe Fashion.';
+    document.title = '404. BlackTribe Fashion.';
   }, []);
 
   return (
-    <div className="page-enter" style={{
-      minHeight: '60vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      textAlign: 'center',
-      padding: 'var(--space-6) var(--content-padding)',
-    }}>
-      <h1 style={{ marginBottom: 'var(--space-2)' }}>This page does not exist.</h1>
-      <p style={{ color: 'var(--bt-text-secondary)', marginBottom: 'var(--space-5)' }}>
-        But we do.
-      </p>
-      <Link
-        to="/shop"
-        style={{
-          fontFamily: 'var(--font-body)',
-          fontSize: 'var(--text-small)',
-          fontWeight: 'var(--weight-medium)',
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          color: 'var(--bt-text)',
-          borderBottom: '1px solid var(--bt-text)',
-          paddingBottom: '2px',
-        }}
-      >
-        Back to Shop
-      </Link>
-    </div>
+    <article className="not-found">
+      <div className="not-found-inner">
+
+        {/* Background number */}
+        <span className="not-found-bg" aria-hidden="true">404</span>
+
+        {/* Content */}
+        <div className="not-found-content">
+          <span className="not-found-code">404</span>
+          <h1 className="not-found-headline">This page does not exist.</h1>
+          <p className="not-found-subtext">But we do.</p>
+          <Link to="/shop" className="not-found-cta">
+            Back to Shop
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+
+      </div>
+    </article>
   );
 }

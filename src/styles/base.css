@@ -91,7 +91,7 @@ body {
   background-color: var(--bt-bg);
   letter-spacing: 0.01em;
   line-height: 1.6;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 #root {

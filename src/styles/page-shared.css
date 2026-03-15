@@ -1,0 +1,248 @@
+/* ═══════════════════════════════════════════════════════════
+   PAGE SHARED — Structure that every page inherits.
+   
+   Import this in main.jsx AFTER base.css, BEFORE page CSS.
+   
+   Pages use dual classes:  className="page-hero lb-hero"
+   Shared class = structure (padding, max-width, spacing)
+   Page class = character (unique fonts, sizes, colors)
+   
+   New pages get correct spacing by default. Zero duplication.
+   ═══════════════════════════════════════════════════════════ */
+
+
+/* ─── Main offset (navbar is position: fixed) ─── */
+
+main {
+  padding-top: var(--nav-height);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   PAGE HERO — Standard hero section
+   Mobile: 24px top, 48px bottom
+   Tablet: 32px top, 56px bottom
+   Desktop: 48px top, 64px bottom
+   ═══════════════════════════════════════════════════════════ */
+
+.page-hero {
+  padding: 24px 0 48px;
+}
+
+.page-hero__inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 var(--content-padding);
+}
+
+
+/* ─── Tall hero variant (About page — uses min-height + flex) ─── */
+
+.page-hero--tall {
+   min-height: 25vh;
+  display: flex;
+  align-items: flex-end;
+  padding: 24px 0 48px;
+}
+
+.page-hero--tall .page-hero__inner {
+  width: 100%;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   TYPOGRAPHY ATOMS — Used inside heroes and sections
+   ═══════════════════════════════════════════════════════════ */
+
+/* Eyebrow: DM Mono, 10px, uppercase, muted */
+.page-eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+/* Headline base: Syne 800, responsive clamp (override font-size per page) */
+.page-headline {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 7vw, 64px);
+  font-weight: 800;
+  color: var(--bt-text);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  margin: 0 0 20px;
+}
+
+/* Intro base: Outfit 300, secondary color */
+.page-intro {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  line-height: 1.7;
+  max-width: 480px;
+  margin: 0;
+}
+
+/* Intro variant: Cormorant italic (Lookbook, Collections) */
+.page-intro--serif {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLL REVEAL — Shared animation pattern
+   Pages can still use their own reveal class if needed.
+   ═══════════════════════════════════════════════════════════ */
+
+.page-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION PATTERNS — Reusable across editorial pages
+   ═══════════════════════════════════════════════════════════ */
+
+/* Section inner container (1080px) */
+.page-section__inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 var(--content-padding);
+}
+
+/* Wide section inner (1280px — shop, collections, product) */
+.page-section__inner--wide {
+  max-width: 1280px;
+}
+
+/* Closing CTA pattern (centered line + text + link) */
+.page-closing {
+  padding: 64px 0 96px;
+  border-top: 1px solid var(--bt-border);
+}
+
+.page-closing__inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 var(--content-padding);
+  text-align: center;
+}
+
+.page-closing__line {
+  width: 32px;
+  height: 1px;
+  background: var(--bt-border-hover);
+  margin: 0 auto 32px;
+}
+
+.page-closing__text {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  line-height: 1.7;
+  margin: 0 0 20px;
+}
+
+.page-closing__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bt-text);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--bt-border-hover);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.page-closing__link:hover {
+  border-color: var(--bt-text);
+}
+
+.page-closing__link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.page-closing__link svg {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.page-closing__link:hover svg {
+  transform: translateX(4px);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+
+@media (min-width: 768px) {
+  .page-hero {
+    padding: 32px 0 56px;
+  }
+
+  .page-hero--tall {
+    min-height: 50vh;
+   padding: 32px 0 64px;
+  }
+
+  .page-intro {
+    font-size: 16px;
+  }
+
+  .page-intro--serif {
+    font-size: 20px;
+  }
+
+  .page-closing {
+    padding: 80px 0 120px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-hero {
+    padding: 48px 0 64px;
+  }
+
+  .page-hero--tall {
+    min-height: 55vh;
+    padding: 48px 0 80px;
+  }
+
+  .page-closing {
+    padding: 96px 0 140px;
+  }
+
+  .page-closing__text {
+    font-size: 15px;
+  }
+}

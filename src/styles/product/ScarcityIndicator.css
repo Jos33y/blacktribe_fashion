@@ -1,0 +1,18 @@
+.scarcity {
+  padding: 12px 0;
+  margin-bottom: 8px;
+}
+
+.scarcity-text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--bt-text-secondary);
+  letter-spacing: 0.04em;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.scarcity-remaining {
+  color: var(--bt-text);
+  font-weight: 500;
+}

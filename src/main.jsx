@@ -7,6 +7,7 @@ import './styles/reset.css';
 import './styles/variables.css';
 import './styles/base.css';
 import './styles/animations.css';
+import './styles/page-shared.css';
 
 // Hide the inline loader once React has painted
 function dismissLoader() {

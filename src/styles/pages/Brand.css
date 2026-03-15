@@ -1,0 +1,46 @@
+/* ═══════════════════════════════════════════════════════════
+   BRAND PAGES — Contact, FAQ
+   About has its own CSS (About.css)
+   ═══════════════════════════════════════════════════════════ */
+
+.brand-page { max-width: 720px; margin: 0 auto; padding: 24px var(--content-padding) 80px; }
+.brand-page-header { margin-bottom: 40px; }
+.brand-page-title { font-family: var(--font-display); font-size: var(--text-h1); font-weight: 800; color: var(--bt-text); letter-spacing: -0.01em; margin: 0; }
+.brand-page-subtitle { font-family: var(--font-body); font-size: 14px; font-weight: 400; color: var(--bt-text-secondary); line-height: 1.6; margin: 12px 0 0; }
+.brand-page-centered { text-align: center; padding-top: 24px; }
+
+.brand-section { margin-bottom: 40px; }
+.brand-section:last-child { margin-bottom: 0; }
+.brand-section-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--bt-text); letter-spacing: -0.01em; margin: 0 0 16px; }
+.brand-body { font-family: var(--font-body); font-size: 14px; font-weight: 400; color: var(--bt-text-secondary); line-height: 1.7; margin: 0 0 12px; }
+.brand-body:last-child { margin-bottom: 0; }
+.brand-link { color: var(--bt-text); text-decoration: underline; text-underline-offset: 3px; transition: color var(--duration-fast) var(--ease-out); }
+.brand-link:hover { color: var(--bt-text-secondary); }
+.brand-success-text { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--bt-text); margin: 0 0 8px; }
+
+/* Contact form */
+.contact-form { display: flex; flex-direction: column; gap: 20px; margin-bottom: 32px; }
+.contact-textarea-group { display: flex; flex-direction: column; gap: 6px; }
+.contact-textarea-label { font-family: var(--font-body); font-size: 12px; font-weight: 500; color: var(--bt-text-secondary); letter-spacing: 0.02em; }
+
+.contact-textarea {
+  width: 100%; padding: 14px 16px; background: var(--bt-surface); border: 1px solid var(--bt-border);
+  border-radius: 0; color: var(--bt-text); font-family: var(--font-body); font-size: 14px;
+  font-weight: 400; line-height: 1.6; resize: vertical; min-height: 120px;
+  transition: border-color var(--duration-normal) var(--ease-out);
+}
+
+.contact-textarea:hover { border-color: var(--bt-border-hover); }
+.contact-textarea:focus { outline: none; border-color: var(--bt-border-active); }
+.contact-textarea--error { border-color: var(--bt-error); }
+.contact-textarea-error { font-family: var(--font-body); font-size: 12px; color: var(--bt-error); margin: 0; }
+.contact-info { padding-top: 24px; border-top: 1px solid var(--bt-border); }
+
+/* FAQ */
+.faq-list { margin-bottom: 40px; }
+.faq-answer { font-family: var(--font-body); font-size: 14px; font-weight: 400; color: var(--bt-text-secondary); line-height: 1.7; margin: 0; }
+.faq-contact { padding-top: 24px; border-top: 1px solid var(--bt-border); }
+
+@media (min-width: 768px) {
+  .brand-page { padding: 40px var(--content-padding) 100px; }
+}

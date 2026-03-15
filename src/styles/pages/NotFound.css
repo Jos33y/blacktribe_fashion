@@ -1,0 +1,134 @@
+/* ═══════════════════════════════════════════════════════════
+   404 — NOT FOUND
+   Cinematic. Confident. Three lines. One link.
+   ═══════════════════════════════════════════════════════════ */
+
+.not-found {
+  min-height: calc(100vh - var(--nav-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.not-found-inner {
+  position: relative;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 var(--content-padding);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* ═══ BACKGROUND NUMBER ═══ */
+
+.not-found-bg {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: clamp(200px, 30vw, 500px);
+  font-weight: 800;
+  color: var(--bt-surface);
+  letter-spacing: -0.05em;
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  z-index: 0;
+}
+
+
+/* ═══ CONTENT ═══ */
+
+.not-found-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  animation: notFoundFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.not-found-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.not-found-headline {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 5vw, 44px);
+  font-weight: 800;
+  color: var(--bt-text);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0 0 12px;
+}
+
+.not-found-subtext {
+  font-family: var(--font-serif);
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--bt-text-secondary);
+  margin: 0 0 40px;
+}
+
+.not-found-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bt-text);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--bt-border-hover);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.not-found-cta:hover {
+  border-color: var(--bt-text);
+}
+
+.not-found-cta:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.not-found-cta svg {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.not-found-cta:hover svg {
+  transform: translateX(4px);
+}
+
+
+/* ═══ ANIMATION ═══ */
+
+@keyframes notFoundFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .not-found-content {
+    animation: none;
+  }
+}
