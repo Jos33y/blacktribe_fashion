@@ -17,7 +17,6 @@ export default function About() {
     document.title = 'About. BlackTribe Fashion.';
   }, []);
 
-  // Scroll reveal
   useEffect(() => {
     const elements = document.querySelectorAll('.about-reveal');
 
@@ -34,7 +33,6 @@ export default function About() {
     );
 
     elements.forEach((el) => observerRef.current.observe(el));
-
     return () => observerRef.current?.disconnect();
   }, []);
 
@@ -55,7 +53,7 @@ export default function About() {
         <div className="about-section-inner about-origin">
           <div className="about-origin-meta">
             <span className="about-meta-label">Founded</span>
-            <span className="about-meta-value">2018</span>
+            <span className="about-meta-value">2017</span>
           </div>
           <div className="about-origin-meta">
             <span className="about-meta-label">Origin</span>
@@ -72,7 +70,7 @@ export default function About() {
       <section className="about-section about-reveal">
         <div className="about-section-inner about-story">
           <p className="about-story-lead">
-            BlackTribe Fashion started in Lagos in 2018. What began as a small collection of graphic tees has grown into a full premium fashion label with customers across the world.
+            BlackTribe started in Lagos in 2017 — not as a fashion brand, but as a gathering. Art shows. Warehouse parties. A community of creatives who believed African culture deserved a louder voice. The clothes came later. The identity was always there.
           </p>
         </div>
       </section>
@@ -88,21 +86,35 @@ export default function About() {
         </div>
       </section>
 
-      {/* ═══ IDENTITY ═══ */}
+      {/* ═══ ORIGIN STORY ═══ */}
       <section className="about-section about-reveal">
         <div className="about-section-inner about-split">
           <div className="about-split-label">
-            <span className="about-label-text">Identity</span>
+            <span className="about-label-text">The Beginning</span>
           </div>
           <div className="about-split-content">
             <p className="about-body">
-              Every piece we make is rooted in African street culture and finished with the precision of luxury fashion. We do not mass-produce. We do not follow trends. We create limited collections that mean something to the people who wear them.
+              For four years, BlackTribe was a cultural movement. Events that brought together artists, musicians, and designers across Lagos. The energy at those gatherings — the way people dressed, the way they carried themselves — became the blueprint for everything that followed.
             </p>
           </div>
         </div>
       </section>
 
-      {/* ═══ NAME ═══ */}
+      {/* ═══ FASHION ═══ */}
+      <section className="about-section about-reveal">
+        <div className="about-section-inner about-split">
+          <div className="about-split-label">
+            <span className="about-label-text">The Fashion</span>
+          </div>
+          <div className="about-split-content">
+            <p className="about-body">
+              In 2021, the fashion arm launched. Not as a pivot — as an evolution. Every piece carries the DNA of those early gatherings: hand-set crystal details, tribal mask emblems, and the confidence of people who create culture rather than consume it. Limited runs. No mass production. No compromise.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ IDENTITY ═══ */}
       <section className="about-section about-reveal">
         <div className="about-section-inner about-split">
           <div className="about-split-label">
@@ -110,7 +122,7 @@ export default function About() {
           </div>
           <div className="about-split-content">
             <p className="about-body">
-              Our name is a statement. "Tribe" means belonging. "Black" means identity. Together, they represent a community of people who wear their culture with pride and without apology.
+              "Tribe" is belonging. "Black" is identity. Together, they represent a community that wears its culture without apology. The tribal mask in our logo is not decoration — it is heritage, rendered in a language the world understands.
             </p>
           </div>
         </div>
@@ -120,7 +132,7 @@ export default function About() {
       <section className="about-quote-section about-reveal">
         <div className="about-section-inner">
           <blockquote className="about-quote">
-            <p>We design for people who set the standard, not people who follow it.</p>
+            <p>Nine years of proving that luxury has no geography.</p>
           </blockquote>
         </div>
       </section>
@@ -130,7 +142,7 @@ export default function About() {
         <div className="about-feature-image">
           <img
             src="/mock/crystal-velvet-trucker-back.PNG"
-            alt="Crystal Velvet Trucker jacket detail"
+            alt="Crystal Velvet Trucker jacket — hand-set crystal detail"
             loading="lazy"
           />
         </div>
@@ -143,7 +155,7 @@ export default function About() {
       <section className="about-closing about-reveal">
         <div className="about-section-inner">
           <p className="about-closing-brand">BlackTribe Fashion</p>
-          <p className="about-closing-tagline">Redefining Luxury</p>
+          <p className="about-closing-tagline">Redefining Luxury Since 2017</p>
         </div>
       </section>
 

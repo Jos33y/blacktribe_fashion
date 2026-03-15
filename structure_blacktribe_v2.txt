@@ -22,52 +22,55 @@ C:.
 |   |   og-image.png
 |   |   og-image.svg
 |   |   
-|   \---mock
-|           chain-denim-jean-shirt.PNG
-|           chain-denim-shirt-black.PNG
-|           chain-denim-shirt-white.PNG
-|           cow-print-panel-shirt-black.PNG
-|           cow-print-panel-shirt-grey.PNG
-|           cow-print-panel-shirt-white.PNG
-|           crystal-star-crop-shirt-back.PNG
-|           crystal-star-crop-shirt-front.PNG
-|           crystal-velvet-trucker-back.PNG
-|           crystal-velvet-trucker-front.PNG
-|           embossed-denim-jean-short.PNG
-|           embossed-denim-shorts-black.PNG
-|           embossed-denim-shorts-white.PNG
-|           full-crystal-trucker-back.PNG
-|           full-crystal-trucker-front.PNG
-|           obsidian-oversized-tee-black-back.PNG
-|           obsidian-oversized-tee-black-front.PNG
-|           obsidian-oversized-tee-white-back.PNG
-|           obsidian-oversized-tee-white-front.PNG
-|           rhinestone-denim-jacket-back.PNG
-|           rhinestone-denim-jacket-front.PNG
-|           rhinestone-wide-leg-jeans-back.PNG
-|           rhinestone-wide-leg-jeans-front.PNG
-|           ribbed-knit-crop-tee-black-back.PNG
-|           ribbed-knit-crop-tee-black-front.PNG
-|           ribbed-knit-crop-tee-grey-back.PNG
-|           ribbed-knit-crop-tee-grey-front.PNG
-|           ribbed-knit-crop-tee-white-back.PNG
-|           ribbed-knit-crop-tee-white-front.PNG
-|           script-button-up-black.PNG
-|           script-button-up-white.PNG
-|           sequin-script-zip-shirt-back.PNG
-|           sequin-script-zip-shirt-front.PNG
-|           tribal-mask-snapback-grey-back.PNG
-|           tribal-mask-snapback-grey-front.PNG
-|           tribal-mask-snapback-grey-side.PNG
-|           tribal-mask-snapback-grey-video.mp4
-|           varsity-jacket-ash-back.PNG
-|           varsity-jacket-ash-front.PNG
-|           varsity-jacket-black-back.PNG
-|           varsity-jacket-black-front.PNG
-|           varsity-jacket-white-back.PNG
-|           varsity-jacket-white-front.PNG
-|           washed-denim-logo-shirt-back.PNG
-|           washed-denim-logo-shirt-front.PNG
+|   +---mock
+|   |       chain-denim-jean-shirt.PNG
+|   |       chain-denim-shirt-black.PNG
+|   |       chain-denim-shirt-white.PNG
+|   |       cow-print-panel-shirt-black.PNG
+|   |       cow-print-panel-shirt-grey.PNG
+|   |       cow-print-panel-shirt-white.PNG
+|   |       crystal-star-crop-shirt-back.PNG
+|   |       crystal-star-crop-shirt-front.PNG
+|   |       crystal-velvet-trucker-back.PNG
+|   |       crystal-velvet-trucker-front.PNG
+|   |       embossed-denim-jean-short.PNG
+|   |       embossed-denim-shorts-black.PNG
+|   |       embossed-denim-shorts-white.PNG
+|   |       full-crystal-trucker-back.PNG
+|   |       full-crystal-trucker-front.PNG
+|   |       obsidian-oversized-tee-black-back.PNG
+|   |       obsidian-oversized-tee-black-front.PNG
+|   |       obsidian-oversized-tee-white-back.PNG
+|   |       obsidian-oversized-tee-white-front.PNG
+|   |       rhinestone-denim-jacket-back.PNG
+|   |       rhinestone-denim-jacket-front.PNG
+|   |       rhinestone-wide-leg-jeans-back.PNG
+|   |       rhinestone-wide-leg-jeans-front.PNG
+|   |       ribbed-knit-crop-tee-black-back.PNG
+|   |       ribbed-knit-crop-tee-black-front.PNG
+|   |       ribbed-knit-crop-tee-grey-back.PNG
+|   |       ribbed-knit-crop-tee-grey-front.PNG
+|   |       ribbed-knit-crop-tee-white-back.PNG
+|   |       ribbed-knit-crop-tee-white-front.PNG
+|   |       script-button-up-black.PNG
+|   |       script-button-up-white.PNG
+|   |       sequin-script-zip-shirt-back.PNG
+|   |       sequin-script-zip-shirt-front.PNG
+|   |       tribal-mask-snapback-grey-back.PNG
+|   |       tribal-mask-snapback-grey-front.PNG
+|   |       tribal-mask-snapback-grey-side.PNG
+|   |       tribal-mask-snapback-grey-video.mp4
+|   |       varsity-jacket-ash-back.PNG
+|   |       varsity-jacket-ash-front.PNG
+|   |       varsity-jacket-black-back.PNG
+|   |       varsity-jacket-black-front.PNG
+|   |       varsity-jacket-white-back.PNG
+|   |       varsity-jacket-white-front.PNG
+|   |       washed-denim-logo-shirt-back.PNG
+|   |       washed-denim-logo-shirt-front.PNG
+|   |       
+|   \---video
+|           black_tribe_hero_vid.mp4
 |           
 +---server
 |   +---config
@@ -97,11 +100,12 @@ C:.
     |           
     +---components
     |   +---home
-    |   |       EditorialSplit.jsx
+    |   |       BrandVideo.jsx
+    |   |       CollectionPreview.jsx
     |   |       FeaturedGrid.jsx
-    |   |       Hero.jsx
-    |   |       InfoStrip.jsx
+    |   |       Marquee.jsx
     |   |       NewsletterForm.jsx
+    |   |       ProductHero.jsx
     |   |       
     |   +---icons
     |   |       index.jsx
