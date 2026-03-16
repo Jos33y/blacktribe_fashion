@@ -1,22 +1,23 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router';
 import ImageGallery from '../../components/product/ImageGallery';
 import SizeSelector from '../../components/product/SizeSelector';
 import ColorSelector from '../../components/product/ColorSelector';
 import ScarcityIndicator from '../../components/product/ScarcityIndicator';
+import QuantitySelector from '../../components/product/QuantitySelector';
 import Badge from '../../components/ui/Badge';
 import ExpandableSection from '../../components/ui/ExpandableSection';
 import ProductCard from '../../components/product/ProductCard';
 import Skeleton from '../../components/ui/Skeleton';
+import { useToast } from '../../components/ui/Toast';
+import useCartStore from '../../store/cartStore';
+import useUIStore from '../../store/uiStore';
 import { getProductBySlug, getRelatedProducts, categories } from '../../utils/mockData';
 import { formatPrice } from '../../utils/formatPrice';
 import '../../styles/pages/ProductDetail.css';
 
 
-/* ═══════════════════════════════════════════════════════════
-   TRUST BAR
-   Three signals at the moment of decision.
-   ═══════════════════════════════════════════════════════════ */
+/* ═══ TRUST BAR ═══ */
 
 function TrustBar() {
   return (
@@ -44,9 +45,7 @@ function TrustBar() {
 }
 
 
-/* ═══════════════════════════════════════════════════════════
-   SHARE BUTTON
-   ═══════════════════════════════════════════════════════════ */
+/* ═══ SHARE BUTTON ═══ */
 
 function ShareButton({ product }) {
   const [copied, setCopied] = useState(false);
@@ -79,11 +78,9 @@ function ShareButton({ product }) {
 }
 
 
-/* ═══════════════════════════════════════════════════════════
-   MOBILE STICKY CTA
-   ═══════════════════════════════════════════════════════════ */
+/* ═══ MOBILE STICKY CTA ═══ */
 
-function MobileStickyBar({ product, onAddToBag, visible }) {
+function MobileStickyBar({ product, onAddToBag, visible, isSoldOut }) {
   if (!visible) return null;
 
   return (
@@ -93,8 +90,13 @@ function MobileStickyBar({ product, onAddToBag, visible }) {
           <span className="pd-sticky__name">{product.name}</span>
           <span className="pd-sticky__price">{formatPrice(product.price)}</span>
         </div>
-        <button className="pd-sticky__btn" onClick={onAddToBag} type="button">
-          {product.badge === 'PRE-ORDER' ? 'Pre-Order' : 'Add to Bag'}
+        <button
+          className="pd-sticky__btn"
+          onClick={onAddToBag}
+          disabled={isSoldOut}
+          type="button"
+        >
+          {isSoldOut ? 'Sold Out' : product.badge === 'PRE-ORDER' ? 'Pre-Order' : 'Add to Bag'}
         </button>
       </div>
     </div>
@@ -102,9 +104,7 @@ function MobileStickyBar({ product, onAddToBag, visible }) {
 }
 
 
-/* ═══════════════════════════════════════════════════════════
-   PRODUCT DETAIL PAGE
-   ═══════════════════════════════════════════════════════════ */
+/* ═══ PRODUCT DETAIL PAGE ═══ */
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -112,10 +112,15 @@ export default function ProductDetail() {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [sizeError, setSizeError] = useState('');
   const [showSticky, setShowSticky] = useState(false);
   const addBtnRef = useRef(null);
+
+  const { addToast } = useToast();
+  const addItem = useCartStore((s) => s.addItem);
+  const openCartDrawer = useUIStore((s) => s.openCartDrawer);
 
   /* ─── Load product ─── */
   useEffect(() => {
@@ -135,6 +140,7 @@ export default function ProductDetail() {
         setRelatedProducts([]);
       }
       setSelectedSize('');
+      setQuantity(1);
       setSizeError('');
       setLoading(false);
     }, 300);
@@ -174,8 +180,35 @@ export default function ProductDetail() {
     return () => obs.disconnect();
   }, [loading, product]);
 
+  /* ─── Stock for selected size ─── */
+  const selectedSizeStock = useMemo(() => {
+    if (!product?.sizes?.length) return null;
+    if (!selectedSize) return null;
+    const sizeObj = product.sizes.find((s) => (s.size || s.name) === selectedSize);
+    return sizeObj ? sizeObj.stock : null;
+  }, [product, selectedSize]);
+
+  /* ─── Is entire product sold out? ─── */
+  const isSoldOut = useMemo(() => {
+    if (!product?.sizes?.length) return false;
+    return product.sizes.every((s) => s.stock === 0);
+  }, [product]);
+
+  /* ─── Reset quantity when size changes ─── */
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedSize]);
+
+  /* ─── Remaining inventory ─── */
+  const getRemainingInventory = (p) => {
+    if (!p?.sizes || !p.show_inventory) return undefined;
+    return p.sizes.reduce((sum, s) => sum + (s.stock || 0), 0);
+  };
+
   /* ─── Add to bag ─── */
   const handleAddToBag = useCallback(() => {
+    if (isSoldOut) return;
+
     if (product?.sizes?.length > 0 && !selectedSize) {
       setSizeError('Select a size');
       const el = document.querySelector('.size-selector');
@@ -183,18 +216,27 @@ export default function ProductDetail() {
       return;
     }
     setSizeError('');
-    // TODO: cartStore.addItem() in Phase 3
-    console.log('Add to bag:', {
-      id: product.id, name: product.name,
-      size: selectedSize, color: selectedColor, price: product.price,
-    });
-  }, [product, selectedSize, selectedColor]);
 
-  /* ─── Remaining inventory from sizes ─── */
-  const getRemainingInventory = (p) => {
-    if (!p?.sizes || !p.show_inventory) return undefined;
-    return p.sizes.reduce((sum, s) => sum + (s.stock || 0), 0);
-  };
+    const added = addItem({
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: product.price,
+      size: selectedSize,
+      color: selectedColor,
+      image: product.images?.[0] || '',
+      badge: product.badge || null,
+      quantity,
+      maxStock: selectedSizeStock,
+    });
+
+    if (added) {
+      addToast('Added to bag.', 'success');
+      openCartDrawer();
+    } else {
+      addToast('Maximum stock reached for this size.', 'info');
+    }
+  }, [product, selectedSize, selectedColor, quantity, selectedSizeStock, isSoldOut, addItem, addToast, openCartDrawer]);
 
 
   /* ═══ LOADING ═══ */
@@ -242,6 +284,11 @@ export default function ProductDetail() {
   const categoryObj = categories.find((c) => c.id === product.category_id);
   const remainingInventory = getRemainingInventory(product);
 
+  /* ─── Button label ─── */
+  let addBtnLabel = 'Add to Bag';
+  if (isSoldOut) addBtnLabel = 'Sold Out';
+  else if (product.badge === 'PRE-ORDER') addBtnLabel = 'Pre-Order Now';
+
   return (
     <article className="pd">
 
@@ -264,7 +311,7 @@ export default function ProductDetail() {
       {/* ═══ MAIN LAYOUT ═══ */}
       <div className="pd-layout">
 
-        {/* LEFT: Gallery (scrolls naturally) */}
+        {/* LEFT: Gallery */}
         <div className="pd-gallery-col">
           <ImageGallery
             images={product.images}
@@ -320,17 +367,29 @@ export default function ProductDetail() {
                   {sizeError && <p className="pd-size-error" role="alert">{sizeError}</p>}
                 </>
               )}
+
+              {/* Quantity — only show when a size is selected (or no sizes exist) */}
+              {(!product.sizes?.length || selectedSize) && !isSoldOut && (
+                <div className="pd-quantity">
+                  <QuantitySelector
+                    quantity={quantity}
+                    maxStock={selectedSizeStock}
+                    onQuantityChange={setQuantity}
+                  />
+                </div>
+              )}
             </div>
 
             {/* BLOCK 3: Action */}
             <div className="pd-action">
               <button
                 ref={addBtnRef}
-                className="pd-add-btn"
+                className={`pd-add-btn ${isSoldOut ? 'pd-add-btn--disabled' : ''}`}
                 onClick={handleAddToBag}
+                disabled={isSoldOut}
                 type="button"
               >
-                {product.badge === 'PRE-ORDER' ? 'Pre-Order Now' : 'Add to Bag'}
+                {addBtnLabel}
               </button>
               <TrustBar />
             </div>
@@ -364,7 +423,6 @@ export default function ProductDetail() {
               </ExpandableSection>
             </div>
 
-            {/* Share */}
             <ShareButton product={product} />
 
           </div>
@@ -395,6 +453,7 @@ export default function ProductDetail() {
         product={product}
         onAddToBag={handleAddToBag}
         visible={showSticky}
+        isSoldOut={isSoldOut}
       />
 
     </article>

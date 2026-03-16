@@ -1,0 +1,535 @@
+/* ═══════════════════════════════════════════════════════════
+   CHECKOUT PAGE — BlackTribe Fashion
+   Desktop: form left, sticky summary right.
+   Mobile: sticky summary bar below navbar, form below, pay at end.
+   
+   v3 fixes:
+   - Title forced to literal 'Syne' (not variable) to bypass override
+   - Qty badge positioned inside image bounds (no clipping)
+   - Mobile summary bar sticky at top: var(--nav-height)
+   ═══════════════════════════════════════════════════════════ */
+
+.checkout {
+  min-height: 80vh;
+  padding-bottom: var(--space-8);
+}
+
+.checkout__inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 var(--content-padding);
+  padding-top: var(--space-4);
+}
+
+.checkout__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  margin-bottom: var(--space-4);
+  transition: color var(--duration-fast);
+}
+
+.checkout__back:hover {
+  color: var(--bt-text-secondary);
+}
+
+/*
+ * Title: Force Syne with literal value + !important.
+ * The variable --font-display resolves correctly in variables.css,
+ * but something upstream (possibly a parent element or inherited
+ * font-family from page-shared) is overriding at runtime.
+ * Literal 'Syne' with font-style: normal kills any serif leak.
+ */
+.checkout__title {
+  font-family: 'Syne', var(--font-display), sans-serif !important;
+  font-style: normal !important;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--bt-text);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0 0 var(--space-5);
+}
+
+
+/* ═══ SECTIONS ═══ */
+
+.checkout__section {
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.checkout__section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.checkout__section-title {
+  font-family: 'Syne', var(--font-display), sans-serif;
+  font-style: normal;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bt-text);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-4);
+}
+
+
+/* ═══ ADDRESS FORM ═══ */
+
+.checkout-address {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.checkout-address__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.checkout-address__half {
+  min-width: 0;
+}
+
+
+/* ═══ DISCOUNT INPUT ═══ */
+
+.checkout-discount {
+  max-width: 100%;
+}
+
+.checkout-discount__input-row {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--bt-border);
+}
+
+.checkout-discount__input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px var(--space-3);
+  background: transparent;
+  border: none;
+  color: var(--bt-text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.checkout-discount__input::placeholder {
+  color: var(--bt-text-muted);
+  text-transform: none;
+  font-family: var(--font-body);
+  letter-spacing: 0.01em;
+}
+
+.checkout-discount__input:focus {
+  outline: none;
+}
+
+.checkout-discount__apply {
+  padding: 0 var(--space-4);
+  background: var(--bt-surface);
+  color: var(--bt-text);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-left: 1px solid var(--bt-border);
+  transition: background var(--duration-fast);
+  white-space: nowrap;
+}
+
+.checkout-discount__apply:hover:not(:disabled) {
+  background: var(--bt-surface-hover);
+}
+
+.checkout-discount__apply:disabled {
+  opacity: 0.5;
+}
+
+.checkout-discount__error {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--bt-error);
+  margin-top: var(--space-2);
+}
+
+.checkout-discount--applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px var(--space-3);
+  background: var(--bt-success-bg);
+  border: 1px solid rgba(74, 222, 128, 0.15);
+}
+
+.checkout-discount__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkout-discount__code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bt-text);
+  letter-spacing: 0.06em;
+}
+
+.checkout-discount__savings {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--bt-success);
+}
+
+.checkout-discount__remove {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color var(--duration-fast);
+}
+
+.checkout-discount__remove:hover {
+  color: var(--bt-text);
+}
+
+
+/* ═══ ORDER SUMMARY ═══ */
+
+.checkout-summary {
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+}
+
+.checkout-summary__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+}
+
+.checkout-summary__toggle-label {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bt-text);
+}
+
+.checkout-summary__chevron {
+  color: var(--bt-text-muted);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.checkout-summary__chevron--up {
+  transform: rotate(180deg);
+}
+
+/* Items */
+.checkout-summary__items {
+  border-top: 1px solid var(--bt-border);
+  padding: var(--space-3) var(--space-4);
+}
+
+.checkout-summary__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.checkout-summary__item + .checkout-summary__item {
+  border-top: 1px solid var(--bt-border);
+}
+
+/*
+ * Item image: overflow visible so the qty badge can
+ * sit at the corner without clipping. The img itself
+ * gets its own overflow: hidden via border on the wrapper.
+ */
+.checkout-summary__item-image {
+  position: relative;
+  width: 56px;
+  height: 70px;
+  flex-shrink: 0;
+}
+
+.checkout-summary__item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--bt-canvas);
+}
+
+/*
+ * Qty badge: sits at top-right corner of the image.
+ * Only rendered when quantity > 1 (handled in JSX).
+ * Positioned at top: -6px, right: -6px — parent
+ * has no overflow:hidden so it won't clip.
+ */
+.checkout-summary__item-qty {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  background: var(--bt-text);
+  color: var(--bt-text-inverse);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.checkout-summary__item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkout-summary__item-name {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.checkout-summary__item-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.checkout-summary__item-price {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bt-text-secondary);
+  flex-shrink: 0;
+}
+
+/* Discount inside summary */
+.checkout-summary__discount {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--bt-border);
+}
+
+/* Totals */
+.checkout-summary__totals {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--bt-border);
+}
+
+.checkout-summary__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-1) 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+}
+
+.checkout-summary__row--discount {
+  color: var(--bt-success);
+}
+
+.checkout-summary__row--total {
+  padding-top: var(--space-3);
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--bt-border);
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--bt-text);
+}
+
+.checkout-summary__row--total span:last-child {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+
+/* ═══ PAY BUTTON ═══ */
+
+.checkout__pay {
+  margin-top: var(--space-4);
+}
+
+.checkout__pay-note {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--bt-text-muted);
+  text-align: center;
+  margin-top: var(--space-2);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE: Sticky summary bar below navbar + stacked layout
+   ═══════════════════════════════════════════════════════════ */
+
+/*
+ * Mobile summary bar: sticky below the navbar.
+ * z-index just below navbar (--z-sticky is 200).
+ * Background solid so it doesn't show content through.
+ */
+.checkout__mobile-summary {
+  position: sticky;
+  top: var(--nav-height);
+  z-index: calc(var(--z-sticky) - 1);
+  background: var(--bt-surface);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.checkout__mobile-summary-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px var(--content-padding);
+  text-align: left;
+}
+
+.checkout__mobile-summary-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text-secondary);
+}
+
+.checkout__mobile-summary-chevron {
+  color: var(--bt-text-muted);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.checkout__mobile-summary-chevron--up {
+  transform: rotate(180deg);
+}
+
+.checkout__mobile-summary-total {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--bt-text);
+}
+
+.checkout__mobile-summary-content {
+  padding: 0 var(--content-padding) var(--space-3);
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.checkout__mobile-summary-content .checkout-summary {
+  border: none;
+  background: transparent;
+}
+
+/* Desktop sidebar hidden on mobile */
+.checkout__sidebar {
+  display: none;
+}
+
+.checkout__pay--desktop {
+  display: none;
+}
+
+.checkout__pay--mobile {
+  display: block;
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--bt-border);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   DESKTOP: Side-by-side layout
+   ═══════════════════════════════════════════════════════════ */
+
+@media (min-width: 768px) {
+
+  .checkout__mobile-summary {
+    display: none;
+  }
+
+  .checkout__inner {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: var(--space-7);
+    align-items: start;
+  }
+
+  .checkout__title {
+    font-size: 32px;
+  }
+
+  .checkout__sidebar {
+    display: block;
+    padding-top: 60px;
+  }
+
+  .checkout__sidebar-inner {
+    position: sticky;
+    top: calc(var(--nav-height) + var(--space-4));
+  }
+
+  .checkout__pay--desktop {
+    display: block;
+  }
+
+  .checkout__pay--mobile {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .checkout__inner {
+    grid-template-columns: 1fr 420px;
+    gap: var(--space-8);
+  }
+}
+
+
+/* ═══ Reduced motion ═══ */
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout-summary__chevron,
+  .checkout__mobile-summary-chevron {
+    transition-duration: 0.01ms !important;
+  }
+}

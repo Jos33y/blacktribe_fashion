@@ -1,21 +1,31 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router';
 import Badge from '../ui/Badge';
 import SizeSelector from './SizeSelector';
+import QuantitySelector from './QuantitySelector';
+import { useToast } from '../ui/Toast';
+import useCartStore from '../../store/cartStore';
+import useUIStore from '../../store/uiStore';
 import { formatPrice } from '../../utils/formatPrice';
 import '../../styles/product/QuickView.css';
 
 export default function QuickView({ product, isOpen, onClose }) {
   const [activeImage, setActiveImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
+  const [quantity, setQuantity] = useState(1);
   const [sizeError, setSizeError] = useState('');
   const touchStartY = useRef(0);
   const imgTouchStartX = useRef(0);
+
+  const { addToast } = useToast();
+  const addItem = useCartStore((s) => s.addItem);
+  const openCartDrawer = useUIStore((s) => s.openCartDrawer);
 
   useEffect(() => {
     if (product) {
       setActiveImage(0);
       setSelectedSize('');
+      setQuantity(1);
       setSizeError('');
     }
   }, [product?.id]);
@@ -32,6 +42,21 @@ export default function QuickView({ product, isOpen, onClose }) {
     }
   }, [isOpen, onClose]);
 
+  /* ─── Stock for selected size ─── */
+  const selectedSizeStock = useMemo(() => {
+    if (!product?.sizes?.length || !selectedSize) return null;
+    const sizeObj = product.sizes.find((s) => (s.size || s.name) === selectedSize);
+    return sizeObj ? sizeObj.stock : null;
+  }, [product, selectedSize]);
+
+  const isSoldOut = useMemo(() => {
+    if (!product?.sizes?.length) return false;
+    return product.sizes.every((s) => s.stock === 0);
+  }, [product]);
+
+  /* Reset quantity on size change */
+  useEffect(() => { setQuantity(1); }, [selectedSize]);
+
   const handleDragStart = (e) => { touchStartY.current = e.changedTouches[0].screenY; };
   const handleDragEnd = (e) => {
     if (e.changedTouches[0].screenY - touchStartY.current > 100) onClose();
@@ -46,39 +71,60 @@ export default function QuickView({ product, isOpen, onClose }) {
   };
 
   const handleAddToBag = () => {
+    if (isSoldOut) return;
+
     if (product?.sizes?.length > 0 && !selectedSize) {
       setSizeError('Select a size');
       return;
     }
     setSizeError('');
-    console.log('Quick add:', { product: product?.id, size: selectedSize });
-    onClose();
+
+    const added = addItem({
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: product.price,
+      size: selectedSize,
+      color: product.colors?.[0]?.name || '',
+      image: product.images?.[0] || '',
+      badge: product.badge || null,
+      quantity,
+      maxStock: selectedSizeStock,
+    });
+
+    if (added) {
+      onClose();
+      addToast('Added to bag.', 'success');
+      setTimeout(() => openCartDrawer(), 200);
+    } else {
+      addToast('Maximum stock reached for this size.', 'info');
+    }
   };
 
   if (!product) return null;
 
+  let btnLabel = 'Add to Bag';
+  if (isSoldOut) btnLabel = 'Sold Out';
+  else if (product.badge === 'PRE-ORDER') btnLabel = 'Pre-Order Now';
+
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`qv-backdrop ${isOpen ? 'qv-backdrop--visible' : ''}`}
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Panel */}
       <aside
         className={`qv-panel ${isOpen ? 'qv-panel--open' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={`Quick view: ${product.name}`}
       >
-        {/* Drag zone (mobile only) */}
         <div className="qv-drag-zone" onTouchStart={handleDragStart} onTouchEnd={handleDragEnd}>
           <div className="qv-drag-bar" />
         </div>
 
-        {/* Header bar — gives the panel identity */}
         <div className="qv-header">
           <span className="qv-header-label">Quick View</span>
           <button className="qv-close" onClick={onClose} aria-label="Close" type="button">
@@ -88,18 +134,12 @@ export default function QuickView({ product, isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Scrollable content */}
         <div className="qv-content">
           {/* Gallery */}
           <div className="qv-gallery">
-            <div
-              className="qv-image-main"
-              onTouchStart={handleImgTouchStart}
-              onTouchEnd={handleImgTouchEnd}
-            >
+            <div className="qv-image-main" onTouchStart={handleImgTouchStart} onTouchEnd={handleImgTouchEnd}>
               <img src={product.images?.[activeImage]} alt={product.name} className="qv-image" draggable="false" />
             </div>
-
             {product.images?.length > 1 && (
               <div className="qv-thumbs">
                 {product.images.map((img, i) => (
@@ -117,10 +157,9 @@ export default function QuickView({ product, isOpen, onClose }) {
             )}
           </div>
 
-          {/* Product details */}
+          {/* Details */}
           <div className="qv-details">
             {product.badge && <div className="qv-badge"><Badge type={product.badge} /></div>}
-
             <h2 className="qv-name">{product.name}</h2>
             <p className="qv-price">{formatPrice(product.price)}</p>
 
@@ -138,12 +177,28 @@ export default function QuickView({ product, isOpen, onClose }) {
                 {sizeError && <p className="qv-size-error" role="alert">{sizeError}</p>}
               </>
             )}
+
+            {/* Quantity — show when size is selected or no sizes */}
+            {(!product.sizes?.length || selectedSize) && !isSoldOut && (
+              <div className="qv-quantity">
+                <QuantitySelector
+                  quantity={quantity}
+                  maxStock={selectedSizeStock}
+                  onQuantityChange={setQuantity}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Actions — pinned feel at bottom */}
+          {/* Actions */}
           <div className="qv-actions">
-            <button className="qv-add-btn" onClick={handleAddToBag} type="button">
-              {product.badge === 'PRE-ORDER' ? 'Pre-Order Now' : 'Add to Bag'}
+            <button
+              className={`qv-add-btn ${isSoldOut ? 'qv-add-btn--disabled' : ''}`}
+              onClick={handleAddToBag}
+              disabled={isSoldOut}
+              type="button"
+            >
+              {btnLabel}
             </button>
 
             <Link to={`/product/${product.slug}`} className="qv-details-link" onClick={onClose}>

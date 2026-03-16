@@ -1,0 +1,91 @@
+/* ═══════════════════════════════════════════════════════════
+   QUANTITY SELECTOR — BlackTribe Fashion
+   Standard: label + controls + limit message (PDP, QuickView)
+   Compact: controls only (CartItem)
+   ═══════════════════════════════════════════════════════════ */
+
+.qty-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qty-selector__label {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bt-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.qty-selector__controls {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--bt-border);
+}
+
+.qty-selector__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--bt-text-secondary);
+  transition: color var(--duration-fast) var(--ease-out),
+              background var(--duration-fast) var(--ease-out);
+}
+
+.qty-selector__btn:hover:not(:disabled) {
+  color: var(--bt-text);
+  background: var(--bt-surface);
+}
+
+.qty-selector__btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.qty-selector__btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.qty-selector__value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bt-text);
+  min-width: 36px;
+  text-align: center;
+  line-height: 40px;
+  user-select: none;
+}
+
+.qty-selector__limit {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.04em;
+}
+
+
+/* ─── Compact variant (inside CartItem) ─── */
+
+.qty-selector--compact .qty-selector__controls {
+  border-color: var(--bt-border);
+}
+
+.qty-selector--compact .qty-selector__btn {
+  width: 32px;
+  height: 32px;
+}
+
+.qty-selector--compact .qty-selector__value {
+  font-size: 11px;
+  min-width: 28px;
+  line-height: 32px;
+}
+
+.qty-selector--compact .qty-selector__limit {
+  display: none;
+}

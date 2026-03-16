@@ -9,16 +9,14 @@ const navLinks = [
   { to: '/about', label: 'About' },
 ];
 
-export default function Navbar({ onMenuToggle, onSearchOpen, bagCount = 0 }) {
+export default function Navbar({ onMenuToggle, onSearchOpen, onBagClick, bagCount = 0 }) {
   return (
     <header className="navbar" role="banner">
       <nav className="navbar__inner container" aria-label="Main navigation">
-        {/* Logo */}
         <Link to="/" className="navbar__logo" aria-label="BlackTribe Fashion home">
           BLACKTRIBE
         </Link>
 
-        {/* Desktop Nav Links */}
         <ul className="navbar__links" role="list">
           {navLinks.map(({ to, label }) => (
             <li key={to}>
@@ -34,7 +32,6 @@ export default function Navbar({ onMenuToggle, onSearchOpen, bagCount = 0 }) {
           ))}
         </ul>
 
-        {/* Right Actions */}
         <div className="navbar__actions">
           <button
             className="navbar__action"
@@ -48,6 +45,7 @@ export default function Navbar({ onMenuToggle, onSearchOpen, bagCount = 0 }) {
           <button
             className="navbar__action navbar__bag"
             aria-label={`Shopping bag, ${bagCount} items`}
+            onClick={onBagClick}
             type="button"
           >
             <BagIcon size={20} />
@@ -56,7 +54,6 @@ export default function Navbar({ onMenuToggle, onSearchOpen, bagCount = 0 }) {
             </span>
           </button>
 
-          {/* Mobile menu button */}
           <button
             className="navbar__action navbar__menu-btn"
             aria-label="Open menu"
