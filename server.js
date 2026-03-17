@@ -7,6 +7,11 @@ import cors from 'cors';
 import { validateEnv } from './server/config/env.js';
 import { errorHandler } from './server/middleware/errorHandler.js';
 
+// Route imports
+import cartRouter from './server/routes/cart.js';
+import ordersRouter from './server/routes/orders.js';
+import webhooksRouter from './server/routes/webhooks.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -34,23 +39,23 @@ app.get('/api/health', (req, res) => {
   res.json({ success: true, timestamp: new Date().toISOString() });
 });
 
-// TODO: Mount route files as they are built
+app.use('/api/cart', cartRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/webhooks', webhooksRouter);
+
+// TODO: Mount as built in later phases
 // app.use('/api/products', productsRouter);
 // app.use('/api/collections', collectionsRouter);
-// app.use('/api/cart', cartRouter);
-// app.use('/api/orders', ordersRouter);
 // app.use('/api/auth', authRouter);
 // app.use('/api/wishlist', wishlistRouter);
 // app.use('/api/newsletter', newsletterRouter);
 // app.use('/api/admin', adminRouter);
-// app.use('/api/webhooks', webhooksRouter);
 
 // Serve static files in production
 if (!isDev) {
   app.use(express.static(path.join(__dirname, 'dist')));
 
-  // SPA catch-all: serve index.html for all non-API routes
-  // Express 5: wildcards must be named, use {*splat} to match root + all paths
+  // Express 5: wildcards must be named
   app.get('/{*splat}', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
   });

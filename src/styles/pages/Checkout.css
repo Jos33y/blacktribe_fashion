@@ -56,6 +56,78 @@
 }
 
 
+/* ═══ PAYMENT ERROR BANNER ═══ */
+
+.checkout__error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 14px var(--space-3);
+  margin-bottom: var(--space-5);
+  background: var(--bt-error-bg);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+.checkout__error p {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-error);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.checkout__error-dismiss {
+  flex-shrink: 0;
+  color: var(--bt-error);
+  opacity: 0.6;
+  transition: opacity var(--duration-fast);
+}
+
+.checkout__error-dismiss:hover {
+  opacity: 1;
+}
+
+
+/* ═══ PENDING ORDER RECOVERY NOTICE ═══ */
+
+.checkout__recovery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 14px var(--space-3);
+  margin-bottom: var(--space-5);
+  background: var(--bt-info-bg);
+  border: 1px solid rgba(147, 197, 253, 0.15);
+}
+
+.checkout__recovery p {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-info);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.checkout__recovery-dismiss {
+  flex-shrink: 0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transition: color var(--duration-fast);
+}
+
+.checkout__recovery-dismiss:hover {
+  color: var(--bt-text);
+}
+
+
 /* ═══ SECTIONS ═══ */
 
 .checkout__section {

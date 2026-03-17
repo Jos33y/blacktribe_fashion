@@ -1,11 +1,11 @@
 /*
  * BLACKTRIBE FASHION — CART STORE
- * Zustand + sessionStorage persistence.
+ * Zustand + localStorage persistence (survives browser close).
  *
  * Cart item shape:
  *   { productId, name, slug, price, size, color, image, badge, quantity, maxStock }
  *
- * Unique key: productId + size (same product, different size = different line)
+ * Unique key: productId + size
  * All prices in kobo. maxStock enforced on add + update.
  */
 
@@ -15,7 +15,7 @@ const STORAGE_KEY = 'bt-cart';
 
 function loadCart() {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -23,7 +23,7 @@ function loadCart() {
 }
 
 function saveCart(items) {
-  try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {}
 }
 
 function itemKey(productId, size) {
@@ -33,10 +33,6 @@ function itemKey(productId, size) {
 const useCartStore = create((set, get) => ({
   items: loadCart(),
 
-  /**
-   * Add item. If same product+size exists, increment qty (capped at maxStock).
-   * Returns true if added/updated, false if at stock limit or invalid.
-   */
   addItem: ({ productId, name, slug, price, size, color, image, badge, quantity = 1, maxStock = null }) => {
     if (!productId || !name || !price) return false;
 
@@ -76,7 +72,6 @@ const useCartStore = create((set, get) => ({
     saveCart(next);
   },
 
-  /** Capped at maxStock. Removes if qty <= 0. */
   updateQuantity: (productId, size, quantity) => {
     if (quantity <= 0) { get().removeItem(productId, size); return; }
     const key = itemKey(productId, size);
