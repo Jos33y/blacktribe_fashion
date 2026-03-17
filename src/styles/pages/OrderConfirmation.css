@@ -1,0 +1,336 @@
+/* ═══════════════════════════════════════════════════════════
+   ORDER CONFIRMATION — BlackTribe Fashion
+   Premium receipt. The shareable image is the hero.
+   ═══════════════════════════════════════════════════════════ */
+
+.oc {
+  min-height: 80vh;
+  padding: var(--space-6) 0 var(--space-8);
+}
+
+.oc__inner {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 var(--content-padding);
+}
+
+.oc__center {
+  text-align: center;
+  padding-top: var(--space-8);
+}
+
+.oc__text {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--space-4);
+}
+
+
+/* ─── Header ─── */
+
+.oc__header {
+  text-align: center;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.oc__check {
+  margin: 0 auto var(--space-3);
+  opacity: 0;
+  animation: oc-check-in 0.6s var(--ease-out) 0.2s forwards;
+}
+
+@keyframes oc-check-in {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.oc__title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--bt-text);
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-2);
+}
+
+.oc__order-number {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.08em;
+  margin: 0 0 var(--space-4);
+}
+
+.oc__delivery {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+
+/* ─── Shareable image section ─── */
+
+.oc__share-section {
+  margin-bottom: var(--space-6);
+}
+
+.share-preview {
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--bt-border);
+  overflow: hidden;
+}
+
+.share-preview__image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+
+/* ─── Share buttons ─── */
+
+.oc-share-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.oc-share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  height: 48px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: opacity var(--duration-fast), background var(--duration-fast), border-color var(--duration-fast);
+}
+
+.oc-share-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.oc-share-btn--primary {
+  background: var(--bt-text);
+  color: var(--bt-text-inverse);
+}
+
+.oc-share-btn--primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.oc-share-btn--secondary {
+  background: transparent;
+  color: var(--bt-text);
+  border: 1px solid var(--bt-border-hover);
+}
+
+.oc-share-btn--secondary:hover:not(:disabled) {
+  border-color: var(--bt-text);
+}
+
+
+/* ─── Section label ─── */
+
+.oc__section-label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-3);
+}
+
+
+/* ─── Order details ─── */
+
+.oc__details {
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+
+/* Items */
+
+.oc__items {
+  margin-bottom: var(--space-4);
+}
+
+.oc__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+}
+
+.oc__item + .oc__item {
+  border-top: 1px solid var(--bt-border);
+}
+
+.oc__item-image {
+  width: 52px;
+  height: 64px;
+  background: var(--bt-canvas);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.oc__item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.oc__item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.oc__item-name {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text);
+  line-height: 1.3;
+}
+
+.oc__item-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.oc__item-price {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bt-text-secondary);
+  flex-shrink: 0;
+}
+
+
+/* Totals */
+
+.oc__totals {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--bt-border);
+}
+
+.oc__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+}
+
+.oc__row--discount {
+  color: var(--bt-success);
+}
+
+.oc__row--total {
+  padding-top: var(--space-3);
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--bt-border);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--bt-text);
+}
+
+.oc__row--total span:last-child {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+}
+
+
+/* ─── Shipping ─── */
+
+.oc__shipping {
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.oc__shipping-name {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--bt-text);
+  margin: 0 0 2px;
+}
+
+.oc__shipping-address {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+
+/* ─── Footer ─── */
+
+.oc__footer {
+  text-align: center;
+}
+
+.oc__continue {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bt-text);
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--bt-border-hover);
+  padding-bottom: 2px;
+  transition: border-color var(--duration-fast);
+}
+
+.oc__continue:hover {
+  border-color: var(--bt-text);
+}
+
+
+/* ─── Desktop ─── */
+
+@media (min-width: 768px) {
+  .oc__title {
+    font-size: 36px;
+  }
+}
+
+
+/* ─── Reduced motion ─── */
+
+@media (prefers-reduced-motion: reduce) {
+  .oc__check {
+    animation: none;
+    opacity: 1;
+  }
+}

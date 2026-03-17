@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import MobileNav from '../components/layout/MobileNav';
@@ -15,10 +15,13 @@ const navLinks = [
   { to: '/about', label: 'About' },
 ];
 
+/* Routes where the cart drawer should not render */
+const NO_CART_DRAWER_ROUTES = ['/checkout', '/order-confirmation', '/pay'];
+
 export default function StoreLayout() {
   const location = useLocation();
-  const navigate = useNavigate();
 
+  /* ─── UI state from Zustand ─── */
   const mobileNavOpen = useUIStore((s) => s.mobileNavOpen);
   const searchOpen = useUIStore((s) => s.searchOpen);
   const openMobileNav = useUIStore((s) => s.openMobileNav);
@@ -28,21 +31,28 @@ export default function StoreLayout() {
   const openCartDrawer = useUIStore((s) => s.openCartDrawer);
   const closeAll = useUIStore((s) => s.closeAll);
 
+  /* ─── Cart state ─── */
   const bagCount = useCartStore((s) => s.getItemCount());
 
-  const isCheckout = location.pathname === '/checkout';
+  /* ─── Determine if cart drawer is allowed on this route ─── */
+  const hideCartDrawer = NO_CART_DRAWER_ROUTES.some(
+    (route) => location.pathname.startsWith(route)
+  );
 
+  /* ─── Close overlays and scroll to top on route change ─── */
   useEffect(() => {
     closeAll();
     window.scrollTo(0, 0);
   }, [location.pathname, closeAll]);
 
-  /* ─── Bag click: on checkout, scroll to summary. Otherwise, open drawer. ─── */
+  /* ─── Bag click handler ─── */
   const handleBagClick = () => {
-    if (isCheckout) {
-      // On checkout, scroll to the order summary instead of opening drawer
-      const summary = document.querySelector('.checkout-summary');
-      if (summary) summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (hideCartDrawer) {
+      // On checkout: scroll to order summary
+      const summary = document.querySelector('.checkout__sidebar');
+      if (summary) {
+        summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
       return;
     }
     openCartDrawer();
@@ -72,8 +82,7 @@ export default function StoreLayout() {
         onClose={closeSearch}
       />
 
-      {/* Don't render cart drawer on checkout — summary is inline */}
-      {!isCheckout && <CartDrawer />}
+      {!hideCartDrawer && <CartDrawer />}
 
       <main id="main-content">
         <Outlet />

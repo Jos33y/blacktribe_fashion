@@ -5,7 +5,8 @@ import StoreLayout from '../layouts/StoreLayout';
 import Skeleton from '../components/ui/Skeleton';
 import {
   Home, NotFound, Shop, ProductDetail, Collections, CollectionDetail,
-  Checkout, OrderConfirmation, OrderTracking, Auth, Account,
+  Checkout, OrderConfirmation, OrderTracking, PaymentPage,
+  Auth, Account,
   About, Contact, Lookbook, FAQ,
   Terms, Privacy, ShippingReturns, RefundPolicy,
   Dashboard, Products, ProductForm, Orders, OrderDetail,
@@ -46,6 +47,7 @@ export default function App() {
               <Route path="refund-policy" element={<RefundPolicy />} />
               <Route path="checkout" element={<Checkout />} />
               <Route path="order-confirmation/:id" element={<OrderConfirmation />} />
+              <Route path="pay/:orderNumber" element={<PaymentPage />} />
               <Route path="track" element={<OrderTracking />} />
               <Route path="auth" element={<Auth />} />
               <Route path="account" element={<Account />} />

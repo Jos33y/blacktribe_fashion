@@ -14,6 +14,7 @@ export const CollectionDetail = lazy(() => import('../pages/shop/CollectionDetai
 export const Checkout = lazy(() => import('../pages/checkout/Checkout'));
 export const OrderConfirmation = lazy(() => import('../pages/checkout/OrderConfirmation'));
 export const OrderTracking = lazy(() => import('../pages/checkout/OrderTracking'));
+export const PaymentPage = lazy(() => import('../pages/checkout/PaymentPage'));
 
 // Auth pages
 export const Auth = lazy(() => import('../pages/auth/Auth'));

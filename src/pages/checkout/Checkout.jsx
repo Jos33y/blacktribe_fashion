@@ -9,7 +9,7 @@ import useUIStore from '../../store/uiStore';
 import { formatPrice } from '../../utils/formatPrice';
 import '../../styles/pages/Checkout.css';
 
-/* ─── Mock discounts (replaced by API in Phase 5) ─── */
+/* ─── Mock discounts ─── */
 const MOCK_DISCOUNTS = {
   TRIBE10: { type: 'percentage', value: 10, minOrder: 5000000 },
   SHADOW20: { type: 'percentage', value: 20, minOrder: 10000000 },
@@ -21,12 +21,7 @@ const DEFAULT_SHIPPING = 350000;
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
-/* ═══════════════════════════════════════════════════════════
-   PERSISTENCE — localStorage for form + pending order
-   Survives browser close. Customer comes back, picks up
-   exactly where they left off.
-   ═══════════════════════════════════════════════════════════ */
-
+/* ─── Persistence (localStorage — survives browser close) ─── */
 const CHECKOUT_STORAGE = 'bt-checkout';
 const PENDING_ORDER_STORAGE = 'bt-pending-order';
 
@@ -50,7 +45,6 @@ function loadPendingOrder() {
     const raw = localStorage.getItem(PENDING_ORDER_STORAGE);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    // Expire pending orders older than 24 hours
     if (parsed.createdAt && Date.now() - parsed.createdAt > 24 * 60 * 60 * 1000) {
       localStorage.removeItem(PENDING_ORDER_STORAGE);
       return null;
@@ -71,9 +65,7 @@ function clearPendingOrder() {
   try { localStorage.removeItem(PENDING_ORDER_STORAGE); } catch {}
 }
 
-
-/* ═══ Validation ═══ */
-
+/* ─── Validation ─── */
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -90,10 +82,6 @@ function validateCheckout(contact, address) {
 }
 
 
-/* ═══════════════════════════════════════════════════════════
-   CHECKOUT PAGE
-   ═══════════════════════════════════════════════════════════ */
-
 export default function Checkout() {
   const navigate = useNavigate();
   const items = useCartStore((s) => s.items);
@@ -101,9 +89,16 @@ export default function Checkout() {
   const clearCart = useCartStore((s) => s.clearCart);
   const closeCartDrawer = useUIStore((s) => s.closeCartDrawer);
 
+  /*
+   * paymentComplete ref prevents the empty-cart redirect from firing
+   * after clearCart(). Without this, clearCart() sets items to [],
+   * the useEffect sees items.length === 0, and navigates to '/'
+   * before navigate('/order-confirmation/...') can complete.
+   */
+  const paymentComplete = useRef(false);
+
   useEffect(() => { closeCartDrawer(); }, [closeCartDrawer]);
 
-  /* ─── Load persisted state ─── */
   const saved = useRef(loadFormState());
   const pendingOrder = useRef(loadPendingOrder());
 
@@ -120,18 +115,17 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState('');
   const [mobileExpanded, setMobileExpanded] = useState(false);
-
-  /* ─── Show recovery message if pending order exists ─── */
   const [showRecovery, setShowRecovery] = useState(!!pendingOrder.current);
 
-  /* ─── Persist form on every change ─── */
   useEffect(() => {
     saveFormState({ contact, address, discount: appliedDiscount });
   }, [contact, address, appliedDiscount]);
 
-  /* ─── Redirect if cart empty ─── */
+  /* ─── Redirect if cart empty (but NOT after successful payment) ─── */
   useEffect(() => {
-    if (items.length === 0) navigate('/', { replace: true });
+    if (items.length === 0 && !paymentComplete.current) {
+      navigate('/', { replace: true });
+    }
   }, [items.length, navigate]);
 
   useEffect(() => {
@@ -139,7 +133,6 @@ export default function Checkout() {
     return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
   }, []);
 
-  /* ─── Calculations ─── */
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING;
 
   const discountAmount = (() => {
@@ -168,11 +161,9 @@ export default function Checkout() {
 
 
   /* ═══════════════════════════════════════════════════════════
-     PAYMENT FLOW
-     - Detects pending order and reuses it (no duplicates)
-     - Fresh Paystack transaction on every attempt
-     - Saves pending state on cancel for recovery
-     - Clears everything on success
+     PAYMENT FLOW — Paystack Inline v2
+     Uses: new PaystackPop() → .newTransaction()
+     This opens a true iframe popup overlay on the page.
      ═══════════════════════════════════════════════════════════ */
 
   const handleSubmit = async () => {
@@ -190,7 +181,7 @@ export default function Checkout() {
     setSubmitting(true);
 
     try {
-      // ─── Check for existing pending order to retry ───
+      // ─── 1. Create/retry order on server ───
       const existing = loadPendingOrder();
 
       const payload = {
@@ -203,13 +194,10 @@ export default function Checkout() {
         total,
       };
 
-      // If we have a pending order, send its ID so server reuses it
       if (existing?.orderId) {
         payload.pendingOrderId = existing.orderId;
-        console.log(`[checkout] Retrying pending order: ${existing.orderId}`);
       }
 
-      // ─── 1. Create/retry order + initialize Paystack ───
       const res = await fetch('/api/cart/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -222,21 +210,37 @@ export default function Checkout() {
         throw new Error(result.error || 'Failed to create order.');
       }
 
-      const { orderId, orderNumber, accessCode, reference } = result.data;
+      const { orderId, orderNumber, reference, email, amount } = result.data;
 
-      // ─── 2. Save pending order (in case payment is cancelled) ───
+      // Save pending order for recovery
       savePendingOrder(orderId, orderNumber, reference);
 
-      // ─── 3. Open Paystack inline popup ───
-      if (!window.PaystackPop) {
+      // ─── 2. Open Paystack inline popup (v2 API) ───
+      if (typeof window.PaystackPop === 'undefined') {
         throw new Error('Payment system is loading. Please try again.');
       }
 
-      const popup = new window.PaystackPop();
-      popup.resumeTransaction(accessCode, {
+      const paystackInstance = new window.PaystackPop();
+
+      paystackInstance.newTransaction({
+        key: PAYSTACK_PUBLIC_KEY,
+        email: email,
+        amount: amount,
+        ref: reference,
+        currency: 'NGN',
+        channels: ['card', 'bank', 'ussd', 'bank_transfer'],
+        metadata: {
+          order_id: orderId,
+          order_number: orderNumber,
+          custom_fields: [
+            { display_name: 'Order Number', variable_name: 'order_number', value: orderNumber || '' },
+          ],
+        },
+
         onSuccess: (transaction) => {
-          console.log('[paystack] Payment success:', transaction);
-          // Clear everything — order is paid
+          console.log('[paystack] Payment success:', transaction.reference);
+          // Set flag BEFORE clearing cart to prevent redirect race
+          paymentComplete.current = true;
           clearCart();
           clearFormState();
           clearPendingOrder();
@@ -245,17 +249,22 @@ export default function Checkout() {
         },
 
         onCancel: () => {
-          console.log('[paystack] Payment cancelled — order preserved for retry');
+          console.log('[paystack] Popup closed — order preserved for retry');
           setSubmitting(false);
           setPaymentError('Payment was cancelled. Your order has been saved. You can try again anytime.');
-          // Pending order stays in localStorage for recovery
+
+          // Send payment reminder email (one time only, non-blocking)
+          fetch(`/api/orders/${orderId}/remind`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: contact.email }),
+          }).catch(() => {});
         },
 
         onError: (error) => {
           console.error('[paystack] Payment error:', error);
           setSubmitting(false);
           setPaymentError('Payment could not be completed. Please try again.');
-          // Pending order stays for retry
         },
       });
 
@@ -267,7 +276,6 @@ export default function Checkout() {
   };
 
 
-  /* ─── Clear pending order (if customer wants to start fresh) ─── */
   const handleClearPending = () => {
     clearPendingOrder();
     pendingOrder.current = null;
@@ -275,12 +283,11 @@ export default function Checkout() {
   };
 
 
-  if (items.length === 0) return null;
+  if (items.length === 0 && !paymentComplete.current) return null;
 
   return (
     <div className="checkout page-enter">
 
-      {/* ═══ MOBILE: Sticky summary bar ═══ */}
       <div className="checkout__mobile-summary">
         <button
           className="checkout__mobile-summary-toggle"
@@ -328,7 +335,6 @@ export default function Checkout() {
 
           <h1 className="checkout__title">Checkout</h1>
 
-          {/* ─── Recovery notice (pending order from previous session) ─── */}
           {showRecovery && (
             <div className="checkout__recovery" role="status">
               <p>You have an incomplete order. Click Pay to complete your purchase.</p>
@@ -342,7 +348,6 @@ export default function Checkout() {
             </div>
           )}
 
-          {/* ─── Payment error banner ─── */}
           {paymentError && (
             <div className="checkout__error" role="alert">
               <p>{paymentError}</p>

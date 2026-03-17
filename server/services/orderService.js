@@ -47,9 +47,12 @@ export async function createOrder({
   }
 
   // Insert order items (snapshots)
+  // product_id must be a valid UUID or null (mock IDs like "prod-001" aren't UUIDs)
+  const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
   const orderItems = items.map((item) => ({
     order_id: order.id,
-    product_id: item.productId,
+    product_id: isUUID(item.productId) ? item.productId : null,
     name: item.name,
     price: item.price,
     quantity: item.quantity,
@@ -134,9 +137,11 @@ export async function retryOrder({
     .delete()
     .eq('order_id', orderId);
 
+  const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
   const orderItems = items.map((item) => ({
     order_id: orderId,
-    product_id: item.productId,
+    product_id: isUUID(item.productId) ? item.productId : null,
     name: item.name,
     price: item.price,
     quantity: item.quantity,
