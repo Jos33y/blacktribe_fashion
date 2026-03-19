@@ -1,11 +1,21 @@
 import { useEffect, useRef } from 'react';
 import { NavLink } from 'react-router';
 import { CloseIcon } from '../icons';
+import useAuth from '../../hooks/useAuth';
+import useAuthStore from '../../store/authStore';
 import '../../styles/layout/MobileNav.css';
 
 export default function MobileNav({ isOpen, onClose, navLinks }) {
   const navRef = useRef(null);
   const closeRef = useRef(null);
+
+  const { isAuthenticated, isAdmin, displayName } = useAuth();
+  const signOut = useAuthStore((s) => s.signOut);
+
+  const handleSignOut = async () => {
+    onClose();
+    await signOut();
+  };
 
   // Close on Escape
   useEffect(() => {
@@ -101,9 +111,35 @@ export default function MobileNav({ isOpen, onClose, navLinks }) {
         </ul>
 
         <div className="mobile-nav__footer">
-          <NavLink to="/auth" className="mobile-nav__link" onClick={onClose}>
-            Sign In
-          </NavLink>
+          {isAuthenticated ? (
+            <>
+              {displayName && (
+                <span className="mobile-nav__user-name">{displayName}</span>
+              )}
+              <NavLink to="/account" className="mobile-nav__link" onClick={onClose}>
+                Your Tribe
+              </NavLink>
+              <NavLink to="/account?tab=orders" className="mobile-nav__link" onClick={onClose}>
+                Orders
+              </NavLink>
+              {isAdmin && (
+                <NavLink to="/admin" className="mobile-nav__link" onClick={onClose}>
+                  Admin
+                </NavLink>
+              )}
+              <button
+                className="mobile-nav__link mobile-nav__signout"
+                onClick={handleSignOut}
+                type="button"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <NavLink to="/auth" className="mobile-nav__link" onClick={onClose}>
+              Sign In
+            </NavLink>
+          )}
         </div>
       </nav>
     </>

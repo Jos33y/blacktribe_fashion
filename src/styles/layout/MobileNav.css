@@ -108,6 +108,9 @@
 .mobile-nav__footer {
   padding: var(--space-4) var(--content-padding);
   border-top: 1px solid var(--bt-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .mobile-nav__footer .mobile-nav__link {
@@ -116,6 +119,34 @@
   font-weight: var(--weight-regular);
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  min-height: 48px;
+}
+
+
+/* ─── User name (shown when logged in) ─── */
+
+.mobile-nav__user-name {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bt-text);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+
+/* ─── Sign out button ─── */
+
+.mobile-nav__signout {
+  color: var(--bt-text-muted);
+  text-align: left;
+  width: 100%;
+}
+
+.mobile-nav__signout:hover {
+  color: var(--bt-text);
 }
 
 

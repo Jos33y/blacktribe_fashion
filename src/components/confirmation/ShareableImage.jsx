@@ -1,23 +1,28 @@
 import { useRef, useEffect, useState } from 'react';
 
 /**
- * ShareableImage v2 — branded Stories card.
+ * ShareableImage v3 — Split composition lookbook card.
  *
- * Design philosophy: The product IS the image.
- * Not a product photo on a white square inside a dark rectangle.
- * Full-bleed dark canvas. Product large and centered.
- * BLACKTRIBE wordmark + order number as subtle overlays.
- * Like a campaign image with a receipt watermark.
+ * Design: White product zone (~71%) + dark brand bar (~29%).
+ * The product IS the image. Brand bar is tight and confident.
+ * Adapts layout based on item count:
+ *   1 item  → single product, full white zone
+ *   2 items → side by side columns
+ *   3 items → hero top row + 2 bottom
+ *   4+ items → 2×2 grid, last cell badges remaining count
  *
  * 1080×1350 (Instagram feed/Stories compatible ratio)
+ * No personal details: no price, email, or address.
+ * Only: product images, BLACKTRIBE wordmark, order number.
  */
-export default function ShareableImage({ orderNumber, productImage, productName, onReady }) {
+export default function ShareableImage({ orderNumber, items = [], onReady }) {
   const canvasRef = useRef(null);
   const [imageUrl, setImageUrl] = useState(null);
+  const blobUrlRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !items.length) return;
 
     const ctx = canvas.getContext('2d');
     const W = 1080;
@@ -26,145 +31,263 @@ export default function ShareableImage({ orderNumber, productImage, productName,
     canvas.width = W;
     canvas.height = H;
 
-    const render = (img) => {
-      // ─── Dark background ───
-      ctx.fillStyle = '#0C0C0C';
-      ctx.fillRect(0, 0, W, H);
+    /* ─── Layout constants ─── */
+    const PRODUCT_H = 960;
+    const BAR_Y = PRODUCT_H;
+    const BAR_H = H - PRODUCT_H;
+    const PAD = 40;
+    const GAP = 12;
+    const ZONE_W = W - PAD * 2;
+    const ZONE_H = PRODUCT_H - PAD * 2;
 
-      // ─── Product image: large, centered, on white canvas ───
-      if (img) {
-        const imgPadding = 80;
-        const maxImgW = W - imgPadding * 2;
-        const maxImgH = H - 360; // Leave room for text above and below
+    /* ─── Image loading ─── */
+    const loadImage = (src) =>
+      new Promise((resolve) => {
+        if (!src) return resolve(null);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
 
-        // White product canvas
-        const canvasW = maxImgW;
-        const canvasH = maxImgH;
-        const canvasX = (W - canvasW) / 2;
-        const canvasY = 160;
+    const displayItems = items.slice(0, 4);
+    const extraCount = Math.max(0, items.length - 4);
 
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(canvasX, canvasY, canvasW, canvasH);
+    /* Load product images + tribal mask logo in parallel */
+    const logoPromise = loadImage('/logo_white.png');
+    const productPromises = displayItems.map((item) => loadImage(item.image_url));
 
-        // Draw product image maintaining aspect ratio, filling the white area
-        const imgAspect = img.width / img.height;
-        const areaAspect = canvasW / canvasH;
-        let drawW, drawH, drawX, drawY;
-
-        const innerPad = 48;
-
-        if (imgAspect > areaAspect) {
-          // Image is wider — fit to width
-          drawW = canvasW - innerPad * 2;
-          drawH = drawW / imgAspect;
-        } else {
-          // Image is taller — fit to height
-          drawH = canvasH - innerPad * 2;
-          drawW = drawH * imgAspect;
-        }
-
-        drawX = canvasX + (canvasW - drawW) / 2;
-        drawY = canvasY + (canvasH - drawH) / 2;
-
-        ctx.drawImage(img, drawX, drawY, drawW, drawH);
-
-        // ─── Subtle gradient overlay at bottom of white area ───
-        const grad = ctx.createLinearGradient(0, canvasY + canvasH - 120, 0, canvasY + canvasH);
-        grad.addColorStop(0, 'rgba(255,255,255,0)');
-        grad.addColorStop(1, 'rgba(255,255,255,0.9)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(canvasX, canvasY + canvasH - 120, canvasW, 120);
+    Promise.all([logoPromise, ...productPromises]).then(
+      ([logo, ...images]) => {
+        render(ctx, W, H, PRODUCT_H, BAR_Y, BAR_H, PAD, GAP, ZONE_W, ZONE_H, images, displayItems.length, extraCount, orderNumber, logo, canvas);
       }
+    );
 
-      // ─── BLACKTRIBE wordmark (top, large, confident) ───
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#EDEBE8';
-      ctx.font = '800 42px "Syne", "Helvetica Neue", sans-serif';
-      ctx.letterSpacing = '8px';
-      ctx.fillText('BLACKTRIBE', W / 2, 100);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [orderNumber, items, onReady]);
 
-      // ─── Thin accent line below wordmark ───
-      ctx.strokeStyle = '#3A3A3A';
-      ctx.lineWidth = 0.5;
-      ctx.beginPath();
-      ctx.moveTo(W / 2 - 40, 120);
-      ctx.lineTo(W / 2 + 40, 120);
-      ctx.stroke();
-
-      // ─── Product name (bottom area, clean) ───
-      const nameText = (productName || '').toUpperCase();
-      ctx.fillStyle = '#EDEBE8';
-      ctx.font = '500 22px "Outfit", "Helvetica Neue", sans-serif';
-      ctx.letterSpacing = '4px';
-      ctx.fillText(nameText, W / 2, H - 150);
-
-      // ─── Order number ───
-      ctx.fillStyle = '#6A6662';
-      ctx.font = '400 16px "DM Mono", "Courier New", monospace';
-      ctx.letterSpacing = '2px';
-      ctx.fillText(orderNumber || '', W / 2, H - 110);
-
-      // ─── Tagline ───
-      ctx.fillStyle = '#2A2A2A';
-      ctx.font = '300 13px "Outfit", "Helvetica Neue", sans-serif';
-      ctx.letterSpacing = '8px';
-      ctx.fillText('REDEFINING LUXURY', W / 2, H - 60);
-
-      // ─── Subtle corner border (premium feel) ───
-      const cornerLen = 40;
-      const margin = 32;
-      ctx.strokeStyle = '#2A2A2A';
-      ctx.lineWidth = 1;
-
-      // Top-left
-      ctx.beginPath();
-      ctx.moveTo(margin, margin + cornerLen);
-      ctx.lineTo(margin, margin);
-      ctx.lineTo(margin + cornerLen, margin);
-      ctx.stroke();
-
-      // Top-right
-      ctx.beginPath();
-      ctx.moveTo(W - margin - cornerLen, margin);
-      ctx.lineTo(W - margin, margin);
-      ctx.lineTo(W - margin, margin + cornerLen);
-      ctx.stroke();
-
-      // Bottom-left
-      ctx.beginPath();
-      ctx.moveTo(margin, H - margin - cornerLen);
-      ctx.lineTo(margin, H - margin);
-      ctx.lineTo(margin + cornerLen, H - margin);
-      ctx.stroke();
-
-      // Bottom-right
-      ctx.beginPath();
-      ctx.moveTo(W - margin - cornerLen, H - margin);
-      ctx.lineTo(W - margin, H - margin);
-      ctx.lineTo(W - margin, H - margin - cornerLen);
-      ctx.stroke();
-
-      // ─── Generate blob ───
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          setImageUrl(url);
-          onReady?.(blob, url);
-        }
-      }, 'image/png');
+  /* ─── Cleanup blob URL on unmount ─── */
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
     };
+  }, []);
 
-    // ─── Load product image ───
-    if (productImage) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => render(img);
-      img.onerror = () => render(null);
-      img.src = productImage;
+
+  /* ═══════════════════════════════════════════════════════════
+     RENDER — Main Canvas drawing function
+     ═══════════════════════════════════════════════════════════ */
+
+  function render(ctx, W, H, PRODUCT_H, BAR_Y, BAR_H, PAD, GAP, ZONE_W, ZONE_H, images, count, extraCount, orderNumber, logo, canvas) {
+
+    /* ─── Product zone: white background ─── */
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, W, PRODUCT_H);
+
+
+    /* ─── Draw products based on item count ─── */
+    if (count === 1) {
+      drawSingleProduct(ctx, images[0], PAD, PAD, ZONE_W, ZONE_H);
+
+    } else if (count === 2) {
+      const cellW = (ZONE_W - GAP) / 2;
+      drawGridCell(ctx, images[0], PAD, PAD, cellW, ZONE_H);
+      drawGridCell(ctx, images[1], PAD + cellW + GAP, PAD, cellW, ZONE_H);
+
+    } else if (count === 3) {
+      const cellH = (ZONE_H - GAP) / 2;
+      const cellW = (ZONE_W - GAP) / 2;
+      // Hero: first item spans full width
+      drawGridCell(ctx, images[0], PAD, PAD, ZONE_W, cellH);
+      // Bottom row: two items
+      drawGridCell(ctx, images[1], PAD, PAD + cellH + GAP, cellW, cellH);
+      drawGridCell(ctx, images[2], PAD + cellW + GAP, PAD + cellH + GAP, cellW, cellH);
+
     } else {
-      render(null);
+      const cellW = (ZONE_W - GAP) / 2;
+      const cellH = (ZONE_H - GAP) / 2;
+      drawGridCell(ctx, images[0], PAD, PAD, cellW, cellH);
+      drawGridCell(ctx, images[1], PAD + cellW + GAP, PAD, cellW, cellH);
+      drawGridCell(ctx, images[2], PAD, PAD + cellH + GAP, cellW, cellH);
+      drawGridCell(ctx, images[3], PAD + cellW + GAP, PAD + cellH + GAP, cellW, cellH);
+
+      // "+ X MORE" badge on last cell when more than 4 items
+      if (extraCount > 0) {
+        drawMoreBadge(
+          ctx,
+          PAD + cellW + GAP,
+          PAD + cellH + GAP,
+          cellW,
+          cellH,
+          extraCount,
+        );
+      }
     }
-  }, [orderNumber, productImage, productName, onReady]);
+
+
+    /* ─── Brand bar: dark background ─── */
+    ctx.fillStyle = '#0C0C0C';
+    ctx.fillRect(0, BAR_Y, W, BAR_H);
+
+
+    /* ─── Gradient divider between zones ─── */
+    const divGrad = ctx.createLinearGradient(W * 0.2, BAR_Y, W * 0.8, BAR_Y);
+    divGrad.addColorStop(0, 'rgba(58, 58, 58, 0)');
+    divGrad.addColorStop(0.5, 'rgba(58, 58, 58, 0.8)');
+    divGrad.addColorStop(1, 'rgba(58, 58, 58, 0)');
+    ctx.strokeStyle = divGrad;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.2, BAR_Y + 0.5);
+    ctx.lineTo(W * 0.8, BAR_Y + 0.5);
+    ctx.stroke();
+
+
+    /* ─── Tribal mask watermark (right side of brand bar) ─── */
+    if (logo) {
+      ctx.save();
+      ctx.globalAlpha = 0.04;
+      const logoH = 240;
+      const logoW = logoH * (logo.width / logo.height);
+      const logoX = W - logoW - 24;
+      const logoY = BAR_Y + (BAR_H - logoH) / 2;
+      ctx.drawImage(logo, logoX, logoY, logoW, logoH);
+      ctx.restore();
+    }
+
+
+    /* ─── BLACKTRIBE wordmark ─── */
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#EDEBE8';
+    ctx.font = '800 48px "Syne", "Helvetica Neue", Arial, sans-serif';
+    setLetterSpacing(ctx, '14px');
+    ctx.fillText('BLACKTRIBE', W / 2, BAR_Y + 155);
+    setLetterSpacing(ctx, '0px');
+
+
+    /* ─── Order number ─── */
+    ctx.fillStyle = '#9B9894';
+    ctx.font = '400 20px "DM Mono", "Courier New", monospace';
+    setLetterSpacing(ctx, '3px');
+    ctx.fillText(orderNumber || '', W / 2, BAR_Y + 210);
+    setLetterSpacing(ctx, '0px');
+
+
+    /* ─── Tagline (anchored near bottom) ─── */
+    ctx.fillStyle = '#6A6662';
+    ctx.font = '300 16px "Outfit", "Helvetica Neue", Arial, sans-serif';
+    setLetterSpacing(ctx, '10px');
+    ctx.fillText('REDEFINING LUXURY', W / 2, BAR_Y + BAR_H - 48);
+    setLetterSpacing(ctx, '0px');
+
+
+    /* ─── Generate blob ─── */
+    canvas.toBlob((blob) => {
+      if (blob) {
+        // Revoke previous URL to prevent memory leaks
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+        }
+        const url = URL.createObjectURL(blob);
+        blobUrlRef.current = url;
+        setImageUrl(url);
+        onReady?.(blob, url);
+      }
+    }, 'image/png');
+  }
+
+
+  /* ═══════════════════════════════════════════════════════════
+     HELPERS
+     ═══════════════════════════════════════════════════════════ */
+
+  /**
+   * Single product — fills the entire white zone.
+   * No cell background (the zone is already white).
+   */
+  function drawSingleProduct(ctx, img, x, y, w, h) {
+    if (!img) return;
+    const pad = 24;
+    drawImageFit(ctx, img, x + pad, y + pad, w - pad * 2, h - pad * 2);
+  }
+
+  /**
+   * Grid cell — warm grey background with product image centered inside.
+   * Used for multi-item layouts (2, 3, 4+).
+   */
+  function drawGridCell(ctx, img, x, y, w, h) {
+    ctx.fillStyle = '#F5F3F0';
+    ctx.fillRect(x, y, w, h);
+
+    if (!img) return;
+    const pad = 16;
+    drawImageFit(ctx, img, x + pad, y + pad, w - pad * 2, h - pad * 2);
+  }
+
+  /**
+   * Draw image maintaining aspect ratio, centered within the given area.
+   */
+  function drawImageFit(ctx, img, x, y, w, h) {
+    const imgAspect = img.width / img.height;
+    const areaAspect = w / h;
+    let drawW, drawH;
+
+    if (imgAspect > areaAspect) {
+      // Image is wider than area — fit to width
+      drawW = w;
+      drawH = w / imgAspect;
+    } else {
+      // Image is taller than area — fit to height
+      drawH = h;
+      drawW = h * imgAspect;
+    }
+
+    const drawX = x + (w - drawW) / 2;
+    const drawY = y + (h - drawH) / 2;
+    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+  }
+
+  /**
+   * "+ X MORE" badge overlay on the last grid cell.
+   * Semi-transparent dark strip at the bottom of the cell.
+   */
+  function drawMoreBadge(ctx, cellX, cellY, cellW, cellH, count) {
+    const stripH = 56;
+    const stripY = cellY + cellH - stripH;
+
+    // Dark overlay strip at bottom of cell
+    ctx.fillStyle = 'rgba(12, 12, 12, 0.78)';
+    ctx.fillRect(cellX, stripY, cellW, stripH);
+
+    // Badge text
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#EDEBE8';
+    ctx.font = '500 20px "DM Mono", "Courier New", monospace';
+    setLetterSpacing(ctx, '2px');
+    ctx.fillText(`+ ${count} MORE`, cellX + cellW / 2, stripY + stripH / 2);
+    setLetterSpacing(ctx, '0px');
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  /**
+   * Safe letterSpacing setter.
+   * ctx.letterSpacing is supported in Chrome 99+, Safari 16.4+, Firefox 116+.
+   */
+  function setLetterSpacing(ctx, value) {
+    if ('letterSpacing' in ctx) {
+      ctx.letterSpacing = value;
+    }
+  }
+
+
+  /* ═══════════════════════════════════════════════════════════
+     RENDER JSX
+     ═══════════════════════════════════════════════════════════ */
 
   return (
     <>

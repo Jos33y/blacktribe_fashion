@@ -1,0 +1,274 @@
+/* ═══════════════════════════════════════════════════════════
+   AUTH PAGE — BlackTribe Fashion
+   Single centered form. OTP is primary. Password is secondary.
+   Matches Checkout form patterns for consistency.
+   ═══════════════════════════════════════════════════════════ */
+
+.auth {
+  min-height: 70vh;
+  padding: var(--space-6) 0 var(--space-8);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.auth__inner {
+  width: 100%;
+  max-width: 400px;
+  padding: 0 var(--content-padding);
+}
+
+
+/* ─── Title ─── */
+
+.auth__title {
+  font-family: 'Syne', var(--font-display), sans-serif;
+  font-style: normal;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--bt-text);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0 0 var(--space-5);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   AUTH FORM — Shared form styles used by all auth components
+   ═══════════════════════════════════════════════════════════ */
+
+.auth-form__field {
+  margin-bottom: var(--space-3);
+}
+
+.auth-form__label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bt-text);
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-2);
+}
+
+
+/* ─── Input ─── */
+
+.auth-form__input {
+  width: 100%;
+  padding: 12px var(--space-3);
+  background: transparent;
+  border: 1px solid var(--bt-border);
+  color: var(--bt-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.auth-form__input::placeholder {
+  color: var(--bt-text-muted);
+}
+
+.auth-form__input:focus {
+  outline: none;
+  border-color: var(--bt-border-active);
+}
+
+.auth-form__input--error {
+  border-color: var(--bt-error);
+}
+
+
+/* ─── Error message ─── */
+
+.auth-form__error {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--bt-error);
+  margin: 0 0 var(--space-3);
+  line-height: 1.5;
+}
+
+
+/* ─── Success message ─── */
+
+.auth-form__success {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--bt-success);
+  margin: 0 0 var(--space-4);
+  line-height: 1.6;
+}
+
+
+/* ─── Hint text (code sent message) ─── */
+
+.auth-form__hint {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--space-4);
+}
+
+
+/* ─── Submit button ─── */
+
+.auth-form__submit {
+  width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bt-text);
+  color: var(--bt-text-inverse);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: opacity var(--duration-fast);
+  margin-top: var(--space-4);
+}
+
+.auth-form__submit:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.auth-form__submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.auth-form__submit:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+
+/* ─── Links row ─── */
+
+.auth-form__links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.auth-form__link {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--bt-text-secondary);
+  border-bottom: 1px solid var(--bt-border);
+  padding-bottom: 1px;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.auth-form__link:hover {
+  color: var(--bt-text);
+  border-color: var(--bt-text);
+}
+
+.auth-form__link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-form__link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.auth-form__link-text {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+}
+
+.auth-form__link-sep {
+  width: 1px;
+  height: 12px;
+  background: var(--bt-border);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   CODE INPUT — 6-digit OTP fields
+   ═══════════════════════════════════════════════════════════ */
+
+.code-input__fields {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.code-input__digit {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--bt-text);
+  background: transparent;
+  border: 1px solid var(--bt-border);
+  caret-color: var(--bt-text);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.code-input__digit:focus {
+  outline: none;
+  border-color: var(--bt-border-active);
+}
+
+.code-input__digit--error {
+  border-color: var(--bt-error);
+}
+
+.code-input__digit:disabled {
+  opacity: 0.5;
+}
+
+/* Prevent zoom on mobile (input font-size >= 16px already) */
+.code-input__digit::placeholder {
+  color: transparent;
+}
+
+
+/* ─── Desktop ─── */
+
+@media (min-width: 768px) {
+  .auth {
+    padding: var(--space-7) 0 var(--space-8);
+  }
+
+  .auth__title {
+    font-size: 32px;
+  }
+
+  .code-input__digit {
+    width: 52px;
+    height: 60px;
+    font-size: 24px;
+  }
+}
+
+
+/* ─── Reduced motion ─── */
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-form__input,
+  .auth-form__submit,
+  .auth-form__link,
+  .code-input__digit {
+    transition-duration: 0.01ms !important;
+  }
+}

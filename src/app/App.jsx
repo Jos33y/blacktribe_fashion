@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { ToastProvider } from '../components/ui/Toast';
 import StoreLayout from '../layouts/StoreLayout';
 import Skeleton from '../components/ui/Skeleton';
+import useAuthStore from '../store/authStore';
 import {
   Home, NotFound, Shop, ProductDetail, Collections, CollectionDetail,
   Checkout, OrderConfirmation, OrderTracking, PaymentPage,
@@ -24,6 +25,13 @@ function PageLoader() {
 }
 
 export default function App() {
+  /* ─── Initialize auth once on app load ─── */
+  const initialize = useAuthStore((s) => s.initialize);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
   return (
     <BrowserRouter>
       <ToastProvider>

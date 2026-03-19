@@ -1,0 +1,885 @@
+/* ═══════════════════════════════════════════════════════════
+   ACCOUNT PAGE — "Your Tribe"
+   Premium membership lounge. Editorial, breathing room,
+   brand presence throughout. Not a settings panel.
+   ═══════════════════════════════════════════════════════════ */
+
+.account {
+  min-height: 80vh;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   HERO — Editorial membership header
+   Eyebrow + Cormorant greeting + member since + tabs
+   Border-bottom anchors the section. Tabs live at the base.
+   ═══════════════════════════════════════════════════════════ */
+
+.account__hero {
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.account__hero-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--content-padding) 0;
+}
+
+
+/* ─── Eyebrow: "Your Tribe" ─── */
+
+.account__eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-3);
+}
+
+
+/* ─── Greeting: "Welcome back, Blaq." ─── */
+
+.account__greeting {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--bt-text);
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  margin: 0 0 8px;
+}
+
+
+/* ─── Member since ─── */
+
+.account__member-since {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-5);
+}
+
+
+/* ─── Email verification nudge ─── */
+
+.account__verify-nudge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 12px var(--space-3);
+  margin-bottom: var(--space-4);
+  background: var(--bt-info-bg);
+  border: 1px solid rgba(147, 197, 253, 0.15);
+}
+
+.account__verify-nudge p {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--bt-info);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.account__verify-link {
+  flex-shrink: 0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--bt-info);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(147, 197, 253, 0.3);
+  transition: border-color var(--duration-fast);
+}
+
+.account__verify-link:hover {
+  border-color: var(--bt-info);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   TABS — Inside the hero, anchored to bottom edge
+   ═══════════════════════════════════════════════════════════ */
+
+.account__tabs {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.account__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.account__tab {
+  padding: 14px 20px 14px 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--duration-fast);
+}
+
+.account__tab:hover {
+  color: var(--bt-text-secondary);
+}
+
+.account__tab--active {
+  color: var(--bt-text);
+  font-weight: 500;
+  border-bottom-color: var(--bt-text);
+}
+
+.account__tab:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   CONTENT — Below the hero
+   ═══════════════════════════════════════════════════════════ */
+
+.account__content {
+  min-height: 300px;
+}
+
+.account__content-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--content-padding) var(--space-8);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   EMPTY STATES — Editorial, not generic
+   ═══════════════════════════════════════════════════════════ */
+
+.account__empty {
+  text-align: center;
+  padding: var(--space-7) 0 var(--space-8);
+}
+
+.account__empty-line {
+  width: 32px;
+  height: 1px;
+  background: var(--bt-border-hover);
+  margin: 0 auto var(--space-4);
+}
+
+.account__empty-quote {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  line-height: 1.55;
+  max-width: 320px;
+  margin: 0 auto var(--space-4);
+}
+
+.account__empty-cta {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bt-text);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bt-border-hover);
+  padding-bottom: 2px;
+  transition: border-color var(--duration-fast);
+}
+
+.account__empty-cta:hover {
+  border-color: var(--bt-text);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   COLLECTION GALLERY — Personal lookbook
+   ═══════════════════════════════════════════════════════════ */
+
+.collection-gallery__count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--space-4);
+}
+
+.collection-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+
+.collection-gallery__item {
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--bt-canvas);
+}
+
+.collection-gallery__image {
+  width: 100%;
+  height: 100%;
+}
+
+.collection-gallery__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.collection-gallery__item:hover .collection-gallery__image img {
+  transform: scale(1.03);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   ORDER LIST
+   ═══════════════════════════════════════════════════════════ */
+
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.order-list__card {
+  border: 1px solid var(--bt-border);
+  padding: var(--space-4);
+  transition: border-color var(--duration-fast);
+}
+
+.order-list__card:hover {
+  border-color: var(--bt-border-hover);
+}
+
+.order-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.order-list__number {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.order-list__status {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+}
+
+.account-status--pending {
+  color: var(--bt-text-muted);
+  background: var(--bt-surface);
+}
+
+.account-status--confirmed {
+  color: var(--bt-info);
+  background: var(--bt-info-bg);
+}
+
+.account-status--processing {
+  color: var(--bt-info);
+  background: var(--bt-info-bg);
+}
+
+.account-status--shipped {
+  color: var(--bt-success);
+  background: var(--bt-success-bg);
+}
+
+.account-status--delivered {
+  color: var(--bt-success);
+  background: var(--bt-success-bg);
+}
+
+.account-status--cancelled {
+  color: var(--bt-error);
+  background: var(--bt-error-bg);
+}
+
+.order-list__body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.order-list__product {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  flex: 1;
+}
+
+.order-list__image {
+  width: 48px;
+  height: 60px;
+  flex-shrink: 0;
+  background: var(--bt-canvas);
+  overflow: hidden;
+}
+
+.order-list__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.order-list__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.order-list__name {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.order-list__more {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.04em;
+}
+
+.order-list__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.order-list__total {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bt-text);
+}
+
+.order-list__track {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--bt-text-secondary);
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--bt-border-hover);
+  padding-bottom: 1px;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.order-list__track:hover {
+  color: var(--bt-text);
+  border-color: var(--bt-text);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   WISHLIST GRID
+   ═══════════════════════════════════════════════════════════ */
+
+.wishlist-grid__items {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.wishlist-grid__card {
+  display: flex;
+  flex-direction: column;
+}
+
+.wishlist-grid__image {
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--bt-canvas);
+  margin-bottom: var(--space-2);
+}
+
+.wishlist-grid__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.wishlist-grid__card:hover .wishlist-grid__image img {
+  transform: scale(1.03);
+}
+
+.wishlist-grid__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--space-2);
+}
+
+.wishlist-grid__name {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text);
+  line-height: 1.3;
+}
+
+.wishlist-grid__price {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bt-text-secondary);
+}
+
+.wishlist-grid__remove {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  text-align: left;
+  transition: color var(--duration-fast);
+}
+
+.wishlist-grid__remove:hover {
+  color: var(--bt-text);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   ACCOUNT SETTINGS
+   ═══════════════════════════════════════════════════════════ */
+
+.account-settings {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-settings__section {
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.account-settings__section--last {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.account-settings__section-title {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bt-text);
+  letter-spacing: 0.02em;
+  margin: 0 0 var(--space-3);
+}
+
+.account-settings__label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--bt-text);
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-2);
+}
+
+.account-settings__input {
+  width: 100%;
+  padding: 11px var(--space-3);
+  background: transparent;
+  border: 1px solid var(--bt-border);
+  color: var(--bt-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  transition: border-color var(--duration-fast);
+}
+
+.account-settings__input::placeholder {
+  color: var(--bt-text-muted);
+}
+
+.account-settings__input:focus {
+  outline: none;
+  border-color: var(--bt-border-active);
+}
+
+.account-settings__input-row {
+  display: flex;
+  gap: 0;
+}
+
+.account-settings__input-row .account-settings__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-settings__save {
+  padding: 0 var(--space-4);
+  background: var(--bt-surface);
+  color: var(--bt-text);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-left: 1px solid var(--bt-border);
+  white-space: nowrap;
+  transition: background var(--duration-fast);
+}
+
+.account-settings__save:hover:not(:disabled) {
+  background: var(--bt-surface-hover);
+}
+
+.account-settings__save:disabled {
+  opacity: 0.5;
+}
+
+.account-settings__hint {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--bt-text-muted);
+  margin: 0;
+}
+
+.account-settings__error {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--bt-error);
+  margin: var(--space-2) 0 0;
+}
+
+
+/* ─── Email display + badge ─── */
+
+.account-settings__email-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.account-settings__email {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--bt-text);
+  letter-spacing: 0.02em;
+}
+
+.account-settings__badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+}
+
+.account-settings__badge--verified {
+  color: var(--bt-success);
+  background: var(--bt-success-bg);
+}
+
+.account-settings__badge--unverified {
+  color: #D4A054;
+  background: rgba(212, 160, 84, 0.08);
+}
+
+
+/* ─── Verification section ─── */
+
+.account-settings__verify {
+  margin-bottom: var(--space-3);
+}
+
+.account-settings__verify-hint {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 var(--space-2);
+}
+
+.account-settings__verify-sent {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--bt-success);
+  margin: 0;
+}
+
+.account-settings__verify-btn {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bt-text);
+  letter-spacing: 0.04em;
+  padding: 8px 16px;
+  border: 1px solid var(--bt-border-hover);
+  transition: border-color var(--duration-fast), background var(--duration-fast);
+}
+
+.account-settings__verify-btn:hover {
+  border-color: var(--bt-text);
+  background: var(--bt-surface);
+}
+
+
+/* ─── Text button ─── */
+
+.account-settings__text-btn {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--bt-text-secondary);
+  border-bottom: 1px solid var(--bt-border);
+  padding-bottom: 1px;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.account-settings__text-btn:hover {
+  color: var(--bt-text);
+  border-color: var(--bt-text);
+}
+
+
+/* ─── Inline form ─── */
+
+.account-settings__inline-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.account-settings__inline-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.account-settings__inline-actions .account-settings__save {
+  padding: 10px var(--space-4);
+  border: 1px solid var(--bt-border);
+  border-left: 1px solid var(--bt-border);
+}
+
+
+/* ─── Sign out ─── */
+
+.account-settings__signout {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  text-align: left;
+  transition: color var(--duration-fast);
+}
+
+.account-settings__signout:hover {
+  color: var(--bt-text);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   ADDRESS BOOK
+   ═══════════════════════════════════════════════════════════ */
+
+.address-book__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.address-book__card {
+  padding: var(--space-3);
+  border: 1px solid var(--bt-border);
+  transition: border-color var(--duration-fast);
+}
+
+.address-book__card:hover {
+  border-color: var(--bt-border-hover);
+}
+
+.address-book__card-header {
+  margin-bottom: var(--space-2);
+}
+
+.address-book__card-label {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--bt-text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.address-book__default-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--bt-success);
+  background: var(--bt-success-bg);
+  padding: 2px 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.address-book__card-name {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text);
+  margin: 0 0 2px;
+}
+
+.address-book__card-line {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.address-book__card-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.address-book__action {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--bt-text-secondary);
+  border-bottom: 1px solid transparent;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.address-book__action:hover {
+  color: var(--bt-text);
+  border-color: var(--bt-border-hover);
+}
+
+.address-book__action--delete {
+  color: var(--bt-text-muted);
+}
+
+.address-book__action--delete:hover {
+  color: var(--bt-error);
+}
+
+.address-book__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.address-book__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+
+@media (min-width: 768px) {
+  .account__hero-inner {
+    padding-top: var(--space-7);
+  }
+
+  .account__greeting {
+    font-size: 40px;
+  }
+
+  .account__content-inner {
+    padding-top: var(--space-6);
+  }
+
+  .collection-gallery__grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .wishlist-grid__items {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .account__empty-quote {
+    font-size: 20px;
+    max-width: 360px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .account__greeting {
+    font-size: 48px;
+  }
+
+  .collection-gallery__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .wishlist-grid__items {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+
+/* ─── Reduced motion ─── */
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-gallery__image img,
+  .wishlist-grid__image img {
+    transition: none;
+  }
+}

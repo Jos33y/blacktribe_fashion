@@ -80,7 +80,6 @@ export default function OrderConfirmation() {
   }
 
   /* ─── Extract data ─── */
-  const firstItem = order.items?.[0];
   const email = order.guest_email || '';
   const shippingName = order.shipping_address?.name || '';
 
@@ -107,8 +106,7 @@ export default function OrderConfirmation() {
         <div className="oc__share-section">
           <ShareableImage
             orderNumber={order.order_number}
-            productImage={firstItem?.image_url}
-            productName={firstItem?.name}
+            items={order.items || []}
             onReady={handleImageReady}
           />
           <ShareButtons
