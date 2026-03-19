@@ -3,11 +3,13 @@ import { Link } from 'react-router';
 import Badge from '../ui/Badge';
 import SizeSelector from './SizeSelector';
 import QuantitySelector from './QuantitySelector';
+import WishlistHeart from './WishlistHeart';
 import { useToast } from '../ui/Toast';
 import useCartStore from '../../store/cartStore';
 import useUIStore from '../../store/uiStore';
 import { formatPrice } from '../../utils/formatPrice';
 import '../../styles/product/QuickView.css';
+import '../../styles/product/WishlistHeart.css';
 
 export default function QuickView({ product, isOpen, onClose }) {
   const [activeImage, setActiveImage] = useState(0);
@@ -160,7 +162,10 @@ export default function QuickView({ product, isOpen, onClose }) {
           {/* Details */}
           <div className="qv-details">
             {product.badge && <div className="qv-badge"><Badge type={product.badge} /></div>}
-            <h2 className="qv-name">{product.name}</h2>
+            <div className="qv-name-row">
+              <h2 className="qv-name">{product.name}</h2>
+              <WishlistHeart productId={product.id} />
+            </div>
             <p className="qv-price">{formatPrice(product.price)}</p>
 
             {(product.short_description || product.shortDescription) && (

@@ -8,6 +8,45 @@ import { env } from '../config/env.js';
 
 const router = Router();
 
+
+/**
+ * GET /api/orders/track
+ * Guest order tracking. No login required.
+ * URL: /api/orders/track?order=BT-XXXXXXXX&token=abc123
+ * Must be defined ABOVE /:id to avoid Express matching "track" as an ID.
+ */
+router.get('/track', async (req, res, next) => {
+  try {
+    const { order, token } = req.query;
+
+    if (!order || !token) {
+      return next(createError(400, 'Order number and token are required.'));
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('orders')
+      .select('*')
+      .eq('order_number', order)
+      .eq('tracking_token', token)
+      .single();
+
+    if (error || !data) {
+      return next(createError(404, 'Order not found.'));
+    }
+
+    // Fetch order items
+    const { data: items } = await supabaseAdmin
+      .from('order_items')
+      .select('*')
+      .eq('order_id', data.id);
+
+    res.json({ success: true, data: { ...data, items: items || [] } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
 /**
  * GET /api/orders/:id
  * Returns order with items for the confirmation page.

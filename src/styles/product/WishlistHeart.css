@@ -1,0 +1,79 @@
+/* ═══════════════════════════════════════════════════════════
+   WISHLIST HEART — Save/unsave toggle
+   44px touch target. Outline when inactive, filled when active.
+   ═══════════════════════════════════════════════════════════ */
+
+.wishlist-heart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--bt-text-secondary);
+  transition: color var(--duration-fast) var(--ease-out), transform var(--duration-fast);
+}
+
+.wishlist-heart:hover {
+  color: var(--bt-text);
+}
+
+.wishlist-heart--active {
+  color: var(--bt-text);
+}
+
+.wishlist-heart:active {
+  transform: scale(0.9);
+}
+
+.wishlist-heart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wishlist-heart:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wishlist-heart {
+    transition: none;
+  }
+}
+
+
+/* ─── Name row: product name + heart inline ─── */
+
+.pd-name-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.pd-name-row .pd-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.pd-name-row .wishlist-heart {
+  flex-shrink: 0;
+  margin-top: -4px;
+}
+
+.qv-name-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.qv-name-row .qv-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.qv-name-row .wishlist-heart {
+  flex-shrink: 0;
+  margin-top: -4px;
+}

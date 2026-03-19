@@ -6,6 +6,8 @@ import AddressForm from '../../components/checkout/AddressForm';
 import OrderSummary from '../../components/checkout/OrderSummary';
 import useCartStore from '../../store/cartStore';
 import useUIStore from '../../store/uiStore';
+import useAuth from '../../hooks/useAuth';
+import { api } from '../../utils/api';
 import { formatPrice } from '../../utils/formatPrice';
 import '../../styles/pages/Checkout.css';
 
@@ -88,6 +90,7 @@ export default function Checkout() {
   const subtotal = useCartStore((s) => s.getSubtotal());
   const clearCart = useCartStore((s) => s.clearCart);
   const closeCartDrawer = useUIStore((s) => s.closeCartDrawer);
+  const { isAuthenticated, email: userEmail, profile } = useAuth();
 
   /*
    * paymentComplete ref prevents the empty-cart redirect from firing
@@ -132,6 +135,46 @@ export default function Checkout() {
     document.title = 'Checkout. BlackTribe Fashion.';
     return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
   }, []);
+
+  /* ─── Pre-fill from auth (only if form is empty / no saved state) ─── */
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Pre-fill email if empty
+    if (!contact.email && userEmail) {
+      setContact((prev) => ({ ...prev, email: userEmail }));
+    }
+
+    // Pre-fill name if empty
+    if (!address.fullName && profile?.full_name) {
+      setAddress((prev) => ({ ...prev, fullName: profile.full_name }));
+    }
+
+    // Pre-fill phone if empty
+    if (!contact.phone && profile?.phone) {
+      setContact((prev) => ({ ...prev, phone: profile.phone }));
+    }
+
+    // Fetch default saved address if address fields are empty
+    if (!address.street) {
+      api('/api/auth/addresses')
+        .then((result) => {
+          if (result.success && result.data?.length > 0) {
+            const defaultAddr = result.data.find((a) => a.is_default) || result.data[0];
+            setAddress((prev) => ({
+              fullName: prev.fullName || defaultAddr.full_name || '',
+              street: defaultAddr.street || '',
+              city: defaultAddr.city || '',
+              state: defaultAddr.state || '',
+              lga: defaultAddr.lga || '',
+              phone: prev.phone || defaultAddr.phone || '',
+            }));
+          }
+        })
+        .catch(() => {});
+    }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [isAuthenticated]);
 
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING;
 

@@ -8,6 +8,7 @@ import QuantitySelector from '../../components/product/QuantitySelector';
 import Badge from '../../components/ui/Badge';
 import ExpandableSection from '../../components/ui/ExpandableSection';
 import ProductCard from '../../components/product/ProductCard';
+import WishlistHeart from '../../components/product/WishlistHeart';
 import Skeleton from '../../components/ui/Skeleton';
 import { useToast } from '../../components/ui/Toast';
 import useCartStore from '../../store/cartStore';
@@ -15,6 +16,7 @@ import useUIStore from '../../store/uiStore';
 import { getProductBySlug, getRelatedProducts, categories } from '../../utils/mockData';
 import { formatPrice } from '../../utils/formatPrice';
 import '../../styles/pages/ProductDetail.css';
+import '../../styles/product/WishlistHeart.css';
 
 
 /* ═══ TRUST BAR ═══ */
@@ -329,7 +331,10 @@ export default function ProductDetail() {
               {product.badge && (
                 <div className="pd-badge"><Badge type={product.badge} /></div>
               )}
-              <h1 className="pd-name">{product.name}</h1>
+              <div className="pd-name-row">
+                <h1 className="pd-name">{product.name}</h1>
+                <WishlistHeart productId={product.id} />
+              </div>
               <p className="pd-price">{formatPrice(product.price)}</p>
             </div>
 

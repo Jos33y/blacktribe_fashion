@@ -15,6 +15,7 @@
 
 import { create } from 'zustand';
 import { supabase } from '../utils/supabase';
+import { clearWishlistCache } from '../hooks/useWishlist';
 
 const useAuthStore = create((set, get) => ({
   user: null,
@@ -67,6 +68,7 @@ const useAuthStore = create((set, get) => ({
 
         if (event === 'SIGNED_OUT') {
           set({ profile: null });
+          clearWishlistCache();
         }
 
         if (event === 'TOKEN_REFRESHED') {

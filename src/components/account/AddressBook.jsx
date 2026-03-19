@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../utils/api';
 import { useToast } from '../../components/ui/Toast';
+import { nigerianStates, getLGAsForState } from '../../utils/nigerianStates';
 
 /**
  * AddressBook — Saved addresses.
@@ -204,23 +205,30 @@ export default function AddressBook() {
               onChange={(e) => setForm({ ...form, city: e.target.value })}
               required
             />
-            <input
-              type="text"
-              className="account-settings__input"
-              placeholder="State"
+            <select
+              className="account-settings__input account-settings__select"
               value={form.state}
-              onChange={(e) => setForm({ ...form, state: e.target.value })}
+              onChange={(e) => setForm({ ...form, state: e.target.value, lga: '' })}
               required
-            />
+            >
+              <option value="">Select state</option>
+              {nigerianStates.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </select>
           </div>
           <div className="address-book__row">
-            <input
-              type="text"
-              className="account-settings__input"
-              placeholder="LGA (optional)"
+            <select
+              className="account-settings__input account-settings__select"
               value={form.lga}
               onChange={(e) => setForm({ ...form, lga: e.target.value })}
-            />
+              disabled={!form.state}
+            >
+              <option value="">Select LGA</option>
+              {form.state && getLGAsForState(form.state).map((lga) => (
+                <option key={lga.value} value={lga.value}>{lga.label}</option>
+              ))}
+            </select>
             <input
               type="tel"
               className="account-settings__input"

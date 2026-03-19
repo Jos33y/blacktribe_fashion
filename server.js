@@ -12,6 +12,7 @@ import cartRouter from './server/routes/cart.js';
 import ordersRouter from './server/routes/orders.js';
 import webhooksRouter from './server/routes/webhooks.js';
 import authRouter from './server/routes/auth.js';
+import wishlistRouter from './server/routes/wishlist.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,11 +45,11 @@ app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/webhooks', webhooksRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/wishlist', wishlistRouter);
 
 // TODO: Mount as built in later phases
 // app.use('/api/products', productsRouter);
 // app.use('/api/collections', collectionsRouter);
-// app.use('/api/wishlist', wishlistRouter);
 // app.use('/api/newsletter', newsletterRouter);
 // app.use('/api/admin', adminRouter);
 

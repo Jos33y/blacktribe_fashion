@@ -326,6 +326,179 @@
 }
 
 
+/* ═══════════════════════════════════════════════════════════
+   POST-CHECKOUT ACCOUNT CREATION
+   ═══════════════════════════════════════════════════════════ */
+
+.oc__create-account {
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--bt-border);
+  text-align: center;
+}
+
+.oc__create-prompt {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--bt-text);
+  margin: 0 0 var(--space-3);
+}
+
+.oc__create-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 var(--space-5);
+  background: var(--bt-text);
+  color: var(--bt-text-inverse);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: opacity var(--duration-fast);
+  margin-bottom: var(--space-2);
+}
+
+.oc__create-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.oc__create-btn:disabled {
+  opacity: 0.4;
+}
+
+.oc__create-skip {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--bt-text-muted);
+  margin: 0;
+}
+
+.oc__create-success {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.oc__create-success a {
+  color: var(--bt-text);
+  border-bottom: 1px solid var(--bt-border-hover);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   ORDER TRACKING — Status progress tracker
+   ═══════════════════════════════════════════════════════════ */
+
+.ot-tracker {
+  padding: var(--space-4) 0 var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.ot-step {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.ot-step__indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 20px;
+}
+
+.ot-step__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bt-border);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.ot-step--complete .ot-step__dot {
+  background: var(--bt-success);
+}
+
+.ot-step--current .ot-step__dot {
+  background: var(--bt-text);
+  box-shadow: 0 0 0 3px var(--bt-bg), 0 0 0 4px var(--bt-text);
+}
+
+.ot-step__line {
+  width: 1px;
+  flex: 1;
+  min-height: 24px;
+  background: var(--bt-border);
+}
+
+.ot-step--complete .ot-step__line {
+  background: var(--bt-success);
+}
+
+.ot-step__content {
+  padding-bottom: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ot-step__label {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+}
+
+.ot-step--complete .ot-step__label {
+  color: var(--bt-text-secondary);
+}
+
+.ot-step--current .ot-step__label {
+  color: var(--bt-text);
+  font-weight: 500;
+}
+
+.ot-step__desc {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+}
+
+.ot-step__tracking {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bt-text-secondary);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.ot-cancelled {
+  padding: var(--space-5) 0;
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--bt-border);
+  text-align: center;
+}
+
+.ot-cancelled p {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--bt-error);
+  margin: 0;
+}
+
+
 /* ─── Reduced motion ─── */
 
 @media (prefers-reduced-motion: reduce) {
