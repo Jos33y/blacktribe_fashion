@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import useAuth from '../../hooks/useAuth';
 import useAuthStore from '../../store/authStore';
@@ -19,18 +19,27 @@ import '../../styles/pages/Auth.css';
  *   'register'  — Create account
  *   'forgot'    — Send reset email
  *   'reset'     — Set new password (after clicking reset link)
+ *
+ * Role-based redirect:
+ *   admin/superadmin → /admin
+ *   customer → /account (or returnTo if set)
  */
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
+  const profile = useAuthStore((s) => s.profile);
   const clearError = useAuthStore((s) => s.clearError);
   const { addToast } = useToast();
 
   /* ─── Detect password reset mode from URL ─── */
   const isResetMode = searchParams.get('reset') === 'true';
+  const returnTo = searchParams.get('returnTo');
 
   const [view, setView] = useState(isResetMode ? 'reset' : 'otp');
+
+  /* Track whether we just signed in (to show toast once) */
+  const justSignedIn = useRef(false);
 
   /* ─── Page title ─── */
   useEffect(() => {
@@ -45,12 +54,39 @@ export default function Auth() {
     return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
   }, [view]);
 
-  /* ─── Redirect if already authenticated ─── */
+  /* ─── Role-based redirect ───
+   * Watches isAuthenticated AND profile.
+   * Profile loads async after sign-in, so we wait for both.
+   * This handles:
+   *   1. Already logged in user visiting /auth → immediate redirect
+   *   2. Just signed in → redirect after profile loads
+   */
   useEffect(() => {
-    if (!loading && isAuthenticated && !isResetMode) {
+    if (loading) return;
+    if (!isAuthenticated) return;
+    if (isResetMode) return;
+
+    /* Wait for profile to load so we know the role */
+    if (!profile) return;
+
+    const role = profile.role;
+    const isAdminUser = role === 'admin' || role === 'superadmin';
+
+    /* Show toast only on fresh sign-in, not on page revisit */
+    if (justSignedIn.current) {
+      justSignedIn.current = false;
+      addToast(isAdminUser ? 'Signed in. Welcome back.' : 'Signed in.', 'success');
+    }
+
+    /* Route based on role */
+    if (isAdminUser) {
+      navigate(returnTo || '/admin', { replace: true });
+    } else if (returnTo) {
+      navigate(returnTo, { replace: true });
+    } else {
       navigate('/account', { replace: true });
     }
-  }, [isAuthenticated, loading, isResetMode, navigate]);
+  }, [isAuthenticated, loading, profile, isResetMode, navigate, returnTo]);
 
   /* ─── Clear errors on view switch ─── */
   const switchView = (newView) => {
@@ -58,15 +94,16 @@ export default function Auth() {
     setView(newView);
   };
 
-  /* ─── Auth success handlers ─── */
+  /* ─── Auth success handlers ───
+   * Don't navigate here. The useEffect above handles redirect
+   * once profile loads. Just set the flag for the toast.
+   */
   const handleSignInSuccess = () => {
-    addToast('Signed in.', 'success');
-    navigate('/account', { replace: true });
+    justSignedIn.current = true;
   };
 
   const handleRegisterSuccess = () => {
-    addToast('Account created. Welcome to the Tribe.', 'success');
-    navigate('/account', { replace: true });
+    justSignedIn.current = true;
   };
 
   const handleResetSuccess = () => {
@@ -77,7 +114,7 @@ export default function Auth() {
   /* ─── Don't render while checking auth state ─── */
   if (loading) return null;
 
-  /* ─── Already authenticated (brief flash before redirect) ─── */
+  /* ─── Already authenticated (waiting for redirect from useEffect) ─── */
   if (isAuthenticated && !isResetMode) return null;
 
   /* ─── View titles ─── */

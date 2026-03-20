@@ -1,48 +1,43 @@
 /*
- * BLACKTRIBE FASHION — AUTH MIDDLEWARE
+ * BLACKTRIBE FASHION — AUTH MIDDLEWARE v2.1
  *
- * Verifies Supabase JWT from Authorization header.
- * Attaches user and profile data to req.
- *
- * Two variants:
- *   requireAuth  — 401 if not authenticated
- *   requireAdmin — 403 if not admin/superadmin
- *
- * Flow:
- *   1. Extract Bearer token from Authorization header
- *   2. supabaseAdmin.auth.getUser(token) to verify
- *   3. Fetch profile from profiles table (role, permissions)
- *   4. Attach req.user = { id, email, role, permissions }
- *   5. next()
+ * v2.1: Login logging uses server-side in-memory cache.
+ * Logs admin sign-in once per user per hour. Zero frontend changes needed.
  */
 
 import { supabaseAdmin } from '../config/database.js';
 import { createError } from './errorHandler.js';
+import { logActivity, getRequestIp } from '../utils/activityLog.js';
 
-/**
- * Extract and verify JWT. Attach user to req.
- * Does NOT reject unauthenticated requests — use requireAuth for that.
- */
+/* ─── Login dedup cache ─── */
+const loginCache = new Map();
+const LOGIN_TTL = 60 * 60 * 1000; // 1 hour
+
+function shouldLogLogin(userId) {
+  const last = loginCache.get(userId);
+  if (last && Date.now() - last < LOGIN_TTL) return false;
+  loginCache.set(userId, Date.now());
+  return true;
+}
+
+// Clean stale entries every 30 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, time] of loginCache) {
+    if (now - time > LOGIN_TTL) loginCache.delete(key);
+  }
+}, 30 * 60 * 1000);
+
+
 export async function attachUser(req, res, next) {
   const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    req.user = null;
-    return next();
-  }
-
+  if (!authHeader || !authHeader.startsWith('Bearer ')) { req.user = null; return next(); }
   const token = authHeader.replace('Bearer ', '');
 
   try {
-    // Verify token with Supabase
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !user) { req.user = null; return next(); }
 
-    if (error || !user) {
-      req.user = null;
-      return next();
-    }
-
-    // Fetch profile for role and permissions
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('full_name, role, permissions')
@@ -56,7 +51,6 @@ export async function attachUser(req, res, next) {
       permissions: profile?.permissions || [],
       full_name: profile?.full_name || null,
     };
-
     next();
   } catch (err) {
     console.error('[auth] Token verification failed:', err);
@@ -65,26 +59,15 @@ export async function attachUser(req, res, next) {
   }
 }
 
-/**
- * Require authenticated user. 401 if not.
- */
 export async function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(createError(401, 'Not authenticated.'));
-  }
-
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return next(createError(401, 'Not authenticated.'));
   const token = authHeader.replace('Bearer ', '');
 
   try {
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !user) return next(createError(401, 'Not authenticated.'));
 
-    if (error || !user) {
-      return next(createError(401, 'Not authenticated.'));
-    }
-
-    // Fetch profile
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('full_name, phone, role, permissions')
@@ -107,48 +90,30 @@ export async function requireAuth(req, res, next) {
   }
 }
 
-/**
- * Require admin or superadmin role. 403 if not.
- * Must be used after requireAuth.
- */
 export function requireAdmin(req, res, next) {
-  if (!req.user) {
-    return next(createError(401, 'Not authenticated.'));
-  }
-
+  if (!req.user) return next(createError(401, 'Not authenticated.'));
   const { role } = req.user;
-  if (role !== 'admin' && role !== 'superadmin') {
-    return next(createError(403, 'Access denied.'));
+  if (role !== 'admin' && role !== 'superadmin') return next(createError(403, 'Access denied.'));
+
+  /* Log admin login — once per user per hour, server-side dedup */
+  if (shouldLogLogin(req.user.id)) {
+    logActivity(supabaseAdmin, {
+      userId: req.user.id,
+      action: 'auth.login',
+      details: { email: req.user.email, role: req.user.role },
+      ip: getRequestIp(req),
+    });
   }
 
   next();
 }
 
-/**
- * Require a specific permission. 403 if not.
- * Superadmin always passes. Admin checks permissions array.
- * Must be used after requireAuth.
- *
- * Usage: requirePermission('products')
- */
 export function requirePermission(permission) {
   return (req, res, next) => {
-    if (!req.user) {
-      return next(createError(401, 'Not authenticated.'));
-    }
-
+    if (!req.user) return next(createError(401, 'Not authenticated.'));
     const { role, permissions } = req.user;
-
-    // Superadmin has all permissions
-    if (role === 'superadmin') {
-      return next();
-    }
-
-    // Admin checks permissions array
-    if (role === 'admin' && permissions.includes(permission)) {
-      return next();
-    }
-
+    if (role === 'superadmin') return next();
+    if (role === 'admin' && permissions.includes(permission)) return next();
     return next(createError(403, 'Access denied.'));
   };
 }

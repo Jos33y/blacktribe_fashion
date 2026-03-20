@@ -13,6 +13,7 @@ import ordersRouter from './server/routes/orders.js';
 import webhooksRouter from './server/routes/webhooks.js';
 import authRouter from './server/routes/auth.js';
 import wishlistRouter from './server/routes/wishlist.js';
+import adminRouter from './server/routes/admin.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,12 +47,12 @@ app.use('/api/orders', ordersRouter);
 app.use('/api/webhooks', webhooksRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/wishlist', wishlistRouter);
+app.use('/api/admin', adminRouter);
 
 // TODO: Mount as built in later phases
 // app.use('/api/products', productsRouter);
 // app.use('/api/collections', collectionsRouter);
 // app.use('/api/newsletter', newsletterRouter);
-// app.use('/api/admin', adminRouter);
 
 // Serve static files in production
 if (!isDev) {

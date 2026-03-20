@@ -1,0 +1,196 @@
+/* ═══════════════════════════════════════════════════════════
+   BLACKTRIBE FASHION — ADMIN TABLES
+   
+   Desktop: traditional sortable tables with sticky headers.
+   Mobile: card list that replaces the table for touch use.
+   Both patterns are reusable across Products, Orders,
+   Customers, Discounts pages.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Table (Desktop) ─── */
+
+.admin-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-table th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bt-text-muted);
+  text-align: left;
+  padding: 12px var(--space-3);
+  border-bottom: 1px solid var(--bt-border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background: var(--bt-surface);
+}
+
+.admin-table td {
+  padding: 14px var(--space-3);
+  border-bottom: 1px solid var(--bt-border);
+  color: var(--bt-text-secondary);
+  vertical-align: middle;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table tr:hover td {
+  background: var(--bt-surface-hover);
+}
+
+/* Cell modifiers */
+.admin-table__primary {
+  color: var(--bt-text);
+  font-weight: var(--weight-medium);
+}
+
+.admin-table__mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.admin-table__thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  background: var(--bt-canvas-alt);
+  border-radius: var(--radius-sm);
+}
+
+/* Row actions */
+.admin-table__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.admin-table__action {
+  font-size: 12px;
+  color: var(--bt-text-secondary);
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: var(--font-body);
+  transition: color var(--duration-fast), background var(--duration-fast);
+}
+
+.admin-table__action:hover {
+  color: var(--bt-text);
+  background: var(--bt-surface-hover);
+}
+
+.admin-table__action--danger:hover {
+  color: var(--bt-error);
+  background: var(--bt-error-bg);
+}
+
+/* Sortable column header */
+.admin-table__sortable {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-table__sortable:hover {
+  color: var(--bt-text-secondary);
+}
+
+.admin-table__sort-icon {
+  opacity: 0.4;
+  transition: opacity var(--duration-fast);
+}
+
+.admin-table__sortable:hover .admin-table__sort-icon,
+.admin-table__sortable--active .admin-table__sort-icon {
+  opacity: 1;
+}
+
+
+/* ─── Mobile Card List ─── */
+
+.admin-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.admin-card-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--duration-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-card-list__item:active {
+  border-color: var(--bt-border-hover);
+}
+
+.admin-card-list__thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  background: var(--bt-canvas-alt);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.admin-card-list__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-card-list__title {
+  font-size: 14px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-card-list__meta {
+  font-size: 12px;
+  color: var(--bt-text-secondary);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.admin-card-list__price {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--bt-text);
+  flex-shrink: 0;
+}
+
+/* Chevron for tappable card items */
+.admin-card-list__chevron {
+  color: var(--bt-text-muted);
+  flex-shrink: 0;
+}

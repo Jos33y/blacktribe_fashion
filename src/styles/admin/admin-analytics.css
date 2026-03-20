@@ -1,0 +1,351 @@
+/* ═══════════════════════════════════════════════════════════
+   BLACKTRIBE FASHION — ADMIN ANALYTICS
+   
+   Charts, metrics, period selector, data tables.
+   Dark theme with white/gray chart elements.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Period Selector ─── */
+
+.analytics-period {
+  display: flex;
+  gap: 4px;
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+}
+
+.analytics-period__btn {
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--bt-text-muted);
+  background: none;
+  border: none;
+  border-radius: 1px;
+  cursor: pointer;
+  transition: color 150ms, background 150ms;
+  white-space: nowrap;
+}
+
+.analytics-period__btn:hover {
+  color: var(--bt-text-secondary);
+}
+
+.analytics-period__btn--active {
+  color: var(--bt-text-inverse);
+  background: var(--bt-text);
+}
+
+
+/* ─── Install Notice ─── */
+
+.analytics-notice {
+  padding: 12px 16px;
+  background: var(--bt-info-bg);
+  border: 1px solid rgba(147, 197, 253, 0.15);
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+}
+
+.analytics-notice p {
+  font-size: 13px;
+  color: var(--bt-info);
+  line-height: 1.5;
+}
+
+.analytics-notice code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: rgba(147, 197, 253, 0.1);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+
+/* ─── Key Metrics Row ─── */
+
+.analytics-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 768px) {
+  .analytics-metrics {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+}
+
+.analytics-metric {
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.analytics-metric__value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}
+
+@media (min-width: 768px) {
+  .analytics-metric__value {
+    font-size: 26px;
+  }
+}
+
+.analytics-metric__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bt-text-muted);
+}
+
+
+/* ─── Chart Cards ─── */
+
+.analytics-chart-card {
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .analytics-chart-card {
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+}
+
+.analytics-chart-card__title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bt-text-muted);
+  margin-bottom: 20px;
+}
+
+.analytics-chart {
+  width: 100%;
+}
+
+
+/* ─── Two Column Row ─── */
+
+.analytics-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .analytics-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+}
+
+.analytics-row .analytics-chart-card {
+  margin-bottom: 0;
+}
+
+
+/* ─── Chart Placeholder ─── */
+
+.analytics-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.analytics-placeholder span {
+  font-size: 13px;
+  color: var(--bt-text-secondary);
+  margin-bottom: 4px;
+}
+
+.analytics-placeholder p {
+  font-size: 12px;
+  color: var(--bt-text-muted);
+}
+
+
+/* ─── Top Products List ─── */
+
+.analytics-top-products {
+  display: flex;
+  flex-direction: column;
+}
+
+.analytics-product-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.analytics-product-row:last-child {
+  border-bottom: none;
+}
+
+.analytics-product-row__rank {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bt-text-muted);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.analytics-product-row__name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--bt-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.analytics-product-row__sold {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bt-text-secondary);
+  flex-shrink: 0;
+}
+
+.analytics-product-row__rev {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--bt-text);
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 80px;
+}
+
+
+/* ─── Category Breakdown ─── */
+
+.analytics-category {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 480px) {
+  .analytics-category {
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+  }
+}
+
+.analytics-category__legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.analytics-category__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analytics-category__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.analytics-category__name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--bt-text-secondary);
+}
+
+.analytics-category__value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--bt-text);
+}
+
+
+/* ─── Geographic Table ─── */
+
+.analytics-geo {
+  display: flex;
+  flex-direction: column;
+}
+
+.analytics-geo__header {
+  display: grid;
+  grid-template-columns: 1fr 80px 100px;
+  gap: 12px;
+  padding: 8px 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bt-text-muted);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.analytics-geo__header span:nth-child(2),
+.analytics-geo__header span:nth-child(3) {
+  text-align: right;
+}
+
+.analytics-geo__row {
+  display: grid;
+  grid-template-columns: 1fr 80px 100px;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bt-border);
+  font-size: 13px;
+}
+
+.analytics-geo__row:last-child {
+  border-bottom: none;
+}
+
+.analytics-geo__state {
+  color: var(--bt-text);
+}
+
+.analytics-geo__orders {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--bt-text-secondary);
+  text-align: right;
+}
+
+.analytics-geo__revenue {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--bt-text);
+  text-align: right;
+}

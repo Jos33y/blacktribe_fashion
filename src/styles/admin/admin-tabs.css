@@ -1,0 +1,93 @@
+/* ═══════════════════════════════════════════════════════════
+   BLACKTRIBE FASHION — ADMIN BOTTOM TABS v3
+   
+   Mobile only. 4 tabs + center FAB.
+   60px height + safe area for iOS.
+   ═══════════════════════════════════════════════════════════ */
+
+.admin-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--bt-surface);
+  border-top: 1px solid var(--bt-border);
+  z-index: var(--z-sticky);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+@media (min-width: 768px) {
+  .admin-tabs { display: none; }
+}
+
+.admin-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 0;
+  min-width: 52px;
+  color: var(--bt-text-muted);
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+  border: none;
+  background: none;
+  cursor: pointer;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 150ms;
+}
+
+.admin-tab--active { color: var(--bt-text); }
+
+.admin-tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--bt-text);
+}
+
+.admin-tab svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* FAB */
+.admin-tab__fab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bt-interactive);
+  color: var(--bt-text-inverse);
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(237, 235, 232, 0.12);
+  transform: translateY(-6px);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 100ms var(--ease-out);
+}
+
+.admin-tab__fab:active {
+  transform: translateY(-6px) scale(0.9);
+}
+
+.admin-tab__fab svg {
+  width: 22px;
+  height: 22px;
+}

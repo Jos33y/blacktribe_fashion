@@ -1,0 +1,263 @@
+/* ═══════════════════════════════════════════════════════════
+   BLACKTRIBE FASHION — ADMIN ORDERS
+   
+   Order list: desktop table / mobile card list.
+   Order detail: two-column layout with items, customer,
+   totals, status update, tracking, notes, timeline.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── List: table/card toggle ─── */
+
+.orders-table-wrap { display: none; }
+.orders-card-wrap { display: block; }
+
+@media (min-width: 768px) {
+  .orders-table-wrap { display: block; }
+  .orders-card-wrap { display: none; }
+}
+
+/* Mobile order card overrides */
+.orders-card {
+  flex-direction: column;
+  gap: 0;
+}
+
+.orders-card .admin-card-list__info {
+  width: 100%;
+}
+
+.orders-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.orders-card__email {
+  font-size: 12px;
+  color: var(--bt-text-muted);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ─── Order Detail Layout ─── */
+
+.order-detail__body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 1024px) {
+  .order-detail__body {
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+  }
+}
+
+.order-detail__main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.order-detail__side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+/* ─── Status badges row ─── */
+
+.order-detail__badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+
+/* ─── Order Items ─── */
+
+.order-detail__items {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-detail__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.order-detail__item:last-child {
+  border-bottom: none;
+}
+
+.order-detail__item-img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  background: var(--bt-canvas-alt);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.order-detail__item-img--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.order-detail__item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-detail__item-name {
+  font-size: 14px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.order-detail__item-meta {
+  font-size: 12px;
+  color: var(--bt-text-muted);
+}
+
+.order-detail__item-price {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--bt-text);
+  flex-shrink: 0;
+}
+
+
+/* ─── Fields grid ─── */
+
+.order-detail__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+/* ─── Shipping Address ─── */
+
+.order-detail__address {
+  font-size: 14px;
+  color: var(--bt-text-secondary);
+  line-height: 1.6;
+}
+
+.order-detail__address p {
+  margin: 0;
+}
+
+
+/* ─── Totals ─── */
+
+.order-detail__totals {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.order-detail__total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--bt-text-secondary);
+}
+
+.order-detail__total-row--final {
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1px solid var(--bt-border);
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+  font-size: 15px;
+}
+
+.order-detail__total-row--final .admin-field__value--mono {
+  font-size: 16px;
+}
+
+
+/* ─── Timeline ─── */
+
+.order-detail__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 4px;
+}
+
+.order-detail__timeline-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+}
+
+/* Vertical line between dots */
+.order-detail__timeline-row:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 14px;
+  width: 1px;
+  height: calc(100% + 4px);
+  background: var(--bt-border);
+}
+
+.order-detail__timeline-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--bt-success);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.order-detail__timeline-label {
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+  display: block;
+}
+
+.order-detail__timeline-date {
+  font-size: 11px;
+  color: var(--bt-text-muted);
+  display: block;
+  margin-top: 1px;
+}
+
+
+/* ─── Mobile save bar ─── */
+
+.order-detail__save-mobile {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .order-detail__save-mobile {
+    display: none;
+  }
+}

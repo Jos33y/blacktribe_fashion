@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router';
 import { Suspense, useEffect } from 'react';
 import { ToastProvider } from '../components/ui/Toast';
 import StoreLayout from '../layouts/StoreLayout';
+import AdminLayout from '../layouts/AdminLayout';
 import Skeleton from '../components/ui/Skeleton';
 import useAuthStore from '../store/authStore';
 import {
@@ -10,8 +11,10 @@ import {
   Auth, Account,
   About, Contact, Lookbook, FAQ,
   Terms, Privacy, ShippingReturns, RefundPolicy,
-  Dashboard, Products, ProductForm, Orders, OrderDetail,
-  Customers, Discounts, AdminCollections, Settings,
+  Dashboard, Analytics, Products, ProductForm, AdminCategories,
+  Orders, OrderDetail, WalkInOrder, Customers, Discounts,
+  AdminCollections, Newsletter, AdminShipping, Settings,
+  StaffManagement, ActivityLog,
 } from './routes';
 
 function PageLoader() {
@@ -25,7 +28,6 @@ function PageLoader() {
 }
 
 export default function App() {
-  /* ─── Initialize auth once on app load ─── */
   const initialize = useAuthStore((s) => s.initialize);
 
   useEffect(() => {
@@ -62,18 +64,25 @@ export default function App() {
               <Route path="*" element={<NotFound />} />
             </Route>
 
-            {/* Admin routes — AdminLayout added in Phase 6 */}
-            <Route path="admin">
+            {/* Admin routes */}
+            <Route path="admin" element={<AdminLayout />}>
               <Route index element={<Dashboard />} />
+              <Route path="analytics" element={<Analytics />} />
               <Route path="products" element={<Products />} />
               <Route path="products/new" element={<ProductForm />} />
               <Route path="products/:id/edit" element={<ProductForm />} />
+              <Route path="categories" element={<AdminCategories />} />
               <Route path="orders" element={<Orders />} />
+              <Route path="orders/new" element={<WalkInOrder />} />
               <Route path="orders/:id" element={<OrderDetail />} />
               <Route path="customers" element={<Customers />} />
               <Route path="discounts" element={<Discounts />} />
               <Route path="collections" element={<AdminCollections />} />
+              <Route path="newsletter" element={<Newsletter />} />
+              <Route path="shipping" element={<AdminShipping />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="staff" element={<StaffManagement />} />
+              <Route path="activity" element={<ActivityLog />} />
             </Route>
           </Routes>
         </Suspense>

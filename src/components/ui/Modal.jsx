@@ -11,6 +11,7 @@ export default function Modal({
 }) {
   const modalRef = useRef(null);
   const previousFocus = useRef(null);
+  const hasAutoFocused = useRef(false);
 
   const handleKeyDown = useCallback(
     (e) => {
@@ -42,28 +43,42 @@ export default function Modal({
     [onClose]
   );
 
+  /* Focus trap + body lock — stable deps, no focus stealing */
   useEffect(() => {
     if (isOpen) {
-      previousFocus.current = document.activeElement;
       document.body.style.overflow = 'hidden';
       document.addEventListener('keydown', handleKeyDown);
-
-      requestAnimationFrame(() => {
-        const firstFocusable = modalRef.current?.querySelector(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        firstFocusable?.focus();
-      });
     }
 
     return () => {
       document.body.style.overflow = '';
       document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, handleKeyDown]);
+
+  /* Auto-focus first input on open — runs ONCE per open, not on re-renders */
+  useEffect(() => {
+    if (isOpen && !hasAutoFocused.current) {
+      previousFocus.current = document.activeElement;
+      hasAutoFocused.current = true;
+
+      requestAnimationFrame(() => {
+        /* Prefer the first input/textarea, fall back to first focusable */
+        const firstInput = modalRef.current?.querySelector('input, textarea, select');
+        const firstFocusable = modalRef.current?.querySelector(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        (firstInput || firstFocusable)?.focus();
+      });
+    }
+
+    if (!isOpen) {
+      hasAutoFocused.current = false;
       if (previousFocus.current && typeof previousFocus.current.focus === 'function') {
         previousFocus.current.focus();
       }
-    };
-  }, [isOpen, handleKeyDown]);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

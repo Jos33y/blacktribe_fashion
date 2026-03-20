@@ -1,0 +1,365 @@
+/* ═══════════════════════════════════════════════════════════
+   BLACKTRIBE FASHION — ADMIN SHARED PATTERNS
+   
+   Reusable components used across all admin pages:
+   page container, page header, cards, stat cards,
+   status badges, order type badges, empty states,
+   toggle switches, pagination.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Page Container ─── */
+
+.admin-page {
+  padding: var(--space-4) var(--space-3);
+  max-width: 1400px;
+}
+
+@media (min-width: 768px) {
+  .admin-page {
+    padding: var(--space-5) var(--space-4);
+  }
+}
+
+@media (min-width: 1200px) {
+  .admin-page {
+    padding: var(--space-5) var(--space-6);
+  }
+}
+
+
+/* ─── Page Header ─── */
+
+.admin-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .admin-page-header {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--space-5);
+  }
+}
+
+.admin-page-header__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-page-header__title {
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  color: var(--bt-text);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.admin-page-header__desc {
+  font-size: var(--text-small);
+  color: var(--bt-text-secondary);
+  margin-top: var(--space-1);
+  line-height: 1.5;
+}
+
+.admin-page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+
+/* ─── Cards ─── */
+
+.admin-card {
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+}
+
+.admin-card--flush {
+  padding: 0;
+}
+
+.admin-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.admin-card__title {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  color: var(--bt-text);
+}
+
+
+/* ─── Stat Cards ─── */
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    margin-bottom: var(--space-5);
+  }
+}
+
+.admin-stat {
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+@media (min-width: 768px) {
+  .admin-stat {
+    padding: var(--space-4);
+  }
+}
+
+.admin-stat__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bt-text-muted);
+}
+
+.admin-stat__value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+  letter-spacing: -0.01em;
+}
+
+@media (min-width: 768px) {
+  .admin-stat__value {
+    font-size: 28px;
+  }
+}
+
+.admin-stat__trend {
+  font-size: 11px;
+  color: var(--bt-text-secondary);
+}
+
+.admin-stat__trend--up { color: var(--bt-success); }
+.admin-stat__trend--down { color: var(--bt-error); }
+
+
+/* ─── Status Badges ─── */
+
+.admin-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.admin-status--pending {
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.admin-status--confirmed {
+  color: var(--bt-success);
+  background: var(--bt-success-bg);
+}
+
+.admin-status--processing {
+  color: var(--bt-info);
+  background: var(--bt-info-bg);
+}
+
+.admin-status--shipped {
+  color: #A78BFA;
+  background: rgba(167, 139, 250, 0.08);
+}
+
+.admin-status--delivered {
+  color: var(--bt-success);
+  background: var(--bt-success-bg);
+}
+
+.admin-status--cancelled {
+  color: var(--bt-error);
+  background: var(--bt-error-bg);
+}
+
+.admin-status--paid {
+  color: var(--bt-success);
+  background: var(--bt-success-bg);
+}
+
+.admin-status--failed {
+  color: var(--bt-error);
+  background: var(--bt-error-bg);
+}
+
+
+/* ─── Order Type Badges ─── */
+
+.admin-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  color: var(--bt-text-secondary);
+  background: var(--bt-raised);
+}
+
+.admin-type--walk_in {
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+
+/* ─── Empty States ─── */
+
+.admin-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-7) var(--space-4);
+  text-align: center;
+}
+
+.admin-empty__icon {
+  color: var(--bt-text-muted);
+  margin-bottom: var(--space-3);
+  opacity: 0.5;
+}
+
+.admin-empty__title {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text-secondary);
+  margin-bottom: var(--space-1);
+}
+
+.admin-empty__desc {
+  font-size: 13px;
+  color: var(--bt-text-muted);
+  max-width: 320px;
+}
+
+
+/* ─── Toggle Switch ─── */
+
+.admin-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.admin-toggle__track {
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--bt-border-hover);
+  position: relative;
+  transition: background var(--duration-fast);
+  flex-shrink: 0;
+}
+
+.admin-toggle__track--on {
+  background: var(--bt-success);
+}
+
+.admin-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.admin-toggle__track--on .admin-toggle__thumb {
+  transform: translateX(18px);
+}
+
+.admin-toggle__label {
+  font-size: 13px;
+  color: var(--bt-text-secondary);
+}
+
+
+/* ─── Pagination ─── */
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+}
+
+.admin-pagination__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--bt-border);
+  background: transparent;
+  color: var(--bt-text-secondary);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.admin-pagination__btn:hover {
+  border-color: var(--bt-border-hover);
+  color: var(--bt-text);
+}
+
+.admin-pagination__btn--active {
+  background: var(--bt-text);
+  color: var(--bt-text-inverse);
+  border-color: var(--bt-text);
+}
+
+.admin-pagination__btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

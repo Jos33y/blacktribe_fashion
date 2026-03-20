@@ -1,10 +1,12 @@
+import { forwardRef } from 'react';
 import '../../styles/ui/Input.css';
 
 /**
  * Input component.
  * Visible label above. Error state. Supports text, email, tel, password.
+ * Supports ref forwarding for programmatic focus.
  */
-export default function Input({
+const Input = forwardRef(function Input({
   label,
   id,
   type = 'text',
@@ -12,7 +14,7 @@ export default function Input({
   required = false,
   className = '',
   ...props
-}) {
+}, ref) {
   const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
   return (
@@ -24,6 +26,7 @@ export default function Input({
         </label>
       )}
       <input
+        ref={ref}
         id={inputId}
         type={type}
         className="input-group__input"
@@ -38,4 +41,6 @@ export default function Input({
       )}
     </div>
   );
-}
+});
+
+export default Input;

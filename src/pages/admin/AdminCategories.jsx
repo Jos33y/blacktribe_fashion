@@ -1,12 +1,16 @@
 /*
- * BLACKTRIBE FASHION — ADMIN COLLECTIONS
+ * BLACKTRIBE FASHION — ADMIN CATEGORIES
  *
- * CRUD for collections. Inline editing — no separate form page.
- * List view + slide-out panel for create/edit.
- * Fields: name, slug, description, season, start_date, end_date, is_active.
+ * Lightweight CRUD. Accessed from Products page header link.
+ * Not in the main sidebar nav (categories rarely change).
+ * Route: /admin/categories
+ *
+ * Fields: name, slug, sort_order, is_active.
+ * Modal-based create/edit. Reorderable.
  */
 
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Modal from '../../components/ui/Modal';
@@ -17,67 +21,54 @@ function slugify(str) {
   return str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
 }
 
-const EMPTY = {
-  name: '',
-  slug: '',
-  description: '',
-  season: '',
-  start_date: '',
-  end_date: '',
-  is_active: true,
-};
-
-export default function AdminCollections() {
-  const [collections, setCollections] = useState([]);
+export default function AdminCategories() {
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null); // null = closed, 'new' = create, object = edit
-  const [form, setForm] = useState(EMPTY);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({ name: '', slug: '', sort_order: 0, is_active: true });
   const [saving, setSaving] = useState(false);
   const [slugManual, setSlugManual] = useState(false);
   const { addToast } = useToast();
 
   useEffect(() => {
-    document.title = 'Collections. BlackTribe Admin.';
-    fetchCollections();
+    document.title = 'Categories. BlackTribe Admin.';
+    fetchCategories();
   }, []);
 
   async function getToken() {
     return (await import('../../store/authStore')).default.getState().getAccessToken();
   }
 
-  async function fetchCollections() {
+  async function fetchCategories() {
     try {
       const token = await getToken();
-      const res = await fetch('/api/admin/collections', {
+      const res = await fetch('/api/admin/categories', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
-      if (json.success) setCollections(json.data || []);
+      if (json.success) setCategories(json.data || []);
     } catch {
-      addToast('Failed to load collections.', 'error');
+      addToast('Failed to load categories.', 'error');
     } finally {
       setLoading(false);
     }
   }
 
   function openCreate() {
-    setForm(EMPTY);
+    setForm({ name: '', slug: '', sort_order: categories.length + 1, is_active: true });
     setSlugManual(false);
     setEditing('new');
   }
 
-  function openEdit(col) {
+  function openEdit(cat) {
     setForm({
-      name: col.name || '',
-      slug: col.slug || '',
-      description: col.description || '',
-      season: col.season || '',
-      start_date: col.start_date || '',
-      end_date: col.end_date || '',
-      is_active: col.is_active !== false,
+      name: cat.name || '',
+      slug: cat.slug || '',
+      sort_order: cat.sort_order ?? 0,
+      is_active: cat.is_active !== false,
     });
     setSlugManual(true);
-    setEditing(col);
+    setEditing(cat);
   }
 
   function update(field, value) {
@@ -90,24 +81,13 @@ export default function AdminCollections() {
 
   async function handleSave() {
     if (!form.name.trim()) { addToast('Name is required.', 'error'); return; }
-    if (!form.slug.trim()) { addToast('Slug is required.', 'error'); return; }
 
     setSaving(true);
     try {
       const token = await getToken();
       const isNew = editing === 'new';
-      const url = isNew ? '/api/admin/collections' : `/api/admin/collections/${editing.id}`;
+      const url = isNew ? '/api/admin/categories' : `/api/admin/categories/${editing.id}`;
       const method = isNew ? 'POST' : 'PUT';
-
-      const payload = {
-        name: form.name.trim(),
-        slug: form.slug.trim(),
-        description: form.description.trim() || null,
-        season: form.season.trim() || null,
-        start_date: form.start_date || null,
-        end_date: form.end_date || null,
-        is_active: form.is_active,
-      };
 
       const res = await fetch(url, {
         method,
@@ -115,14 +95,19 @@ export default function AdminCollections() {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          name: form.name.trim(),
+          slug: form.slug.trim() || slugify(form.name),
+          sort_order: parseInt(form.sort_order) || 0,
+          is_active: form.is_active,
+        }),
       });
 
       const json = await res.json();
       if (json.success) {
-        addToast(isNew ? 'Collection created.' : 'Collection updated.', 'info');
+        addToast(isNew ? 'Category created.' : 'Category updated.', 'info');
         setEditing(null);
-        fetchCollections();
+        fetchCategories();
       } else {
         addToast(json.error || 'Failed to save.', 'error');
       }
@@ -137,41 +122,44 @@ export default function AdminCollections() {
     <div className="admin-page">
       <div className="admin-page-header">
         <div className="admin-page-header__info">
-          <h2 className="admin-page-header__title">Collections</h2>
+          <h2 className="admin-page-header__title">Categories</h2>
           <p className="admin-page-header__desc">
-            {collections.length} {collections.length === 1 ? 'collection' : 'collections'}
+            {categories.length} {categories.length === 1 ? 'category' : 'categories'}
+            {' · '}
+            <Link to="/admin/products" style={{ color: 'var(--bt-text-secondary)', textDecoration: 'underline', textUnderlineOffset: 3 }}>
+              Back to Products
+            </Link>
           </p>
         </div>
         <div className="admin-page-header__actions">
           <Button variant="primary" size="small" onClick={openCreate}>
-            + New Collection
+            + New Category
           </Button>
         </div>
       </div>
 
       {loading ? (
         <p style={{ color: 'var(--bt-text-muted)', fontSize: 13 }}>Loading...</p>
-      ) : collections.length === 0 ? (
+      ) : categories.length === 0 ? (
         <div className="admin-empty">
-          <p className="admin-empty__title">No collections yet.</p>
+          <p className="admin-empty__title">No categories yet.</p>
           <Button variant="primary" size="small" onClick={openCreate} style={{ marginTop: 16 }}>
-            + Create First Collection
+            + Create First Category
           </Button>
         </div>
       ) : (
         <div className="settings-list">
-          {collections.map((col) => (
-            <div key={col.id} className="settings-list__item" onClick={() => openEdit(col)}>
+          {categories.map((cat) => (
+            <div key={cat.id} className="settings-list__item" onClick={() => openEdit(cat)}>
               <div className="settings-list__info">
-                <span className="settings-list__name">{col.name}</span>
+                <span className="settings-list__name">{cat.name}</span>
                 <span className="settings-list__meta">
-                  /{col.slug}
-                  {col.season && ` · ${col.season}`}
+                  /{cat.slug} · Order: {cat.sort_order}
                 </span>
               </div>
               <div className="settings-list__right">
-                <span className={`admin-status ${col.is_active ? 'admin-status--confirmed' : 'admin-status--cancelled'}`}>
-                  {col.is_active ? 'Active' : 'Inactive'}
+                <span className={`admin-status ${cat.is_active ? 'admin-status--confirmed' : 'admin-status--cancelled'}`}>
+                  {cat.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>
             </div>
@@ -179,56 +167,33 @@ export default function AdminCollections() {
         </div>
       )}
 
-      {/* Create/Edit Modal */}
       <Modal
         isOpen={editing !== null}
         onClose={() => setEditing(null)}
-        title={editing === 'new' ? 'New Collection' : 'Edit Collection'}
+        title={editing === 'new' ? 'New Category' : 'Edit Category'}
       >
         <div className="settings-modal-form">
           <Input
-            label="Collection Name"
+            label="Category Name"
             required
             value={form.name}
             onChange={(e) => update('name', e.target.value)}
-            placeholder="Shadow Collection"
+            placeholder="Jackets"
           />
           <Input
             label="Slug"
             value={form.slug}
             onChange={(e) => { setSlugManual(true); update('slug', slugify(e.target.value)); }}
-            placeholder="shadow-collection"
+            placeholder="jackets"
           />
-          <div className="input-group">
-            <label className="input-group__label">Description</label>
-            <textarea
-              className="admin-textarea"
-              value={form.description}
-              onChange={(e) => update('description', e.target.value)}
-              placeholder="Collection description."
-              rows={3}
-            />
-          </div>
           <Input
-            label="Season"
-            value={form.season}
-            onChange={(e) => update('season', e.target.value)}
-            placeholder="SS26"
+            label="Sort Order"
+            type="number"
+            value={form.sort_order}
+            onChange={(e) => update('sort_order', e.target.value)}
+            placeholder="1"
+            min="0"
           />
-          <div className="admin-form-row admin-form-row--2">
-            <Input
-              label="Start Date"
-              type="date"
-              value={form.start_date}
-              onChange={(e) => update('start_date', e.target.value)}
-            />
-            <Input
-              label="End Date"
-              type="date"
-              value={form.end_date}
-              onChange={(e) => update('end_date', e.target.value)}
-            />
-          </div>
           <label className="admin-toggle" style={{ marginTop: 8 }}>
             <div
               className={`admin-toggle__track ${form.is_active ? 'admin-toggle__track--on' : ''}`}

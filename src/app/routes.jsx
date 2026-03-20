@@ -34,11 +34,18 @@ export const RefundPolicy = lazy(() => import('../pages/legal/RefundPolicy'));
 
 // Admin pages
 export const Dashboard = lazy(() => import('../pages/admin/Dashboard'));
+export const Analytics = lazy(() => import('../pages/admin/Analytics'));
 export const Products = lazy(() => import('../pages/admin/Products'));
 export const ProductForm = lazy(() => import('../pages/admin/ProductForm'));
+export const AdminCategories = lazy(() => import('../pages/admin/AdminCategories'));
 export const Orders = lazy(() => import('../pages/admin/Orders'));
 export const OrderDetail = lazy(() => import('../pages/admin/OrderDetail'));
+export const WalkInOrder = lazy(() => import('../pages/admin/WalkInOrder'));
 export const Customers = lazy(() => import('../pages/admin/Customers'));
 export const Discounts = lazy(() => import('../pages/admin/Discounts'));
 export const AdminCollections = lazy(() => import('../pages/admin/AdminCollections'));
+export const Newsletter = lazy(() => import('../pages/admin/Newsletter'));
+export const AdminShipping = lazy(() => import('../pages/admin/Shipping'));
 export const Settings = lazy(() => import('../pages/admin/Settings'));
+export const StaffManagement = lazy(() => import('../pages/admin/StaffManagement'));
+export const ActivityLog = lazy(() => import('../pages/admin/ActivityLog'));

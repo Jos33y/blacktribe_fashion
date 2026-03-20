@@ -1,0 +1,208 @@
+/* ═══════════════════════════════════════════════════════════
+   BLACKTRIBE FASHION — ADMIN FORMS
+   
+   Form layout patterns: sections with titles, responsive
+   grid rows, toolbar with search + filters. Used by
+   ProductForm, Discounts, Collections, Settings.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Form Sections ─── */
+
+.admin-form-section {
+  margin-bottom: var(--space-5);
+}
+
+.admin-form-section__title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: var(--weight-bold);
+  color: var(--bt-text);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.admin-form-section__desc {
+  font-size: var(--text-small);
+  color: var(--bt-text-muted);
+  margin-top: calc(var(--space-1) * -1);
+  margin-bottom: var(--space-3);
+  line-height: 1.5;
+}
+
+
+/* ─── Form Rows (responsive grid) ─── */
+
+.admin-form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+@media (min-width: 640px) {
+  .admin-form-row--2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-form-row--3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .admin-form-row--2-1 {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .admin-form-row--1-2 {
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+
+/* ─── Form Actions (save/cancel bar) ─── */
+
+.admin-form-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--bt-border);
+  margin-top: var(--space-5);
+}
+
+.admin-form-actions--sticky {
+  position: sticky;
+  bottom: 0;
+  background: var(--bt-bg);
+  padding: var(--space-3);
+  margin: 0 calc(var(--space-3) * -1);
+  z-index: var(--z-base);
+  border-top: 1px solid var(--bt-border);
+}
+
+@media (min-width: 768px) {
+  .admin-form-actions--sticky {
+    margin: 0 calc(var(--space-4) * -1);
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+
+/* ─── Toolbar (search + filters above tables/lists) ─── */
+
+.admin-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+@media (min-width: 640px) {
+  .admin-toolbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.admin-toolbar__search {
+  flex: 1;
+  max-width: 360px;
+}
+
+.admin-toolbar__filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Filter chip (removable) */
+.admin-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--bt-raised);
+  border: 1px solid var(--bt-border);
+  border-radius: 2px;
+  font-size: 12px;
+  color: var(--bt-text-secondary);
+  cursor: default;
+}
+
+.admin-filter-chip__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  color: var(--bt-text-muted);
+  border: none;
+  background: none;
+  padding: 0;
+  transition: color var(--duration-fast);
+}
+
+.admin-filter-chip__remove:hover {
+  color: var(--bt-text);
+}
+
+
+/* ─── Inline Label + Value (read-only display) ─── */
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-field__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bt-text-muted);
+}
+
+.admin-field__value {
+  font-size: 14px;
+  color: var(--bt-text);
+  line-height: 1.5;
+}
+
+.admin-field__value--mono {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.admin-field__value--secondary {
+  color: var(--bt-text-secondary);
+}
+
+
+/* ─── Textarea ─── */
+
+.admin-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bt-bg);
+  border: 1px solid var(--bt-border);
+  color: var(--bt-text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  transition: border-color var(--duration-fast);
+}
+
+.admin-textarea:focus {
+  outline: none;
+  border-color: var(--bt-border-active);
+}
+
+.admin-textarea::placeholder {
+  color: var(--bt-text-muted);
+}
