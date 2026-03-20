@@ -246,3 +246,23 @@ h3, .h3 {
   margin-inline: auto;
   padding-inline: var(--content-padding);
 }
+
+/* ─── iOS Safari: Prevent auto-zoom on form inputs ───
+   Safari zooms the viewport when input font-size < 16px.
+   Force 16px on mobile only. Desktop keeps original sizes.
+   This is the correct fix — NOT disabling user zoom via meta viewport. ─── */
+
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="search"],
+  input[type="url"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
