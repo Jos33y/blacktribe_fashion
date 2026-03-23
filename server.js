@@ -13,7 +13,7 @@ import ordersRouter from './server/routes/orders.js';
 import webhooksRouter from './server/routes/webhooks.js';
 import authRouter from './server/routes/auth.js';
 import wishlistRouter from './server/routes/wishlist.js';
-import adminRouter from './server/routes/admin.js';
+import adminRouter from './server/routes/admin/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

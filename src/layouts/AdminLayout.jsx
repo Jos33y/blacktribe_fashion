@@ -1,5 +1,13 @@
 /*
- * BLACKTRIBE FASHION — ADMIN LAYOUT v3.2
+ * BLACKTRIBE FASHION — ADMIN LAYOUT v3.4
+ *
+ * v3.4:
+ *   - AdminNotifications panel (bell icon dropdown)
+ *   - Unread count badge on bell
+ *
+ * v3.3:
+ *   - AdminSearch command palette (Ctrl+K / Cmd+K)
+ *   - Topbar search button wired to open palette
  *
  * v3.2:
  *   - Sidebar nav items gated by user permissions
@@ -13,6 +21,8 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink, Link } from 'react-router';
 import useAuthStore from '../store/authStore';
+import AdminSearch from '../components/admin/AdminSearch';
+import AdminNotifications from '../components/admin/AdminNotifications';
 
 import '../styles/admin/admin-layout.css';
 import '../styles/admin/admin-tabs.css';
@@ -114,6 +124,9 @@ export default function AdminLayout() {
     try { return localStorage.getItem('bt-admin-sidebar') === 'collapsed'; } catch { return false; }
   });
   const [moreOpen, setMoreOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (loading) return;
@@ -121,9 +134,21 @@ export default function AdminLayout() {
     if (profile && profile.role !== 'admin' && profile.role !== 'superadmin') { navigate('/', { replace: true }); }
   }, [loading, session, profile, navigate, location.pathname]);
 
-  useEffect(() => { setMoreOpen(false); const el = document.querySelector('.admin-content'); if (el) el.scrollTop = 0; }, [location.pathname]);
+  useEffect(() => { setMoreOpen(false); setNotifOpen(false); const el = document.querySelector('.admin-content'); if (el) el.scrollTop = 0; }, [location.pathname]);
   useEffect(() => { try { localStorage.setItem('bt-admin-sidebar', collapsed ? 'collapsed' : 'expanded'); } catch {} }, [collapsed]);
   useEffect(() => { if (!moreOpen) return; const h = (e) => { if (e.key === 'Escape') setMoreOpen(false); }; document.addEventListener('keydown', h); return () => document.removeEventListener('keydown', h); }, [moreOpen]);
+
+  /* Ctrl+K / Cmd+K to open search */
+  useEffect(() => {
+    function handleGlobalKey(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    }
+    document.addEventListener('keydown', handleGlobalKey);
+    return () => document.removeEventListener('keydown', handleGlobalKey);
+  }, []);
 
   if (loading) return (<div className="admin-loading"><img src="/logo_white.png" alt="" className="admin-loading__logo"/><span className="admin-loading__label">ADMIN</span></div>);
   if (!session || !profile || (profile.role !== 'admin' && profile.role !== 'superadmin')) return null;
@@ -166,11 +191,12 @@ export default function AdminLayout() {
             <h1 className="admin-topbar__desktop-title">{page.title}</h1>
           </div>
           <div className="admin-topbar__right">
-            <button className="admin-topbar__btn" aria-label="Search" title="Search (Ctrl+K)">{I.search}</button>
-            <button className="admin-topbar__btn admin-topbar__bell" aria-label="Notifications">{I.bell}</button>
+            <button className="admin-topbar__btn" onClick={() => setSearchOpen(true)} aria-label="Search" title="Search (Ctrl+K)">{I.search}</button>
+            <button className="admin-topbar__btn admin-topbar__bell" onClick={() => setNotifOpen(!notifOpen)} aria-label="Notifications" aria-expanded={notifOpen}>{I.bell}{unreadCount > 0 && <span className="admin-topbar__badge-dot" />}</button>
             <Link to="/" className="admin-topbar__store-link" title="Back to store">{I.store}<span>Store</span></Link>
             <div className="admin-topbar__user" title={`${displayName} (${role})`}>{initial}</div>
           </div>
+          <AdminNotifications isOpen={notifOpen} onClose={() => setNotifOpen(false)} onUnreadCount={setUnreadCount} />
         </header>
         <div className="admin-content"><Outlet /></div>
       </div>
@@ -191,6 +217,9 @@ export default function AdminLayout() {
         <div className="admin-more__user-row"><div className="admin-more__avatar">{initial}</div><div><div className="admin-more__name">{displayName}</div><div className="admin-more__role">{role}</div></div></div>
         <div className="admin-more__actions"><Link to="/" className="admin-more__action" onClick={() => setMoreOpen(false)}>{I.store} Back to Store</Link><button className="admin-more__action" onClick={handleSignOut}>{I.signout} Sign Out</button></div>
       </div>
+
+      {/* Search Command Palette */}
+      <AdminSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }

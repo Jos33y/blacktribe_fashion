@@ -1,14 +1,20 @@
 /*
- * BLACKTRIBE FASHION — WALK-IN ORDER (POS MODE)
+ * BLACKTRIBE FASHION — WALK-IN ORDER (POS MODE) v2
  *
- * Fast order creation for in-store purchases.
- * Flow: search products → add to order → payment method → complete → receipt.
+ * Redesigned as a proper point-of-sale register layout.
  *
- * Supports: discount codes, manual price override, cash/POS/transfer.
- * Stock deducted on completion. Order type = 'walk_in'.
+ * Desktop: 2-column split.
+ *   Left  — product search + quick catalog grid
+ *   Right — persistent order ticket (items, discount, payment, complete)
+ *
+ * Mobile: single column, sticky order bar at bottom.
+ *   Tapping the bar expands the full order panel.
+ *
+ * Build + Payment merged into one screen (no "Proceed to Payment" step).
+ * Receipt remains a separate view.
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -34,6 +40,69 @@ const PAYMENT_METHODS = [
   { value: 'bank_transfer', label: 'Bank Transfer' },
 ];
 
+/* ═══ ICONS (inline, no library) ═══ */
+
+const PosIcons = {
+  search: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  ),
+  plus: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  ),
+  minus: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  ),
+  trash: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+      <path d="M10 11v6" /><path d="M14 11v6" />
+    </svg>
+  ),
+  tag: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+      <circle cx="7" cy="7" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  ),
+  receipt: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M4 2v20l3-2 3 2 3-2 3 2 3-2 3 2V2l-3 2-3-2-3 2-3-2-3 2-3-2z" />
+      <line x1="8" y1="8" x2="16" y2="8" /><line x1="8" y1="12" x2="16" y2="12" />
+      <line x1="8" y1="16" x2="12" y2="16" />
+    </svg>
+  ),
+  chevDown: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  ),
+  chevUp: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <polyline points="18 15 12 9 6 15" />
+    </svg>
+  ),
+  printer: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M6 9V2h12v7" /><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" />
+    </svg>
+  ),
+  bag: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <path d="M16 10a4 4 0 01-8 0" />
+    </svg>
+  ),
+};
+
+
 /* ═══ COMPONENT ═══ */
 
 export default function WalkInOrder() {
@@ -42,12 +111,13 @@ export default function WalkInOrder() {
   const searchRef = useRef(null);
 
   /* ─── State ─── */
-  const [step, setStep] = useState('build'); // 'build' | 'payment' | 'receipt'
-  const [products, setProducts] = useState([]);
+  const [step, setStep] = useState('pos'); // 'pos' | 'receipt'
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
-  const [items, setItems] = useState([]); // { product, size, quantity, price (kobo), overridePrice }
+  const [catalog, setCatalog] = useState([]); // Quick browse products
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [items, setItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [discountCode, setDiscountCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -58,14 +128,30 @@ export default function WalkInOrder() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [completing, setCompleting] = useState(false);
   const [completedOrder, setCompletedOrder] = useState(null);
+  const [mobileOrderOpen, setMobileOrderOpen] = useState(false);
 
   useEffect(() => {
     document.title = 'New Walk-in Order. BlackTribe Admin.';
     searchRef.current?.focus();
+    loadCatalog();
   }, []);
 
   async function getToken() {
     return useAuthStore.getState().getAccessToken();
+  }
+
+  /* ─── Load catalog (featured/recent products for quick browse) ─── */
+  async function loadCatalog() {
+    setCatalogLoading(true);
+    try {
+      const token = await getToken();
+      const res = await fetch('/api/admin/products?status=active&limit=24&sort=newest', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (json.success) setCatalog(json.data || []);
+    } catch { /* silent */ }
+    finally { setCatalogLoading(false); }
   }
 
   /* ─── Product Search ─── */
@@ -91,7 +177,7 @@ export default function WalkInOrder() {
     finally { setSearching(false); }
   }
 
-  /* ─── Add item ─── */
+  /* ─── Item management ─── */
   function addItem(product, size) {
     const existing = items.find((i) => i.product.id === product.id && i.size === size);
     if (existing) {
@@ -112,6 +198,11 @@ export default function WalkInOrder() {
     setSearchQuery('');
     setSearchResults([]);
     searchRef.current?.focus();
+    // Flash the order panel on mobile
+    if (window.innerWidth < 768) {
+      setMobileOrderOpen(true);
+      setTimeout(() => setMobileOrderOpen(false), 1500);
+    }
   }
 
   function removeItem(index) {
@@ -129,6 +220,7 @@ export default function WalkInOrder() {
   }
 
   /* ─── Totals ─── */
+  const itemCount = items.reduce((s, i) => s + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => {
     const unitPrice = i.overridePrice !== null ? i.overridePrice : i.price;
     return sum + unitPrice * i.quantity;
@@ -223,11 +315,7 @@ export default function WalkInOrder() {
     }
   }
 
-  /* ─── Print receipt ─── */
-  function handlePrint() {
-    window.print();
-  }
-
+  /* ─── Reset for new order ─── */
   function handleNewOrder() {
     setItems([]);
     setPaymentMethod('cash');
@@ -238,139 +326,500 @@ export default function WalkInOrder() {
     setCashReceived('');
     setCustomerEmail('');
     setCompletedOrder(null);
-    setStep('build');
+    setStep('pos');
     searchRef.current?.focus();
   }
 
+  function handlePrint() {
+    window.print();
+  }
+
+
   /* ═══ RECEIPT VIEW ═══ */
+
   if (step === 'receipt' && completedOrder) {
     return (
-      <div className="admin-page walkin">
-        <div className="walkin-receipt" id="walkin-receipt">
-          <div className="walkin-receipt__header">
-            <span className="walkin-receipt__brand">BLACKTRIBE</span>
-            <span className="walkin-receipt__sub">FASHION</span>
-          </div>
+      <div className="admin-page pos">
+        <div className="pos-receipt-wrap">
+          <div className="pos-receipt" id="walkin-receipt">
+            <div className="pos-receipt__header">
+              <span className="pos-receipt__brand">BLACKTRIBE</span>
+              <span className="pos-receipt__sub">FASHION</span>
+            </div>
 
-          <div className="walkin-receipt__divider" />
+            <hr className="pos-receipt__hr" />
 
-          <div className="walkin-receipt__meta">
-            <span>Order: {completedOrder.order_number}</span>
-            <span>{new Date(completedOrder.created_at).toLocaleString('en-GB', {
-              day: 'numeric', month: 'short', year: 'numeric',
-              hour: '2-digit', minute: '2-digit',
-            })}</span>
-          </div>
+            <div className="pos-receipt__meta">
+              <span>Order: {completedOrder.order_number}</span>
+              <span>{new Date(completedOrder.created_at).toLocaleString('en-GB', {
+                day: 'numeric', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit',
+              })}</span>
+            </div>
 
-          <div className="walkin-receipt__divider" />
+            <hr className="pos-receipt__hr" />
 
-          <div className="walkin-receipt__items">
-            {(completedOrder.items || items).map((item, i) => (
-              <div key={i} className="walkin-receipt__item">
-                <div className="walkin-receipt__item-info">
-                  <span>{item.name}</span>
-                  <span className="walkin-receipt__item-size">
-                    Size {item.size} x{item.quantity}
-                  </span>
+            <div className="pos-receipt__items">
+              {(completedOrder.items || items).map((item, i) => (
+                <div key={i} className="pos-receipt__item">
+                  <div className="pos-receipt__item-info">
+                    <span>{item.name}</span>
+                    <span className="pos-receipt__item-detail">
+                      Size {item.size} x{item.quantity}
+                    </span>
+                  </div>
+                  <span className="pos-receipt__item-price">{formatPrice(item.price * item.quantity)}</span>
                 </div>
-                <span>{formatPrice(item.price * item.quantity)}</span>
+              ))}
+            </div>
+
+            <hr className="pos-receipt__hr" />
+
+            <div className="pos-receipt__totals">
+              <div className="pos-receipt__row">
+                <span>Subtotal</span>
+                <span>{formatPrice(completedOrder.subtotal)}</span>
               </div>
-            ))}
-          </div>
-
-          <div className="walkin-receipt__divider" />
-
-          <div className="walkin-receipt__totals">
-            <div className="walkin-receipt__total-row">
-              <span>Subtotal</span>
-              <span>{formatPrice(completedOrder.subtotal)}</span>
-            </div>
-            {completedOrder.discount_amount > 0 && (
-              <div className="walkin-receipt__total-row">
-                <span>Discount</span>
-                <span>-{formatPrice(completedOrder.discount_amount)}</span>
+              {completedOrder.discount_amount > 0 && (
+                <div className="pos-receipt__row">
+                  <span>Discount</span>
+                  <span>-{formatPrice(completedOrder.discount_amount)}</span>
+                </div>
+              )}
+              <div className="pos-receipt__row pos-receipt__row--total">
+                <span>Total</span>
+                <span>{formatPrice(completedOrder.total)}</span>
               </div>
-            )}
-            <div className="walkin-receipt__total-row walkin-receipt__total-row--final">
-              <span>Total</span>
-              <span>{formatPrice(completedOrder.total)}</span>
+              <div className="pos-receipt__row">
+                <span>Payment</span>
+                <span style={{ textTransform: 'capitalize' }}>
+                  {completedOrder.payment_method?.replace('_', ' ')}
+                </span>
+              </div>
             </div>
-            <div className="walkin-receipt__total-row">
-              <span>Payment</span>
-              <span style={{ textTransform: 'capitalize' }}>
-                {completedOrder.payment_method?.replace('_', ' ')}
-              </span>
+
+            <hr className="pos-receipt__hr" />
+
+            <div className="pos-receipt__footer">
+              <p>Thank you for shopping with BlackTribe.</p>
+              <p className="pos-receipt__url">blacktribefashion.com</p>
             </div>
           </div>
 
-          <div className="walkin-receipt__divider" />
-
-          <div className="walkin-receipt__footer">
-            <p>Thank you for shopping with BlackTribe.</p>
-            <p className="walkin-receipt__url">blacktribefashion.com</p>
+          <div className="pos-receipt__actions">
+            <Button variant="secondary" onClick={handlePrint}>
+              {PosIcons.printer} Print Receipt
+            </Button>
+            <Button variant="primary" onClick={handleNewOrder}>
+              {PosIcons.plus} New Order
+            </Button>
           </div>
-        </div>
-
-        {/* Actions (hidden when printing) */}
-        <div className="walkin-receipt-actions">
-          <Button variant="secondary" onClick={handlePrint}>
-            Print Receipt
-          </Button>
-          <Button variant="primary" onClick={handleNewOrder}>
-            New Order
-          </Button>
         </div>
       </div>
     );
   }
 
-  /* ═══ PAYMENT VIEW ═══ */
-  if (step === 'payment') {
-    return (
-      <div className="admin-page walkin">
-        <div className="walkin-payment">
-          <h2 className="walkin-payment__title">Complete Payment</h2>
 
-          {/* Order summary */}
-          <div className="admin-card walkin-payment__summary">
-            <div className="walkin-payment__items">
-              {items.map((item, i) => (
-                <div key={i} className="walkin-payment__item">
-                  <span>{item.product.name} ({item.size}) x{item.quantity}</span>
-                  <span className="walkin-payment__item-price">
-                    {formatPrice((item.overridePrice ?? item.price) * item.quantity)}
-                  </span>
+  /* ═══ MAIN POS VIEW ═══ */
+
+  return (
+    <div className="admin-page pos">
+      <div className="pos-register">
+
+        {/* ─── LEFT: Product Catalog ─── */}
+        <div className="pos-catalog">
+
+          {/* Search bar */}
+          <div className="pos-search">
+            <div className="pos-search__icon">{PosIcons.search}</div>
+            <input
+              ref={searchRef}
+              className="pos-search__input"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products by name..."
+              autoComplete="off"
+            />
+            {searchQuery && (
+              <button
+                className="pos-search__clear"
+                onClick={() => { setSearchQuery(''); setSearchResults([]); searchRef.current?.focus(); }}
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
+
+            {/* Search results dropdown */}
+            {searchResults.length > 0 && (
+              <div className="pos-search__dropdown">
+                {searchResults.map((product) => (
+                  <div key={product.id} className="pos-search__result">
+                    <div className="pos-search__result-info">
+                      {product.images?.[0] && (
+                        <img src={product.images[0]} alt="" className="pos-search__result-img" />
+                      )}
+                      <div>
+                        <span className="pos-search__result-name">{product.name}</span>
+                        <span className="pos-search__result-price">{formatPrice(product.price)}</span>
+                      </div>
+                    </div>
+                    <div className="pos-search__result-sizes">
+                      {(product.sizes || []).map((s) => (
+                        <button
+                          key={s.size}
+                          className="pos-size-btn"
+                          onClick={() => addItem(product, s.size)}
+                          disabled={s.stock <= 0}
+                          title={s.stock <= 0 ? 'Out of stock' : `${s.stock} in stock`}
+                        >
+                          {s.size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {searching && <div className="pos-search__dropdown"><div className="pos-search__loading">Searching...</div></div>}
+          </div>
+
+          {/* Quick catalog grid */}
+          <div className="pos-catalog__header">
+            <span className="pos-catalog__label">Quick Add</span>
+            <span className="pos-catalog__count">{catalog.length} products</span>
+          </div>
+
+          {catalogLoading ? (
+            <div className="pos-catalog__grid">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="pos-product-tile pos-product-tile--skeleton">
+                  <div className="pos-product-tile__img skeleton" />
+                  <div className="pos-product-tile__name skeleton" style={{ width: '80%', height: 12 }} />
+                  <div className="pos-product-tile__price skeleton" style={{ width: '50%', height: 10 }} />
                 </div>
               ))}
             </div>
-            <div className="walkin-payment__total">
+          ) : (
+            <div className="pos-catalog__grid">
+              {catalog.map((product) => (
+                <CatalogTile key={product.id} product={product} onAdd={addItem} />
+              ))}
+              {catalog.length === 0 && (
+                <div className="pos-catalog__empty">No active products found.</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ─── RIGHT: Order Ticket (desktop) ─── */}
+        <div className="pos-ticket">
+          <OrderTicket
+            items={items}
+            itemCount={itemCount}
+            subtotal={subtotal}
+            total={total}
+            discountAmount={discountAmount}
+            appliedCode={appliedCode}
+            discountCode={discountCode}
+            discountError={discountError}
+            validatingDiscount={validatingDiscount}
+            paymentMethod={paymentMethod}
+            cashReceived={cashReceived}
+            changeAmount={changeAmount}
+            customerEmail={customerEmail}
+            completing={completing}
+            onDiscountCodeChange={(v) => { setDiscountCode(v.toUpperCase()); setDiscountError(''); }}
+            onValidateDiscount={validateDiscount}
+            onRemoveDiscount={removeDiscount}
+            onPaymentMethodChange={setPaymentMethod}
+            onCashReceivedChange={setCashReceived}
+            onCustomerEmailChange={setCustomerEmail}
+            onUpdateQuantity={updateQuantity}
+            onRemoveItem={removeItem}
+            onOverridePrice={setOverridePrice}
+            onComplete={handleComplete}
+          />
+        </div>
+
+        {/* ─── MOBILE: Sticky order bar + expandable panel ─── */}
+        <div className={`pos-mobile-bar ${items.length > 0 ? 'pos-mobile-bar--visible' : ''}`}>
+          <button
+            className="pos-mobile-bar__toggle"
+            onClick={() => setMobileOrderOpen(!mobileOrderOpen)}
+          >
+            <div className="pos-mobile-bar__left">
+              {PosIcons.bag}
+              <span className="pos-mobile-bar__count">{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
+            </div>
+            <div className="pos-mobile-bar__right">
+              <span className="pos-mobile-bar__total">{formatPrice(total)}</span>
+              {mobileOrderOpen ? PosIcons.chevDown : PosIcons.chevUp}
+            </div>
+          </button>
+        </div>
+
+        {/* Mobile order panel (slides up) */}
+        {mobileOrderOpen && items.length > 0 && (
+          <>
+            <div className="pos-mobile-backdrop" onClick={() => setMobileOrderOpen(false)} />
+            <div className="pos-mobile-panel">
+              <div className="pos-mobile-panel__handle" />
+              <OrderTicket
+                items={items}
+                itemCount={itemCount}
+                subtotal={subtotal}
+                total={total}
+                discountAmount={discountAmount}
+                appliedCode={appliedCode}
+                discountCode={discountCode}
+                discountError={discountError}
+                validatingDiscount={validatingDiscount}
+                paymentMethod={paymentMethod}
+                cashReceived={cashReceived}
+                changeAmount={changeAmount}
+                customerEmail={customerEmail}
+                completing={completing}
+                onDiscountCodeChange={(v) => { setDiscountCode(v.toUpperCase()); setDiscountError(''); }}
+                onValidateDiscount={validateDiscount}
+                onRemoveDiscount={removeDiscount}
+                onPaymentMethodChange={setPaymentMethod}
+                onCashReceivedChange={setCashReceived}
+                onCustomerEmailChange={setCustomerEmail}
+                onUpdateQuantity={updateQuantity}
+                onRemoveItem={removeItem}
+                onOverridePrice={setOverridePrice}
+                onComplete={handleComplete}
+                onClose={() => setMobileOrderOpen(false)}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+/* ═══ CATALOG TILE ═══ */
+
+function CatalogTile({ product, onAdd }) {
+  const [showSizes, setShowSizes] = useState(false);
+
+  return (
+    <div
+      className={`pos-product-tile ${showSizes ? 'pos-product-tile--expanded' : ''}`}
+      onClick={() => {
+        // If product has only one size with stock, add directly
+        const available = (product.sizes || []).filter((s) => s.stock > 0);
+        if (available.length === 1) {
+          onAdd(product, available[0].size);
+        } else {
+          setShowSizes(!showSizes);
+        }
+      }}
+    >
+      <div className="pos-product-tile__img-wrap">
+        {product.images?.[0] ? (
+          <img src={product.images[0]} alt="" className="pos-product-tile__img" loading="lazy" />
+        ) : (
+          <div className="pos-product-tile__img pos-product-tile__img--placeholder" />
+        )}
+        {product.badge && (
+          <span className="pos-product-tile__badge">{product.badge}</span>
+        )}
+      </div>
+      <span className="pos-product-tile__name">{product.name}</span>
+      <span className="pos-product-tile__price">{formatPrice(product.price)}</span>
+
+      {/* Size selector overlay */}
+      {showSizes && (
+        <div className="pos-product-tile__sizes" onClick={(e) => e.stopPropagation()}>
+          <span className="pos-product-tile__sizes-label">Select size</span>
+          <div className="pos-product-tile__sizes-row">
+            {(product.sizes || []).map((s) => (
+              <button
+                key={s.size}
+                className="pos-size-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAdd(product, s.size);
+                  setShowSizes(false);
+                }}
+                disabled={s.stock <= 0}
+              >
+                {s.size}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/* ═══ ORDER TICKET (shared between desktop sidebar + mobile panel) ═══ */
+
+function OrderTicket({
+  items, itemCount, subtotal, total,
+  discountAmount, appliedCode, discountCode, discountError, validatingDiscount,
+  paymentMethod, cashReceived, changeAmount, customerEmail, completing,
+  onDiscountCodeChange, onValidateDiscount, onRemoveDiscount,
+  onPaymentMethodChange, onCashReceivedChange, onCustomerEmailChange,
+  onUpdateQuantity, onRemoveItem, onOverridePrice,
+  onComplete, onClose,
+}) {
+  return (
+    <div className="pos-ticket__inner">
+      {/* Header */}
+      <div className="pos-ticket__header">
+        <div className="pos-ticket__header-left">
+          {PosIcons.receipt}
+          <span className="pos-ticket__title">Order</span>
+          {itemCount > 0 && <span className="pos-ticket__badge">{itemCount}</span>}
+        </div>
+        {onClose && (
+          <button className="pos-ticket__close" onClick={onClose} aria-label="Close">×</button>
+        )}
+      </div>
+
+      {/* Items */}
+      <div className="pos-ticket__items">
+        {items.length === 0 ? (
+          <div className="pos-ticket__empty">
+            <span className="pos-ticket__empty-icon">{PosIcons.bag}</span>
+            <p>No items yet.</p>
+            <p className="pos-ticket__empty-hint">Search or tap a product to add it.</p>
+          </div>
+        ) : (
+          items.map((item, i) => (
+            <div key={`${item.product.id}-${item.size}`} className="pos-ticket__item">
+              <div className="pos-ticket__item-top">
+                {item.product.images?.[0] && (
+                  <img src={item.product.images[0]} alt="" className="pos-ticket__item-img" />
+                )}
+                <div className="pos-ticket__item-info">
+                  <span className="pos-ticket__item-name">{item.product.name}</span>
+                  <span className="pos-ticket__item-meta">Size {item.size}</span>
+                </div>
+                <button
+                  className="pos-ticket__item-remove"
+                  onClick={() => onRemoveItem(i)}
+                  aria-label="Remove item"
+                >
+                  {PosIcons.trash}
+                </button>
+              </div>
+              <div className="pos-ticket__item-bottom">
+                <div className="pos-ticket__item-qty">
+                  <button onClick={() => onUpdateQuantity(i, item.quantity - 1)} disabled={item.quantity <= 1}>
+                    {PosIcons.minus}
+                  </button>
+                  <span>{item.quantity}</span>
+                  <button onClick={() => onUpdateQuantity(i, item.quantity + 1)}>
+                    {PosIcons.plus}
+                  </button>
+                </div>
+                <div className="pos-ticket__item-pricing">
+                  <span className="pos-ticket__item-total">
+                    {formatPrice((item.overridePrice ?? item.price) * item.quantity)}
+                  </span>
+                  <input
+                    type="number"
+                    className="pos-ticket__item-override"
+                    placeholder={`₦${koboToNaira(item.price)}`}
+                    value={item.overridePrice !== null ? koboToNaira(item.overridePrice) : ''}
+                    onChange={(e) => onOverridePrice(i, e.target.value)}
+                    title="Override price (₦)"
+                  />
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Discount, payment, complete — only show when items exist */}
+      {items.length > 0 && (
+        <div className="pos-ticket__footer">
+          {/* Discount */}
+          <div className="pos-ticket__discount">
+            {appliedCode ? (
+              <div className="pos-ticket__discount-applied">
+                <div className="pos-ticket__discount-left">
+                  {PosIcons.tag}
+                  <span className="pos-ticket__discount-code">{appliedCode}</span>
+                </div>
+                <span className="pos-ticket__discount-savings">-{formatPrice(discountAmount)}</span>
+                <button className="pos-ticket__discount-remove" onClick={onRemoveDiscount}>×</button>
+              </div>
+            ) : (
+              <div className="pos-ticket__discount-form">
+                <input
+                  type="text"
+                  className="pos-ticket__discount-input"
+                  value={discountCode}
+                  onChange={(e) => onDiscountCodeChange(e.target.value)}
+                  placeholder="Discount code"
+                />
+                <button
+                  className="pos-ticket__discount-apply"
+                  onClick={onValidateDiscount}
+                  disabled={!discountCode.trim() || validatingDiscount}
+                >
+                  {validatingDiscount ? '...' : 'Apply'}
+                </button>
+              </div>
+            )}
+            {discountError && <span className="pos-ticket__discount-error">{discountError}</span>}
+          </div>
+
+          {/* Totals */}
+          <div className="pos-ticket__totals">
+            <div className="pos-ticket__totals-row">
+              <span>Subtotal</span>
+              <span>{formatPrice(subtotal)}</span>
+            </div>
+            {discountAmount > 0 && (
+              <div className="pos-ticket__totals-row pos-ticket__totals-row--discount">
+                <span>Discount</span>
+                <span>-{formatPrice(discountAmount)}</span>
+              </div>
+            )}
+            <div className="pos-ticket__totals-row pos-ticket__totals-row--total">
               <span>Total</span>
               <span>{formatPrice(total)}</span>
             </div>
           </div>
 
-          {/* Payment method */}
-          <div className="admin-card">
-            <Select
-              label="Payment Method"
-              options={PAYMENT_METHODS}
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              placeholder={null}
-            />
+          {/* Payment */}
+          <div className="pos-ticket__payment">
+            <div className="pos-ticket__payment-methods">
+              {PAYMENT_METHODS.map((m) => (
+                <button
+                  key={m.value}
+                  className={`pos-ticket__payment-btn ${paymentMethod === m.value ? 'pos-ticket__payment-btn--active' : ''}`}
+                  onClick={() => onPaymentMethodChange(m.value)}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
 
             {paymentMethod === 'cash' && (
-              <div style={{ marginTop: 16 }}>
-                <Input
-                  label="Cash Received (₦)"
+              <div className="pos-ticket__cash">
+                <input
                   type="number"
+                  className="pos-ticket__cash-input"
                   value={cashReceived}
-                  onChange={(e) => setCashReceived(e.target.value)}
-                  placeholder={String(koboToNaira(total))}
+                  onChange={(e) => onCashReceivedChange(e.target.value)}
+                  placeholder={`Cash received (₦${koboToNaira(total)})`}
                   min="0"
                 />
                 {cashReceived && changeAmount >= 0 && (
-                  <div className="walkin-payment__change">
+                  <div className="pos-ticket__change">
                     Change: {formatPrice(changeAmount)}
                   </div>
                 )}
@@ -378,185 +827,32 @@ export default function WalkInOrder() {
             )}
           </div>
 
-          {/* Customer email (optional) */}
-          <div className="admin-card">
-            <Input
-              label="Customer Email (optional)"
-              type="email"
-              value={customerEmail}
-              onChange={(e) => setCustomerEmail(e.target.value)}
-              placeholder="For receipt and order linking"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="walkin-payment__actions">
-            <Button variant="secondary" onClick={() => setStep('build')}>
-              Back
-            </Button>
-            <Button variant="primary" onClick={handleComplete} loading={completing}>
-              Complete Order — {formatPrice(total)}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  /* ═══ BUILD ORDER VIEW ═══ */
-  return (
-    <div className="admin-page walkin">
-      <div className="walkin-build">
-
-        {/* Search */}
-        <div className="walkin-search">
-          <Input
-            ref={searchRef}
-            label="Search Products"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Type product name..."
+          {/* Customer email */}
+          <input
+            type="email"
+            className="pos-ticket__email"
+            value={customerEmail}
+            onChange={(e) => onCustomerEmailChange(e.target.value)}
+            placeholder="Customer email (optional)"
           />
 
-          {/* Search results dropdown */}
-          {searchResults.length > 0 && (
-            <div className="walkin-search__results">
-              {searchResults.map((product) => (
-                <div key={product.id} className="walkin-search__product">
-                  <div className="walkin-search__product-info">
-                    {product.images?.[0] && (
-                      <img src={product.images[0]} alt="" className="walkin-search__thumb" />
-                    )}
-                    <div>
-                      <span className="walkin-search__name">{product.name}</span>
-                      <span className="walkin-search__price">{formatPrice(product.price)}</span>
-                    </div>
-                  </div>
-                  <div className="walkin-search__sizes">
-                    {(product.sizes || []).map((s) => (
-                      <button
-                        key={s.size}
-                        className="walkin-search__size-btn"
-                        onClick={() => addItem(product, s.size)}
-                        disabled={s.stock <= 0}
-                        title={s.stock <= 0 ? 'Out of stock' : `${s.stock} in stock`}
-                      >
-                        {s.size}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {searching && (
-            <div className="walkin-search__loading">Searching...</div>
-          )}
+          {/* Complete button */}
+          <button
+            className="pos-ticket__complete"
+            onClick={onComplete}
+            disabled={completing || items.length === 0}
+          >
+            {completing ? (
+              <span className="pos-ticket__complete-loading">Processing...</span>
+            ) : (
+              <>
+                <span>Complete Order</span>
+                <span className="pos-ticket__complete-amount">{formatPrice(total)}</span>
+              </>
+            )}
+          </button>
         </div>
-
-        {/* Order items */}
-        <div className="walkin-items">
-          {items.length === 0 ? (
-            <div className="walkin-items__empty">
-              <p>Search and add products above.</p>
-            </div>
-          ) : (
-            <>
-              {items.map((item, i) => (
-                <div key={`${item.product.id}-${item.size}`} className="walkin-item">
-                  <div className="walkin-item__info">
-                    {item.product.images?.[0] && (
-                      <img src={item.product.images[0]} alt="" className="walkin-item__thumb" />
-                    )}
-                    <div className="walkin-item__details">
-                      <span className="walkin-item__name">{item.product.name}</span>
-                      <span className="walkin-item__size">Size {item.size}</span>
-                    </div>
-                  </div>
-                  <div className="walkin-item__controls">
-                    <div className="walkin-item__qty">
-                      <button onClick={() => updateQuantity(i, item.quantity - 1)} disabled={item.quantity <= 1}>−</button>
-                      <span>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(i, item.quantity + 1)}>+</button>
-                    </div>
-                    <div className="walkin-item__price-col">
-                      <span className="walkin-item__price">
-                        {formatPrice((item.overridePrice ?? item.price) * item.quantity)}
-                      </span>
-                      <input
-                        type="number"
-                        className="walkin-item__override"
-                        placeholder={`₦${koboToNaira(item.price)}`}
-                        value={item.overridePrice !== null ? koboToNaira(item.overridePrice) : ''}
-                        onChange={(e) => setOverridePrice(i, e.target.value)}
-                        title="Override price (₦)"
-                      />
-                    </div>
-                    <button className="walkin-item__remove" onClick={() => removeItem(i)} aria-label="Remove">
-                      ×
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {/* Discount */}
-              <div className="walkin-discount">
-                {appliedCode ? (
-                  <div className="walkin-discount__applied">
-                    <span className="walkin-discount__code">{appliedCode}</span>
-                    <span className="walkin-discount__savings">-{formatPrice(discountAmount)}</span>
-                    <button className="walkin-discount__remove" onClick={removeDiscount} type="button">Remove</button>
-                  </div>
-                ) : (
-                  <div className="walkin-discount__form">
-                    <Input
-                      label="Discount Code"
-                      value={discountCode}
-                      onChange={(e) => { setDiscountCode(e.target.value.toUpperCase()); setDiscountError(''); }}
-                      placeholder="Enter code"
-                      error={discountError}
-                    />
-                    <Button
-                      variant="secondary"
-                      size="small"
-                      onClick={validateDiscount}
-                      loading={validatingDiscount}
-                      disabled={!discountCode.trim()}
-                      style={{ marginTop: 8 }}
-                    >
-                      Apply
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Subtotal */}
-              <div className="walkin-subtotal">
-                <div className="walkin-subtotal__row">
-                  <span>Subtotal ({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
-                  <span>{formatPrice(subtotal)}</span>
-                </div>
-                {discountAmount > 0 && (
-                  <div className="walkin-subtotal__row">
-                    <span>Discount</span>
-                    <span style={{ color: 'var(--bt-success)' }}>-{formatPrice(discountAmount)}</span>
-                  </div>
-                )}
-                <div className="walkin-subtotal__row walkin-subtotal__row--total">
-                  <span>Total</span>
-                  <span>{formatPrice(total)}</span>
-                </div>
-              </div>
-
-              {/* Proceed to payment */}
-              <Button variant="primary" fullWidth onClick={() => setStep('payment')}>
-                Proceed to Payment — {formatPrice(total)}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
