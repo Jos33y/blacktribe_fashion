@@ -1,5 +1,10 @@
 /*
- * BLACKTRIBE FASHION — ADMIN LAYOUT v3.4
+ * BLACKTRIBE FASHION — ADMIN LAYOUT v3.5
+ *
+ * v3.5:
+ *   - Nested Suspense around Outlet — admin page transitions
+ *     now show lightweight skeleton WITHIN the layout instead
+ *     of flashing the full-page PageLoader (which hides sidebar)
  *
  * v3.4:
  *   - AdminNotifications panel (bell icon dropdown)
@@ -18,11 +23,12 @@
  *   - Route-change scroll targets .admin-content
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { Outlet, useLocation, useNavigate, NavLink, Link } from 'react-router';
 import useAuthStore from '../store/authStore';
 import AdminSearch from '../components/admin/AdminSearch';
 import AdminNotifications from '../components/admin/AdminNotifications';
+import Skeleton from '../components/ui/Skeleton';
 
 import '../styles/admin/admin-layout.css';
 import '../styles/admin/admin-tabs.css';
@@ -44,6 +50,7 @@ const I = {
   newsletter: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>),
   shipping: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>),
   staff: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>),
+  payments: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>),
   settings: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>),
   plus: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>),
   more: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg>),
@@ -62,6 +69,7 @@ const allSidebarNav = [
   { to: '/admin', icon: I.dashboard, label: 'Dashboard', end: true, perm: null },
   { to: '/admin/analytics', icon: I.analytics, label: 'Analytics', perm: null },
   { to: '/admin/orders', icon: I.orders, label: 'Orders', perm: 'orders' },
+  { to: '/admin/payments', icon: I.payments, label: 'Payments', perm: 'orders' },
   { to: '/admin/products', icon: I.products, label: 'Products', perm: 'products' },
   { to: '/admin/customers', icon: I.customers, label: 'Customers', perm: 'customers' },
   { to: '/admin/collections', icon: I.collections, label: 'Collections', perm: 'collections' },
@@ -73,6 +81,7 @@ const allSidebarNav = [
 
 const allMoreItems = [
   { to: '/admin/analytics', icon: I.analytics, label: 'Analytics', perm: null },
+  { to: '/admin/payments', icon: I.payments, label: 'Payments', perm: 'orders' },
   { to: '/admin/customers', icon: I.customers, label: 'Customers', perm: 'customers' },
   { to: '/admin/collections', icon: I.collections, label: 'Collections', perm: 'collections' },
   { to: '/admin/discounts', icon: I.discounts, label: 'Discounts', perm: 'discounts' },
@@ -100,14 +109,29 @@ function getPageInfo(pathname) {
   if (pathname.match(/^\/admin\/products\/.+\/edit/)) return { title: 'Edit Product', nested: true, parent: '/admin/products' };
   if (pathname === '/admin/categories') return { title: 'Categories', nested: true, parent: '/admin/products' };
   if (pathname === '/admin/activity') return { title: 'Activity Log', nested: true, parent: '/admin/settings' };
+  if (pathname === '/admin/messages') return { title: 'Messages', nested: true, parent: '/admin/settings' };
+  if (pathname.match(/^\/admin\/customers\/.+/)) return { title: 'Customer Detail', nested: true, parent: '/admin/customers' };
 
   const map = {
     '/admin': 'Dashboard', '/admin/analytics': 'Analytics', '/admin/orders': 'Orders',
     '/admin/products': 'Products', '/admin/customers': 'Customers', '/admin/collections': 'Collections',
     '/admin/discounts': 'Discounts', '/admin/newsletter': 'Newsletter', '/admin/shipping': 'Shipping',
-    '/admin/settings': 'Settings', '/admin/staff': 'Staff',
+    '/admin/settings': 'Settings', '/admin/staff': 'Staff', '/admin/payments': 'Payments',
   };
   return { title: map[pathname] || 'Admin', nested: false };
+}
+
+/* ═══ ADMIN PAGE SKELETON ═══ */
+/* Lightweight skeleton that renders INSIDE the admin layout */
+function AdminPageSkeleton() {
+  return (
+    <div className="admin-page" style={{ opacity: 0.6 }}>
+      <Skeleton type="text" style={{ width: '30%', height: 24, marginBottom: 24 }} />
+      <Skeleton type="text" style={{ width: '100%', height: 48, marginBottom: 16 }} />
+      <Skeleton type="text" style={{ width: '100%', height: 48, marginBottom: 16 }} />
+      <Skeleton type="text" style={{ width: '60%', height: 48 }} />
+    </div>
+  );
 }
 
 /* ═══ COMPONENT ═══ */
@@ -198,7 +222,11 @@ export default function AdminLayout() {
           </div>
           <AdminNotifications isOpen={notifOpen} onClose={() => setNotifOpen(false)} onUnreadCount={setUnreadCount} />
         </header>
-        <div className="admin-content"><Outlet /></div>
+        <div className="admin-content">
+          <Suspense fallback={<AdminPageSkeleton />}>
+            <Outlet />
+          </Suspense>
+        </div>
       </div>
 
       <nav className="admin-tabs" aria-label="Admin navigation">

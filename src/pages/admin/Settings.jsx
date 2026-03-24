@@ -20,6 +20,7 @@ const icons = {
   analytics: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>),
   staff: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>),
   activity: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>),
+  messages: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>),
   store: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>),
   chevron: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="9 18 15 12 9 6"/></svg>),
 };
@@ -49,6 +50,12 @@ const allSections = [
     title: 'Marketing',
     items: [
       { to: '/admin/newsletter', icon: icons.newsletter, label: 'Newsletter', desc: 'Subscriber list and exports', perm: null },
+    ],
+  },
+  {
+    title: 'Support',
+    items: [
+      { to: '/admin/messages', icon: icons.messages, label: 'Messages', desc: 'Contact form submissions', perm: 'orders' },
     ],
   },
   {
@@ -96,12 +103,13 @@ export default function AdminSettings() {
       const { default: store } = await import('../../store/authStore');
       const token = await store.getState().getAccessToken();
       const headers = { Authorization: `Bearer ${token}` };
-      const [catRes, colRes, discRes, shipRes, newsRes] = await Promise.allSettled([
+      const [catRes, colRes, discRes, shipRes, newsRes, msgRes] = await Promise.allSettled([
         fetch('/api/admin/categories', { headers }).then((r) => r.json()),
         fetch('/api/admin/collections', { headers }).then((r) => r.json()),
         fetch('/api/admin/discounts', { headers }).then((r) => r.json()),
         fetch('/api/admin/shipping', { headers }).then((r) => r.json()),
         fetch('/api/admin/newsletter', { headers }).then((r) => r.json()),
+        fetch('/api/contact/messages?status=unread&limit=1', { headers }).then((r) => r.json()),
       ]);
       const c = {};
       if (catRes.status === 'fulfilled' && catRes.value.data) c.categories = catRes.value.data.length;
@@ -109,12 +117,13 @@ export default function AdminSettings() {
       if (discRes.status === 'fulfilled' && discRes.value.data) c.discounts = discRes.value.data.length;
       if (shipRes.status === 'fulfilled' && shipRes.value.data) c.shipping = shipRes.value.data.length;
       if (newsRes.status === 'fulfilled') { const n = newsRes.value; c.newsletter = n.count ?? n.data?.length ?? 0; }
+      if (msgRes.status === 'fulfilled') { c.messages = msgRes.value.total ?? 0; }
       setCounts(c);
     } catch { /* */ }
   }
 
   function getCount(label) {
-    const map = { 'Categories': counts.categories, 'Collections': counts.collections, 'Discount Codes': counts.discounts, 'Shipping Zones': counts.shipping, 'Newsletter': counts.newsletter };
+    const map = { 'Categories': counts.categories, 'Collections': counts.collections, 'Discount Codes': counts.discounts, 'Shipping Zones': counts.shipping, 'Newsletter': counts.newsletter, 'Messages': counts.messages };
     return map[label];
   }
 

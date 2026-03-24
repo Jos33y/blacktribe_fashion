@@ -1,5 +1,11 @@
 /*
- * BLACKTRIBE FASHION — ADMIN PRODUCT FORM
+ * BLACKTRIBE FASHION — ADMIN PRODUCT FORM v2
+ *
+ * v2: Shopify-style sticky top bar
+ *   - Single action bar at top of page (Cancel + Save)
+ *   - When header scrolls out of view, slim sticky bar pins
+ *     to top of content area with title + actions
+ *   - Bottom sticky bar REMOVED (was confusing with two bars)
  *
  * Add or edit a product. Used at:
  *   /admin/products/new     → create mode
@@ -10,7 +16,7 @@
  * Slug auto-generated from name, editable.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -63,6 +69,7 @@ const EMPTY_PRODUCT = {
   images: [],
   sizes: [],
   colors: [],
+  tags: [],
   badge: '',
   video_url: '',
   is_featured: false,
@@ -87,15 +94,45 @@ export default function AdminProductForm() {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   const [slugManual, setSlugManual] = useState(false);
+  const [headerPinned, setHeaderPinned] = useState(false);
 
   /* ─── New color input state ─── */
   const [newColor, setNewColor] = useState({ name: '', hex: '#000000' });
+
+  /* ─── New tag input state ─── */
+  const [newTag, setNewTag] = useState('');
+
+  /* ─── Sticky header observer ─── */
+  const headerRef = useRef(null);
 
   useEffect(() => {
     document.title = isEdit ? 'Edit Product. BlackTribe Admin.' : 'New Product. BlackTribe Admin.';
     fetchMeta();
     if (isEdit) fetchProduct();
   }, [id]);
+
+  /* IntersectionObserver: when the page header scrolls out of .admin-content,
+     we pin a slim sticky bar at the top */
+  useEffect(() => {
+    const headerEl = headerRef.current;
+    if (!headerEl) return;
+
+    const scrollRoot = document.querySelector('.admin-content');
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeaderPinned(!entry.isIntersecting);
+      },
+      {
+        root: scrollRoot || null,
+        threshold: 0,
+        rootMargin: '0px',
+      }
+    );
+
+    observer.observe(headerEl);
+    return () => observer.disconnect();
+  }, [loading]);
 
   async function getToken() {
     return (await import('../../store/authStore')).default.getState().getAccessToken();
@@ -136,6 +173,7 @@ export default function AdminProductForm() {
           images: p.images || [],
           sizes: p.sizes || [],
           colors: p.colors || [],
+          tags: p.tags || [],
           badge: p.badge || '',
           video_url: p.video_url || '',
           is_featured: p.is_featured || false,
@@ -206,6 +244,20 @@ export default function AdminProductForm() {
     update('colors', form.colors.filter((c) => c.name !== name));
   }
 
+  /* ─── Tag management ─── */
+
+  function addTag() {
+    const tag = newTag.trim().toLowerCase();
+    if (!tag) return;
+    if (form.tags.includes(tag)) return;
+    update('tags', [...form.tags, tag]);
+    setNewTag('');
+  }
+
+  function removeTag(tag) {
+    update('tags', form.tags.filter((t) => t !== tag));
+  }
+
   /* ─── Validation ─── */
 
   function validate() {
@@ -244,6 +296,7 @@ export default function AdminProductForm() {
         images: form.images,
         sizes: form.sizes,
         colors: form.colors.length > 0 ? form.colors : null,
+        tags: form.tags.length > 0 ? form.tags : null,
         badge: form.badge || null,
         video_url: form.video_url.trim() || null,
         is_featured: form.is_featured,
@@ -302,14 +355,28 @@ export default function AdminProductForm() {
     ...collections.map((c) => ({ value: c.id, label: c.name })),
   ];
 
+  const pageTitle = isEdit ? (form.name || 'Edit Product') : 'New Product';
+
   return (
     <div className="admin-page product-form">
 
-      <div className="admin-page-header">
+      {/* ─── Sticky pinned bar (appears when header scrolls away) ─── */}
+      <div className={`product-form__sticky-bar ${headerPinned ? 'product-form__sticky-bar--visible' : ''}`}>
+        <span className="product-form__sticky-title">{pageTitle}</span>
+        <div className="product-form__sticky-actions">
+          <Button variant="secondary" size="small" onClick={() => navigate('/admin/products')}>
+            Cancel
+          </Button>
+          <Button variant="primary" size="small" onClick={handleSave} loading={saving}>
+            {isEdit ? 'Save Changes' : 'Create Product'}
+          </Button>
+        </div>
+      </div>
+
+      {/* ─── Normal page header (observed for intersection) ─── */}
+      <div ref={headerRef} className="admin-page-header">
         <div className="admin-page-header__info">
-          <h2 className="admin-page-header__title">
-            {isEdit ? 'Edit Product' : 'New Product'}
-          </h2>
+          <h2 className="admin-page-header__title">{pageTitle}</h2>
         </div>
         <div className="admin-page-header__actions">
           <Button variant="secondary" size="small" onClick={() => navigate('/admin/products')}>
@@ -410,7 +477,7 @@ export default function AdminProductForm() {
                   type="number"
                   value={form.compare_at_price}
                   onChange={(e) => update('compare_at_price', e.target.value)}
-                  placeholder="Optional. For future sale display."
+                  placeholder="Optional. For sale display."
                   min="0"
                 />
               </div>
@@ -517,6 +584,50 @@ export default function AdminProductForm() {
               </div>
             </div>
           </div>
+
+          {/* Tags */}
+          <div className="admin-card">
+            <div className="admin-form-section">
+              <h3 className="admin-form-section__title">Tags</h3>
+              <p className="admin-form-section__desc">Optional. Used for search and filtering.</p>
+
+              {form.tags.length > 0 && (
+                <div className="product-form__tags-list">
+                  {form.tags.map((tag) => (
+                    <span key={tag} className="product-form__tag-chip">
+                      {tag}
+                      <button
+                        className="product-form__tag-remove"
+                        onClick={() => removeTag(tag)}
+                        aria-label={`Remove ${tag}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="product-form__tag-input">
+                <input
+                  type="text"
+                  className="product-form__tag-field"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="Type a tag and press Enter"
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                />
+                <button
+                  className="product-form__tag-add-btn"
+                  onClick={addTag}
+                  disabled={!newTag.trim()}
+                  type="button"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* ─── Right column: meta, toggles ─── */}
@@ -558,7 +669,7 @@ export default function AdminProductForm() {
                   label="Video URL"
                   value={form.video_url}
                   onChange={(e) => update('video_url', e.target.value)}
-                  placeholder="https://..."
+                  placeholder="/video/file.mp4 or https://..."
                 />
               </div>
             </div>
@@ -630,16 +741,6 @@ export default function AdminProductForm() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Sticky save bar on mobile */}
-      <div className="admin-form-actions admin-form-actions--sticky">
-        <Button variant="secondary" size="small" onClick={() => navigate('/admin/products')}>
-          Cancel
-        </Button>
-        <Button variant="primary" size="small" onClick={handleSave} loading={saving}>
-          {isEdit ? 'Save Changes' : 'Create Product'}
-        </Button>
       </div>
     </div>
   );

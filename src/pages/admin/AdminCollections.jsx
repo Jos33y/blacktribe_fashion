@@ -4,6 +4,7 @@
  * CRUD for collections. Inline editing — no separate form page.
  * List view + slide-out panel for create/edit.
  * Fields: name, slug, description, season, start_date, end_date, is_active.
+ * Shows product count per collection.
  */
 
 import { useState, useEffect } from 'react';
@@ -29,6 +30,7 @@ const EMPTY = {
 
 export default function AdminCollections() {
   const [collections, setCollections] = useState([]);
+  const [productCounts, setProductCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null); // null = closed, 'new' = create, object = edit
   const [form, setForm] = useState(EMPTY);
@@ -52,11 +54,40 @@ export default function AdminCollections() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
-      if (json.success) setCollections(json.data || []);
+      if (json.success) {
+        setCollections(json.data || []);
+        /* Fetch product counts for each collection */
+        fetchProductCounts(json.data || [], token);
+      }
     } catch {
       addToast('Failed to load collections.', 'error');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchProductCounts(cols, token) {
+    if (cols.length === 0) return;
+    try {
+      /* Fetch all products with their collection_id to count per collection */
+      const res = await fetch('/api/admin/products?limit=1000', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const counts = {};
+        for (const col of cols) {
+          counts[col.id] = 0;
+        }
+        for (const product of json.data) {
+          if (product.collection_id && counts[product.collection_id] !== undefined) {
+            counts[product.collection_id]++;
+          }
+        }
+        setProductCounts(counts);
+      }
+    } catch {
+      /* Silent — product counts are supplementary */
     }
   }
 
@@ -133,6 +164,12 @@ export default function AdminCollections() {
     }
   }
 
+  function formatCount(id) {
+    const count = productCounts[id];
+    if (count === undefined) return '';
+    return `${count} ${count === 1 ? 'piece' : 'pieces'}`;
+  }
+
   return (
     <div className="admin-page">
       <div className="admin-page-header">
@@ -167,6 +204,7 @@ export default function AdminCollections() {
                 <span className="settings-list__meta">
                   /{col.slug}
                   {col.season && ` · ${col.season}`}
+                  {formatCount(col.id) && ` · ${formatCount(col.id)}`}
                 </span>
               </div>
               <div className="settings-list__right">

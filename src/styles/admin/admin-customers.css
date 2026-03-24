@@ -1,0 +1,137 @@
+/* ═══════════════════════════════════════════════════════════
+   BLACKTRIBE FASHION — ADMIN CUSTOMERS
+   List: desktop table / mobile card toggle.
+   Detail: stats row, order history.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── List: table visible desktop, cards visible mobile ─── */
+
+.customers-table-wrap { display: none; }
+.customers-card-wrap { display: block; }
+
+@media (min-width: 768px) {
+  .customers-table-wrap { display: block; }
+  .customers-card-wrap { display: none; }
+}
+
+
+/* ─── Customer Detail ─── */
+
+.cust-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.cust-stat {
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cust-stat__value {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}
+
+.cust-stat__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bt-text-muted);
+}
+
+.cust-orders {
+  display: flex;
+  flex-direction: column;
+}
+
+.cust-order {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--bt-border);
+  text-decoration: none;
+  color: inherit;
+  transition: background 80ms;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cust-order:last-child {
+  border-bottom: none;
+}
+
+.cust-order:hover {
+  background: var(--bt-surface-hover);
+}
+
+.cust-order__left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cust-order__number {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}
+
+.cust-order__date {
+  font-size: 12px;
+  color: var(--bt-text-muted);
+}
+
+.cust-order__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.cust-order__total {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--bt-text);
+}
+
+/* 375px */
+@media (max-width: 399px) {
+  .cust-stats {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .cust-stat {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+  }
+
+  .cust-stat__value {
+    font-size: 16px;
+  }
+
+  .cust-order {
+    padding: 12px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .cust-order__right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

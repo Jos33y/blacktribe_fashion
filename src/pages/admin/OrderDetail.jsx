@@ -55,6 +55,9 @@ export default function AdminOrderDetail() {
   const [status, setStatus] = useState('');
   const [tracking, setTracking] = useState('');
   const [notes, setNotes] = useState('');
+  const [refunding, setRefunding] = useState(false);
+  const [showRefundConfirm, setShowRefundConfirm] = useState(false);
+  const [refundReason, setRefundReason] = useState('');
 
   useEffect(() => {
     document.title = 'Order Detail. BlackTribe Admin.';
@@ -114,6 +117,35 @@ export default function AdminOrderDetail() {
       addToast('Something went wrong.', 'error');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleRefund() {
+    setRefunding(true);
+    try {
+      const token = await getToken();
+      const res = await fetch(`/api/admin/orders/${id}/refund`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason: refundReason.trim() || null }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setOrder(json.data);
+        setStatus(json.data.status);
+        setShowRefundConfirm(false);
+        setRefundReason('');
+        addToast('Refund processed.', 'info');
+      } else {
+        addToast(json.error || 'Refund failed.', 'error');
+      }
+    } catch {
+      addToast('Something went wrong.', 'error');
+    } finally {
+      setRefunding(false);
     }
   }
 
@@ -309,6 +341,63 @@ export default function AdminOrderDetail() {
               )}
             </div>
           </div>
+
+          {/* Refund */}
+          {order.payment_status === 'paid' && (
+            <div className="admin-card">
+              <h3 className="admin-form-section__title">Refund</h3>
+              {!showRefundConfirm ? (
+                <Button
+                  variant="secondary"
+                  size="small"
+                  onClick={() => setShowRefundConfirm(true)}
+                  style={{ color: 'var(--bt-error)' }}
+                >
+                  Process Refund
+                </Button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <p style={{ fontSize: 13, color: 'var(--bt-text-secondary)', lineHeight: 1.5 }}>
+                    This will {order.payment_method === 'paystack' ? 'refund the customer via Paystack and ' : ''}mark this order as refunded. This action cannot be undone.
+                  </p>
+                  <textarea
+                    className="admin-textarea"
+                    value={refundReason}
+                    onChange={(e) => setRefundReason(e.target.value)}
+                    placeholder="Reason for refund (optional)"
+                    rows={2}
+                  />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      onClick={() => { setShowRefundConfirm(false); setRefundReason(''); }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="small"
+                      onClick={handleRefund}
+                      loading={refunding}
+                      style={{ background: 'var(--bt-error)', color: '#fff' }}
+                    >
+                      Confirm Refund — {formatPrice(order.total)}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {order.payment_status === 'refunded' && (
+            <div className="admin-card" style={{ borderColor: 'rgba(248, 113, 113, 0.15)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--bt-error)', fontSize: 13, fontWeight: 500 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                Order refunded
+              </div>
+            </div>
+          )}
 
           {/* Status Update */}
           <div className="admin-card">

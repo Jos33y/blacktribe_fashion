@@ -9,14 +9,10 @@ import useUIStore from '../../store/uiStore';
 import useAuth from '../../hooks/useAuth';
 import { api } from '../../utils/api';
 import { formatPrice } from '../../utils/formatPrice';
+import { trackCheckoutStart, trackPaymentSuccess, trackPaymentFailed } from '../../utils/tracker';
 import '../../styles/pages/Checkout.css';
 
-/* ─── Mock discounts ─── */
-const MOCK_DISCOUNTS = {
-  TRIBE10: { type: 'percentage', value: 10, minOrder: 5000000 },
-  SHADOW20: { type: 'percentage', value: 20, minOrder: 10000000 },
-  FIRST5K: { type: 'fixed', value: 500000, minOrder: 2500000 },
-};
+/* Discount validation uses POST /api/admin/validate-discount */
 
 const FREE_SHIPPING_THRESHOLD = 5000000;
 const DEFAULT_SHIPPING = 350000;
@@ -35,11 +31,11 @@ function loadFormState() {
 }
 
 function saveFormState(data) {
-  try { localStorage.setItem(CHECKOUT_STORAGE, JSON.stringify(data)); } catch {}
+  try { localStorage.setItem(CHECKOUT_STORAGE, JSON.stringify(data)); } catch { }
 }
 
 function clearFormState() {
-  try { localStorage.removeItem(CHECKOUT_STORAGE); } catch {}
+  try { localStorage.removeItem(CHECKOUT_STORAGE); } catch { }
 }
 
 function loadPendingOrder() {
@@ -60,11 +56,11 @@ function savePendingOrder(orderId, orderNumber, reference) {
     localStorage.setItem(PENDING_ORDER_STORAGE, JSON.stringify({
       orderId, orderNumber, reference, createdAt: Date.now(),
     }));
-  } catch {}
+  } catch { }
 }
 
 function clearPendingOrder() {
-  try { localStorage.removeItem(PENDING_ORDER_STORAGE); } catch {}
+  try { localStorage.removeItem(PENDING_ORDER_STORAGE); } catch { }
 }
 
 /* ─── Validation ─── */
@@ -133,6 +129,7 @@ export default function Checkout() {
 
   useEffect(() => {
     document.title = 'Checkout. BlackTribe Fashion.';
+    trackCheckoutStart();
     return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
   }, []);
 
@@ -171,7 +168,7 @@ export default function Checkout() {
             }));
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [isAuthenticated]);
@@ -180,6 +177,8 @@ export default function Checkout() {
 
   const discountAmount = (() => {
     if (!appliedDiscount) return 0;
+    /* Use server-calculated amount if available */
+    if (appliedDiscount.discountAmount) return appliedDiscount.discountAmount;
     if (appliedDiscount.type === 'percentage') {
       return Math.round(subtotal * (appliedDiscount.value / 100));
     }
@@ -188,14 +187,29 @@ export default function Checkout() {
 
   const total = subtotal + shipping - discountAmount;
 
-  const handleApplyDiscount = useCallback((code) => {
-    const discount = MOCK_DISCOUNTS[code];
-    if (!discount) return { error: 'This code is not valid.' };
-    if (subtotal < discount.minOrder) {
-      return { error: `Minimum order of ${formatPrice(discount.minOrder)} required for this code.` };
+  const handleApplyDiscount = useCallback(async (code) => {
+    try {
+      const res = await fetch('/api/admin/validate-discount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, subtotal }),
+      });
+      const json = await res.json();
+
+      if (!json.success) {
+        return { error: json.error || 'This code is not valid.' };
+      }
+
+      setAppliedDiscount({
+        code: json.data.code,
+        type: json.data.type,
+        value: json.data.value,
+        discountAmount: json.data.discount_amount,
+      });
+      return {};
+    } catch {
+      return { error: 'Unable to validate code. Try again.' };
     }
-    setAppliedDiscount({ ...discount, code });
-    return {};
   }, [subtotal]);
 
   const handleRemoveDiscount = useCallback(() => {
@@ -288,6 +302,7 @@ export default function Checkout() {
           clearFormState();
           clearPendingOrder();
           setSubmitting(false);
+          trackPaymentSuccess(orderId, amount);
           navigate(`/order-confirmation/${orderId}`);
         },
 
@@ -301,12 +316,13 @@ export default function Checkout() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: contact.email }),
-          }).catch(() => {});
+          }).catch(() => { });
         },
 
         onError: (error) => {
           console.error('[paystack] Payment error:', error);
           setSubmitting(false);
+          trackPaymentFailed(orderId, 'Payment error');
           setPaymentError('Payment could not be completed. Please try again.');
         },
       });

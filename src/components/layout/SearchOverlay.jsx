@@ -1,8 +1,14 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+/*
+ * BLACKTRIBE FASHION — SEARCH OVERLAY (Phase 5)
+ *
+ * Wired to GET /api/products?search=
+ */
+
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import useDebounce from '../../hooks/useDebounce';
-import { searchProducts } from '../../utils/mockData';
 import { formatPrice } from '../../utils/formatPrice';
+import { trackSearch } from '../../utils/tracker';
 import '../../styles/layout/SearchOverlay.css';
 
 const MAX_RESULTS = 8;
@@ -29,6 +35,8 @@ export default function SearchOverlay({ isOpen, onClose }) {
   const debouncedQuery = useDebounce(query, 250);
   const inputRef = useRef(null);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -45,9 +53,33 @@ export default function SearchOverlay({ isOpen, onClose }) {
     return () => document.removeEventListener('keydown', handleKey);
   }, [isOpen, onClose]);
 
-  const results = useMemo(() => {
-    if (debouncedQuery.length < 2) return [];
-    return searchProducts(debouncedQuery).slice(0, MAX_RESULTS);
+  /* Fetch from API when debounced query changes */
+  useEffect(() => {
+    if (debouncedQuery.length < 2) {
+      setResults([]);
+      return;
+    }
+
+    let cancelled = false;
+    setSearching(true);
+
+    async function search() {
+      try {
+        const res = await fetch(`/api/products?search=${encodeURIComponent(debouncedQuery)}&limit=${MAX_RESULTS}`);
+        const json = await res.json();
+        if (!cancelled && json.success) {
+          setResults(json.data || []);
+          trackSearch(debouncedQuery, json.data?.length || 0);
+        }
+      } catch {
+        if (!cancelled) setResults([]);
+      } finally {
+        if (!cancelled) setSearching(false);
+      }
+    }
+
+    search();
+    return () => { cancelled = true; };
   }, [debouncedQuery]);
 
   const handleResultClick = () => {
@@ -64,7 +96,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const showRecent = query.length < 2 && recentSearches.length > 0;
-  const showResults = debouncedQuery.length >= 2;
+  const showResults = debouncedQuery.length >= 2 && !searching;
   const noResults = showResults && results.length === 0;
 
   return (
@@ -107,6 +139,13 @@ export default function SearchOverlay({ isOpen, onClose }) {
                   {term}
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* Searching indicator */}
+          {searching && debouncedQuery.length >= 2 && (
+            <div className="search-no-results">
+              <p className="search-no-results-text">Searching...</p>
             </div>
           )}
 

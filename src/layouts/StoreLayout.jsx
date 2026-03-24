@@ -7,6 +7,7 @@ import SearchOverlay from '../components/layout/SearchOverlay';
 import CartDrawer from '../components/cart/CartDrawer';
 import useUIStore from '../store/uiStore';
 import useCartStore from '../store/cartStore';
+import { trackPageView } from '../utils/tracker';
 
 const navLinks = [
   { to: '/shop', label: 'Shop' },
@@ -39,16 +40,16 @@ export default function StoreLayout() {
     (route) => location.pathname.startsWith(route)
   );
 
-  /* ─── Close overlays and scroll to top on route change ─── */
+  /* ─── Close overlays, scroll to top, track page view on route change ─── */
   useEffect(() => {
     closeAll();
     window.scrollTo(0, 0);
+    trackPageView(location.pathname);
   }, [location.pathname, closeAll]);
 
   /* ─── Bag click handler ─── */
   const handleBagClick = () => {
     if (hideCartDrawer) {
-      // On checkout: scroll to order summary
       const summary = document.querySelector('.checkout__sidebar');
       if (summary) {
         summary.scrollIntoView({ behavior: 'smooth', block: 'start' });

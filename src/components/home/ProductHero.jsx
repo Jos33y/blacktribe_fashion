@@ -6,7 +6,7 @@ export default function ProductHero() {
       {/* Crystal Velvet Trucker back — dark velvet + crystals blend with obsidian palette */}
       <div className="home-hero__bg">
         <img
-          src="/mock/crystal-velvet-trucker-back.PNG"
+          src="/images/crystal-velvet-trucker-back.PNG"
           alt=""
           className="home-hero__bg-img"
           aria-hidden="true"

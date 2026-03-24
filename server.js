@@ -7,12 +7,20 @@ import cors from 'cors';
 import { validateEnv } from './server/config/env.js';
 import { errorHandler } from './server/middleware/errorHandler.js';
 
-// Route imports
+// Route imports — public
+import productsRouter from './server/routes/products.js';
+import collectionsRouter from './server/routes/collections.js';
+import categoriesRouter from './server/routes/categories.js';
+import newsletterRouter from './server/routes/newsletter.js';
+import contactRouter from './server/routes/contact.js';
 import cartRouter from './server/routes/cart.js';
 import ordersRouter from './server/routes/orders.js';
 import webhooksRouter from './server/routes/webhooks.js';
 import authRouter from './server/routes/auth.js';
 import wishlistRouter from './server/routes/wishlist.js';
+import eventsRouter from './server/routes/events.js';
+
+// Route imports — admin
 import adminRouter from './server/routes/admin/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -37,22 +45,28 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 
-// API Routes
+// API Routes — health
 app.get('/api/health', (req, res) => {
   res.json({ success: true, timestamp: new Date().toISOString() });
 });
 
+// API Routes — public storefront
+app.use('/api/products', productsRouter);
+app.use('/api/collections', collectionsRouter);
+app.use('/api/categories', categoriesRouter);
+app.use('/api/newsletter', newsletterRouter);
+app.use('/api/contact', contactRouter);
+
+// API Routes — authenticated
 app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/webhooks', webhooksRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/wishlist', wishlistRouter);
-app.use('/api/admin', adminRouter);
+app.use('/api/events', eventsRouter);
 
-// TODO: Mount as built in later phases
-// app.use('/api/products', productsRouter);
-// app.use('/api/collections', collectionsRouter);
-// app.use('/api/newsletter', newsletterRouter);
+// API Routes — admin
+app.use('/api/admin', adminRouter);
 
 // Serve static files in production
 if (!isDev) {

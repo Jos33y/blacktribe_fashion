@@ -49,3 +49,6 @@ export const AdminShipping = lazy(() => import('../pages/admin/Shipping'));
 export const Settings = lazy(() => import('../pages/admin/Settings'));
 export const StaffManagement = lazy(() => import('../pages/admin/StaffManagement'));
 export const ActivityLog = lazy(() => import('../pages/admin/ActivityLog'));
+export const Payments = lazy(() => import('../pages/admin/Payments'));
+export const CustomerDetail = lazy(() => import('../pages/admin/CustomerDetail'));
+export const Messages = lazy(() => import('../pages/admin/Messages'));

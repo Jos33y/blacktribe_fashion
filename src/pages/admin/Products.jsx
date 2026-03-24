@@ -1,14 +1,18 @@
 /*
- * BLACKTRIBE FASHION — ADMIN PRODUCTS LIST
+ * BLACKTRIBE FASHION — ADMIN PRODUCTS LIST v2
  *
- * Desktop: sortable table with thumbnail, name, price, category, status, stock.
- * Mobile: compact card list with thumbnail + name + price + status.
+ * v2: Grid/List view toggle
+ *   - Grid view (default): large product cards with 3:4 images
+ *   - List view: data table for inventory audit
+ *   - Toggle saved to localStorage
+ *   - Mobile: grid is 2 columns, list is card stack
+ *
  * Filters: search, category, status. Sort: newest, price, name.
  * Pagination: 20 per page.
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
@@ -28,13 +32,41 @@ function getTotalStock(sizes) {
   return sizes.reduce((sum, s) => sum + (s.stock || 0), 0);
 }
 
+/* ═══ VIEW TOGGLE ICONS ═══ */
+
+const GridIcon = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+  </svg>
+);
+
+const ListIcon = (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <line x1="8" y1="6" x2="21" y2="6" />
+    <line x1="8" y1="12" x2="21" y2="12" />
+    <line x1="8" y1="18" x2="21" y2="18" />
+    <line x1="3" y1="6" x2="3.01" y2="6" strokeWidth="2" strokeLinecap="round" />
+    <line x1="3" y1="12" x2="3.01" y2="12" strokeWidth="2" strokeLinecap="round" />
+    <line x1="3" y1="18" x2="3.01" y2="18" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+/* ═══ COMPONENT ═══ */
+
 export default function AdminProducts() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [viewMode, setViewMode] = useState(() => {
+    try { return localStorage.getItem('bt-admin-products-view') || 'grid'; } catch { return 'grid'; }
+  });
   const { addToast } = useToast();
+  const navigate = useNavigate();
 
   const page = parseInt(searchParams.get('page') || '1');
   const search = searchParams.get('search') || '';
@@ -50,6 +82,10 @@ export default function AdminProducts() {
   useEffect(() => {
     fetchProducts();
   }, [page, search, category, status, sort]);
+
+  useEffect(() => {
+    try { localStorage.setItem('bt-admin-products-view', viewMode); } catch {}
+  }, [viewMode]);
 
   async function getToken() {
     const store = (await import('../../store/authStore')).default.getState();
@@ -97,15 +133,14 @@ export default function AdminProducts() {
     }
   }
 
-  async function handleToggleActive(product) {
+  async function handleToggleActive(e, product) {
+    e.preventDefault();
+    e.stopPropagation();
     try {
       const token = await getToken();
-      const endpoint = product.is_active
-        ? `/api/admin/products/${product.id}`
-        : `/api/admin/products/${product.id}`;
       const method = product.is_active ? 'DELETE' : 'PUT';
       const body = product.is_active ? undefined : JSON.stringify({ is_active: true });
-      const res = await fetch(endpoint, {
+      const res = await fetch(`/api/admin/products/${product.id}`, {
         method,
         headers: {
           Authorization: `Bearer ${token}`,
@@ -132,6 +167,9 @@ export default function AdminProducts() {
   }
 
   const totalPages = Math.ceil(total / LIMIT);
+  const categoryMap = {};
+  categories.forEach((c) => { categoryMap[c.id] = c.name; });
+
   const categoryOptions = [
     { value: '', label: 'All Categories' },
     ...categories.map((c) => ({ value: c.id, label: c.name })),
@@ -198,12 +236,31 @@ export default function AdminProducts() {
             onChange={(e) => updateFilter('sort', e.target.value)}
             placeholder={null}
           />
+          {/* View toggle */}
+          <div className="products-view-toggle">
+            <button
+              className={`products-view-toggle__btn ${viewMode === 'grid' ? 'products-view-toggle__btn--active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              aria-label="Grid view"
+              title="Grid view"
+            >
+              {GridIcon}
+            </button>
+            <button
+              className={`products-view-toggle__btn ${viewMode === 'list' ? 'products-view-toggle__btn--active' : ''}`}
+              onClick={() => setViewMode('list')}
+              aria-label="List view"
+              title="List view"
+            >
+              {ListIcon}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Loading */}
       {loading ? (
-        <ProductsSkeleton />
+        viewMode === 'grid' ? <ProductsGridSkeleton /> : <ProductsListSkeleton />
       ) : products.length === 0 ? (
         <div className="admin-empty">
           <div className="admin-empty__title">
@@ -218,7 +275,55 @@ export default function AdminProducts() {
             </Button>
           )}
         </div>
+      ) : viewMode === 'grid' ? (
+        /* ═══ GRID VIEW ═══ */
+        <div className="products-grid">
+          {products.map((p) => {
+            const stock = getTotalStock(p.sizes);
+            const catName = p.categories?.name || categoryMap[p.category_id] || null;
+            return (
+              <Link key={p.id} to={`/admin/products/${p.id}/edit`} className="products-grid__card">
+                <div className="products-grid__image-wrap">
+                  {p.images?.[0] ? (
+                    <img src={p.images[0]} alt={p.name} className="products-grid__image" loading="lazy" />
+                  ) : (
+                    <div className="products-grid__image products-grid__image--empty">
+                      <span>No image</span>
+                    </div>
+                  )}
+                  <div className="products-grid__badges">
+                    {p.is_active ? (
+                      <span className="products-grid__badge products-grid__badge--active">Active</span>
+                    ) : (
+                      <span className="products-grid__badge products-grid__badge--inactive">Inactive</span>
+                    )}
+                    {p.badge && (
+                      <span className="products-grid__badge products-grid__badge--tag">{p.badge}</span>
+                    )}
+                  </div>
+                  {stock <= 5 && stock > 0 && (
+                    <span className="products-grid__low-stock">Low stock</span>
+                  )}
+                  {stock === 0 && (
+                    <span className="products-grid__low-stock products-grid__low-stock--out">No stock</span>
+                  )}
+                </div>
+                <div className="products-grid__info">
+                  <span className="products-grid__name">{p.name}</span>
+                  <div className="products-grid__meta">
+                    <span className="products-grid__price">{formatPrice(p.price)}</span>
+                    <span className="products-grid__stock">Stock: {stock}</span>
+                  </div>
+                  {catName && (
+                    <span className="products-grid__category">{catName}</span>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       ) : (
+        /* ═══ LIST VIEW ═══ */
         <>
           {/* Desktop Table */}
           <div className="products-table-wrap">
@@ -227,7 +332,7 @@ export default function AdminProducts() {
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th style={{ width: 56 }}></th>
+                      <th style={{ width: 52 }}></th>
                       <th>Product</th>
                       <th>Price</th>
                       <th>Category</th>
@@ -241,9 +346,9 @@ export default function AdminProducts() {
                       <tr key={p.id}>
                         <td>
                           {p.images?.[0] ? (
-                            <img src={p.images[0]} alt="" className="admin-table__thumb" />
+                            <img src={p.images[0]} alt="" className="product-thumb" />
                           ) : (
-                            <div className="admin-table__thumb admin-table__thumb--empty" />
+                            <div className="product-thumb product-thumb--empty" />
                           )}
                         </td>
                         <td>
@@ -257,7 +362,7 @@ export default function AdminProducts() {
                           )}
                         </td>
                         <td className="admin-table__mono">{formatPrice(p.price)}</td>
-                        <td>{p.categories?.name || '—'}</td>
+                        <td>{p.categories?.name || categoryMap[p.category_id] || '—'}</td>
                         <td className="admin-table__mono">{getTotalStock(p.sizes)}</td>
                         <td>
                           <span className={`admin-status ${p.is_active ? 'admin-status--confirmed' : 'admin-status--cancelled'}`}>
@@ -269,7 +374,7 @@ export default function AdminProducts() {
                             <Link to={`/admin/products/${p.id}/edit`} className="admin-table__action">Edit</Link>
                             <button
                               className={`admin-table__action ${p.is_active ? 'admin-table__action--danger' : ''}`}
-                              onClick={() => handleToggleActive(p)}
+                              onClick={(e) => handleToggleActive(e, p)}
                             >
                               {p.is_active ? 'Deactivate' : 'Activate'}
                             </button>
@@ -283,15 +388,15 @@ export default function AdminProducts() {
             </div>
           </div>
 
-          {/* Mobile Card List */}
+          {/* Mobile Card List (list mode on mobile) */}
           <div className="products-card-wrap">
             <div className="admin-card-list">
               {products.map((p) => (
                 <Link key={p.id} to={`/admin/products/${p.id}/edit`} className="admin-card-list__item">
                   {p.images?.[0] ? (
-                    <img src={p.images[0]} alt="" className="admin-card-list__thumb" />
+                    <img src={p.images[0]} alt="" className="product-thumb product-thumb--card" />
                   ) : (
-                    <div className="admin-card-list__thumb" />
+                    <div className="product-thumb product-thumb--card product-thumb--empty" />
                   )}
                   <div className="admin-card-list__info">
                     <span className="admin-card-list__title">{p.name}</span>
@@ -300,7 +405,7 @@ export default function AdminProducts() {
                         {p.is_active ? 'Active' : 'Inactive'}
                       </span>
                       {p.badge && (
-                        <span className={`admin-status admin-status--processing`}>{p.badge}</span>
+                        <span className="admin-status admin-status--processing">{p.badge}</span>
                       )}
                       <span>Stock: {getTotalStock(p.sizes)}</span>
                     </div>
@@ -310,47 +415,66 @@ export default function AdminProducts() {
               ))}
             </div>
           </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="admin-pagination">
-              <button
-                className="admin-pagination__btn"
-                disabled={page <= 1}
-                onClick={() => updateFilter('page', String(page - 1))}
-              >
-                ‹
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  className={`admin-pagination__btn ${p === page ? 'admin-pagination__btn--active' : ''}`}
-                  onClick={() => updateFilter('page', String(p))}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                className="admin-pagination__btn"
-                disabled={page >= totalPages}
-                onClick={() => updateFilter('page', String(page + 1))}
-              >
-                ›
-              </button>
-            </div>
-          )}
         </>
+      )}
+
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="admin-pagination">
+          <button
+            className="admin-pagination__btn"
+            disabled={page <= 1}
+            onClick={() => updateFilter('page', String(page - 1))}
+          >
+            ‹
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <button
+              key={p}
+              className={`admin-pagination__btn ${p === page ? 'admin-pagination__btn--active' : ''}`}
+              onClick={() => updateFilter('page', String(p))}
+            >
+              {p}
+            </button>
+          ))}
+          <button
+            className="admin-pagination__btn"
+            disabled={page >= totalPages}
+            onClick={() => updateFilter('page', String(page + 1))}
+          >
+            ›
+          </button>
+        </div>
       )}
     </div>
   );
 }
 
-function ProductsSkeleton() {
+
+/* ═══ SKELETONS ═══ */
+
+function ProductsGridSkeleton() {
+  return (
+    <div className="products-grid">
+      {Array.from({ length: 6 }, (_, i) => (
+        <div key={i} className="products-grid__card" style={{ pointerEvents: 'none' }}>
+          <Skeleton type="image" style={{ width: '100%', aspectRatio: '3/4', borderRadius: 2 }} />
+          <div style={{ padding: '12px 0 0' }}>
+            <Skeleton type="text" style={{ width: '70%', height: 14, marginBottom: 6 }} />
+            <Skeleton type="text" style={{ width: '40%', height: 12 }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ProductsListSkeleton() {
   return (
     <div className="admin-card-list">
       {Array.from({ length: 6 }, (_, i) => (
         <div key={i} className="admin-card-list__item" style={{ pointerEvents: 'none' }}>
-          <Skeleton type="image" style={{ width: 48, height: 48, borderRadius: 2 }} />
+          <div className="product-thumb product-thumb--card product-thumb--empty" />
           <div style={{ flex: 1 }}>
             <Skeleton type="text" style={{ width: '70%', height: 14, marginBottom: 6 }} />
             <Skeleton type="text" style={{ width: '40%', height: 12 }} />

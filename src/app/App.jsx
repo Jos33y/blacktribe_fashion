@@ -14,7 +14,7 @@ import {
   Dashboard, Analytics, Products, ProductForm, AdminCategories,
   Orders, OrderDetail, WalkInOrder, Customers, Discounts,
   AdminCollections, Newsletter, AdminShipping, Settings,
-  StaffManagement, ActivityLog,
+  StaffManagement, ActivityLog, Payments, CustomerDetail, Messages,
 } from './routes';
 
 function PageLoader() {
@@ -76,6 +76,7 @@ export default function App() {
               <Route path="orders/new" element={<WalkInOrder />} />
               <Route path="orders/:id" element={<OrderDetail />} />
               <Route path="customers" element={<Customers />} />
+              <Route path="customers/:id" element={<CustomerDetail />} />
               <Route path="discounts" element={<Discounts />} />
               <Route path="collections" element={<AdminCollections />} />
               <Route path="newsletter" element={<Newsletter />} />
@@ -83,6 +84,8 @@ export default function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="staff" element={<StaffManagement />} />
               <Route path="activity" element={<ActivityLog />} />
+              <Route path="payments" element={<Payments />} />
+              <Route path="messages" element={<Messages />} />
             </Route>
           </Routes>
         </Suspense>

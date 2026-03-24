@@ -233,7 +233,7 @@
 
 /* ═══ GRID SECTION ═══ */
 
-.shop-grid-section { padding: 24px 0 0; }
+.shop-grid-section { padding: 24px 0 80px; }
 
 .shop-grid-inner {
   max-width: 1280px;
@@ -268,7 +268,7 @@
   align-items: center;
   gap: 12px;
   margin-top: 48px;
-  padding-bottom: 80px;
+  padding-bottom: 0;
 }
 
 .shop-load-more-btn {
@@ -422,7 +422,7 @@
 
   .filter-drawer--open { transform: translateY(0); }
 
-  .shop-grid-section { padding: 16px 0 0; }
+  .shop-grid-section { padding: 16px 0 64px; }
 }
 
 
@@ -431,7 +431,7 @@
 @media (min-width: 768px) {
   .shop-hero { padding: 48px 0 36px; }
   .shop-density { display: flex; }
-  .shop-grid-section { padding: 32px 0 0; }
+  .shop-grid-section { padding: 32px 0 80px; }
 }
 
 

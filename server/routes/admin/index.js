@@ -21,6 +21,8 @@ import analyticsRoutes from './analytics.js';
 import contentRoutes from './content.js';
 import staffRoutes from './staff.js';
 import searchRoutes from './search.js';
+import behavioralRoutes from './behavioral.js';
+import paymentsRoutes from './payments.js';
 
 const router = express.Router();
 
@@ -38,5 +40,7 @@ router.use(analyticsRoutes);
 router.use(contentRoutes);
 router.use(staffRoutes);
 router.use(searchRoutes);
+router.use(behavioralRoutes);
+router.use(paymentsRoutes);
 
 export default router;

@@ -1,23 +1,59 @@
-import { useEffect } from 'react';
+/*
+ * BLACKTRIBE FASHION — COLLECTIONS PAGE (Phase 5)
+ *
+ * Wired to real API:
+ *   GET /api/collections — all active collections with cover images + product counts
+ *   GET /api/products?collection={slug} — products per collection for previews
+ *
+ */
+
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { collections, getProductsByCollection } from '../../utils/mockData';
+import Skeleton from '../../components/ui/Skeleton';
 import { formatPrice } from '../../utils/formatPrice';
 import '../../styles/pages/Collections.css';
 
-// Get hero image + preview images for each collection
-function getCollectionImages(slug) {
-  const products = getProductsByCollection(slug);
-  const hero = products[0]?.images?.[0] || null;
-  const previews = products.slice(1, 5).map((p) => p.images?.[0]).filter(Boolean);
-  return { hero, previews, products };
-}
-
 export default function Collections() {
+  const [collections, setCollections] = useState([]);
+  const [collectionProducts, setCollectionProducts] = useState({});
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     document.title = 'Collections. BlackTribe Fashion.';
+    fetchCollections();
   }, []);
 
+  async function fetchCollections() {
+    try {
+      const res = await fetch('/api/collections');
+      const json = await res.json();
+      if (json.success && json.data) {
+        setCollections(json.data);
+        /* Fetch products for each collection (for preview images + price range) */
+        const productMap = {};
+        await Promise.all(
+          json.data.map(async (col) => {
+            try {
+              const prodRes = await fetch(`/api/products?collection=${col.slug}&limit=5`);
+              const prodJson = await prodRes.json();
+              if (prodJson.success) {
+                productMap[col.slug] = prodJson.data || [];
+              }
+            } catch { /* silent */ }
+          })
+        );
+        setCollectionProducts(productMap);
+      }
+    } catch (err) {
+      console.error('[Collections] fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /* Scroll reveals */
   useEffect(() => {
+    if (loading) return;
     const elements = document.querySelectorAll('.col-reveal');
     const observer = new IntersectionObserver(
       (entries) => {
@@ -32,7 +68,29 @@ export default function Collections() {
     );
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [loading, collections]);
+
+  if (loading) {
+    return (
+      <article className="collections">
+        <section className="page-hero col-hero">
+          <div className="page-hero__inner">
+            <span className="page-eyebrow">Curated</span>
+            <h1 className="page-headline col-headline">Collections</h1>
+          </div>
+        </section>
+        <div style={{ padding: '40px 20px', maxWidth: 1200, margin: '0 auto' }}>
+          {Array.from({ length: 2 }, (_, i) => (
+            <div key={i} style={{ marginBottom: 60 }}>
+              <Skeleton type="image" style={{ width: '100%', aspectRatio: '16/9', marginBottom: 20 }} />
+              <Skeleton type="text" style={{ width: '40%', height: 28, marginBottom: 10 }} />
+              <Skeleton type="text" style={{ width: '60%', height: 14 }} />
+            </div>
+          ))}
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="collections">
@@ -50,7 +108,9 @@ export default function Collections() {
 
       {/* ═══ COLLECTION SECTIONS ═══ */}
       {collections.map((collection, index) => {
-        const { hero, previews, products } = getCollectionImages(collection.slug);
+        const products = collectionProducts[collection.slug] || [];
+        const hero = collection.cover_image || products[0]?.images?.[0] || null;
+        const previews = products.slice(1, 5).map((p) => p.images?.[0]).filter(Boolean);
         const priceRange = products.length > 0
           ? `${formatPrice(Math.min(...products.map(p => p.price)))} — ${formatPrice(Math.max(...products.map(p => p.price)))}`
           : '';
@@ -88,7 +148,7 @@ export default function Collections() {
                 <div className="col-section-meta">
                   <div className="col-section-meta-item">
                     <span className="col-meta-label">Pieces</span>
-                    <span className="col-meta-value">{products.length}</span>
+                    <span className="col-meta-value">{collection.product_count || products.length}</span>
                   </div>
                   {collection.season && (
                     <div className="col-section-meta-item">

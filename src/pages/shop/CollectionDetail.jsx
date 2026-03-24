@@ -1,43 +1,51 @@
+/*
+ * BLACKTRIBE FASHION — COLLECTION DETAIL PAGE (Phase 5)
+ *
+ * Wired to real API:
+ *   GET /api/collections/:slug — collection + products
+ *
+ */
+
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router';
 import ProductGrid from '../../components/product/ProductGrid';
 import Button from '../../components/ui/Button';
-import { collections, getProductsByCollection } from '../../utils/mockData';
+import Skeleton from '../../components/ui/Skeleton';
 import { formatPrice } from '../../utils/formatPrice';
 import '../../styles/pages/CollectionDetail.css';
 
 export default function CollectionDetail() {
   const { slug } = useParams();
+  const [collection, setCollection] = useState(null);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const collection = useMemo(
-    () => collections.find((c) => c.slug === slug),
-    [slug]
-  );
-
-  const products = useMemo(
-    () => (collection ? getProductsByCollection(collection.slug) : []),
-    [collection]
-  );
-
-  const heroImage = products[0]?.images?.[0] || null;
-
-  const priceRange = useMemo(() => {
-    if (products.length === 0) return '';
-    const min = Math.min(...products.map((p) => p.price));
-    const max = Math.max(...products.map((p) => p.price));
-    return min === max ? formatPrice(min) : `${formatPrice(min)} — ${formatPrice(max)}`;
-  }, [products]);
-
-  const categories = useMemo(() => {
-    const cats = [...new Set(products.map((p) => p.category).filter(Boolean))];
-    return cats;
-  }, [products]);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 300);
-    return () => clearTimeout(timer);
+    setNotFound(false);
+    window.scrollTo(0, 0);
+
+    async function fetchCollection() {
+      try {
+        const res = await fetch(`/api/collections/${slug}`);
+        const json = await res.json();
+
+        if (json.success && json.data) {
+          setCollection(json.data);
+          setProducts(json.data.products || []);
+        } else {
+          setNotFound(true);
+        }
+      } catch (err) {
+        console.error('[CollectionDetail] fetch error:', err);
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchCollection();
   }, [slug]);
 
   useEffect(() => {
@@ -46,7 +54,9 @@ export default function CollectionDetail() {
     }
   }, [collection]);
 
+  /* Scroll reveals */
   useEffect(() => {
+    if (loading) return;
     const elements = document.querySelectorAll('.cd-reveal');
     const observer = new IntersectionObserver(
       (entries) => {
@@ -63,7 +73,42 @@ export default function CollectionDetail() {
     return () => observer.disconnect();
   }, [loading]);
 
-  if (!loading && !collection) {
+  const heroImage = collection?.cover_image || products[0]?.images?.[0] || null;
+
+  const priceRange = useMemo(() => {
+    if (products.length === 0) return '';
+    const min = Math.min(...products.map((p) => p.price));
+    const max = Math.max(...products.map((p) => p.price));
+    return min === max ? formatPrice(min) : `${formatPrice(min)} — ${formatPrice(max)}`;
+  }, [products]);
+
+  const categoryNames = useMemo(() => {
+    const names = [...new Set(products.map((p) => p.categories?.name).filter(Boolean))];
+    return names;
+  }, [products]);
+
+  /* ═══ LOADING ═══ */
+  if (loading) {
+    return (
+      <article className="collection-detail">
+        <section className="cd-hero">
+          <div className="cd-hero-inner">
+            <div className="cd-hero-content">
+              <Skeleton type="text" style={{ width: 100, height: 14, marginBottom: 16 }} />
+              <Skeleton type="text" style={{ width: '60%', height: 36, marginBottom: 12 }} />
+              <Skeleton type="text" style={{ width: '80%', height: 16 }} />
+            </div>
+            <div className="cd-hero-image">
+              <Skeleton type="image" style={{ width: '100%', aspectRatio: '3/4' }} />
+            </div>
+          </div>
+        </section>
+      </article>
+    );
+  }
+
+  /* ═══ NOT FOUND ═══ */
+  if (notFound || !collection) {
     return (
       <div className="cd-empty">
         <h1 className="cd-empty-title">Collection not found</h1>
@@ -85,8 +130,8 @@ export default function CollectionDetail() {
               </svg>
               Collections
             </Link>
-            <h1 className="cd-hero-name">{collection?.name || ''}</h1>
-            {collection?.description && (
+            <h1 className="cd-hero-name">{collection.name}</h1>
+            {collection.description && (
               <p className="cd-hero-description">{collection.description}</p>
             )}
           </div>
@@ -94,7 +139,7 @@ export default function CollectionDetail() {
           {/* Hero Image */}
           {heroImage && (
             <div className="cd-hero-image">
-              <img src={heroImage} alt={collection?.name} />
+              <img src={heroImage} alt={collection.name} />
             </div>
           )}
         </div>
@@ -105,9 +150,9 @@ export default function CollectionDetail() {
         <div className="cd-meta-inner">
           <div className="cd-meta-item">
             <span className="cd-meta-label">Pieces</span>
-            <span className="cd-meta-value">{products.length}</span>
+            <span className="cd-meta-value">{collection.product_count || products.length}</span>
           </div>
-          {collection?.season && (
+          {collection.season && (
             <div className="cd-meta-item">
               <span className="cd-meta-label">Season</span>
               <span className="cd-meta-value">{collection.season}</span>
@@ -119,12 +164,10 @@ export default function CollectionDetail() {
               <span className="cd-meta-value">{priceRange}</span>
             </div>
           )}
-          {categories.length > 0 && (
+          {categoryNames.length > 0 && (
             <div className="cd-meta-item">
               <span className="cd-meta-label">Categories</span>
-              <span className="cd-meta-value">
-                {categories.map((c) => c.charAt(0).toUpperCase() + c.slice(1)).join(', ')}
-              </span>
+              <span className="cd-meta-value">{categoryNames.join(', ')}</span>
             </div>
           )}
         </div>
@@ -133,7 +176,7 @@ export default function CollectionDetail() {
       {/* ═══ PRODUCT GRID ═══ */}
       <section className="cd-products cd-reveal">
         <div className="cd-products-inner">
-          <ProductGrid products={products} loading={loading} />
+          <ProductGrid products={products} />
         </div>
       </section>
 

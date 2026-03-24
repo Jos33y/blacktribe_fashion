@@ -1,20 +1,36 @@
-import { useEffect, useRef } from 'react';
-import '../../styles/pages/About.css';
+/*
+ * BLACKTRIBE FASHION — ABOUT PAGE (Phase 5)
+ *
+ * Image strip now fetches real product images from API.
+ */
 
-const PRODUCT_IMAGES = [
-  '/mock/crystal-velvet-trucker-front.PNG',
-  '/mock/sequin-script-zip-shirt-front.PNG',
-  '/mock/varsity-jacket-white-front.PNG',
-  '/mock/rhinestone-denim-jacket-front.PNG',
-  '/mock/obsidian-oversized-tee-black-front.PNG',
-  '/mock/full-crystal-trucker-front.PNG',
-];
+import { useEffect, useRef, useState } from 'react';
+import '../../styles/pages/About.css';
 
 export default function About() {
   const observerRef = useRef(null);
+  const [productImages, setProductImages] = useState([]);
 
   useEffect(() => {
     document.title = 'About. BlackTribe Fashion.';
+  }, []);
+
+  /* Fetch product images for the strip */
+  useEffect(() => {
+    async function loadImages() {
+      try {
+        const res = await fetch('/api/products?limit=6&sort=newest');
+        const json = await res.json();
+        if (json.success && json.data) {
+          const images = json.data
+            .map((p) => p.images?.[0])
+            .filter(Boolean)
+            .slice(0, 6);
+          setProductImages(images);
+        }
+      } catch { /* silent — strip just won't show */ }
+    }
+    loadImages();
   }, []);
 
   useEffect(() => {
@@ -34,7 +50,7 @@ export default function About() {
 
     elements.forEach((el) => observerRef.current.observe(el));
     return () => observerRef.current?.disconnect();
-  }, []);
+  }, [productImages]);
 
   return (
     <article className="about">
@@ -76,15 +92,17 @@ export default function About() {
       </section>
 
       {/* ═══ IMAGE STRIP ═══ */}
-      <section className="about-image-strip about-reveal">
-        <div className="about-image-strip-track">
-          {PRODUCT_IMAGES.map((img, i) => (
-            <div key={i} className="about-image-strip-item">
-              <img src={img} alt="" loading="lazy" />
-            </div>
-          ))}
-        </div>
-      </section>
+      {productImages.length > 0 && (
+        <section className="about-image-strip about-reveal">
+          <div className="about-image-strip-track">
+            {productImages.map((img, i) => (
+              <div key={i} className="about-image-strip-item">
+                <img src={img} alt="" loading="lazy" />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ═══ ORIGIN STORY ═══ */}
       <section className="about-section about-reveal">
@@ -138,18 +156,20 @@ export default function About() {
       </section>
 
       {/* ═══ PRODUCT FEATURE ═══ */}
-      <section className="about-feature about-reveal">
-        <div className="about-feature-image">
-          <img
-            src="/mock/crystal-velvet-trucker-back.PNG"
-            alt="Crystal Velvet Trucker jacket — hand-set crystal detail"
-            loading="lazy"
-          />
-        </div>
-        <div className="about-feature-overlay">
-          <span className="about-feature-caption">Crystal details. Applied by hand.</span>
-        </div>
-      </section>
+      {productImages.length > 0 && (
+        <section className="about-feature about-reveal">
+          <div className="about-feature-image">
+            <img
+              src={productImages[0]}
+              alt="BlackTribe Fashion — crafted by hand"
+              loading="lazy"
+            />
+          </div>
+          <div className="about-feature-overlay">
+            <span className="about-feature-caption">Crystal details. Applied by hand.</span>
+          </div>
+        </section>
+      )}
 
       {/* ═══ CLOSING ═══ */}
       <section className="about-closing about-reveal">

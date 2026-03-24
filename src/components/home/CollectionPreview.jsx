@@ -1,16 +1,74 @@
+/*
+ * BLACKTRIBE FASHION — COLLECTION PREVIEW (HOMEPAGE)
+ *
+ * Fetches the first active collection from /api/collections,
+ * then fetches its products (excluding any already shown in FeaturedGrid).
+ * Shows up to 3 collection products.
+ */
+
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
-import { getProductsByCollection, getCollectionBySlug, getFeaturedProducts } from '../../utils/mockData';
 import { formatPrice } from '../../utils/formatPrice';
+import Skeleton from '../ui/Skeleton';
 
 export default function CollectionPreview() {
-  const collection = getCollectionBySlug('shadow-collection');
-  const allCollectionProducts = getProductsByCollection('shadow-collection');
-  const featuredIds = new Set(getFeaturedProducts(6).map((p) => p.id));
+  const [collection, setCollection] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Filter out products already shown in New Arrivals
-  const products = allCollectionProducts
-    .filter((p) => !featuredIds.has(p.id))
-    .slice(0, 3);
+  useEffect(() => {
+    fetchCollection();
+  }, []);
+
+  async function fetchCollection() {
+    try {
+      /* Get all collections, pick the first one */
+      const colRes = await fetch('/api/collections');
+      const colJson = await colRes.json();
+
+      if (!colJson.success || !colJson.data?.length) {
+        setLoading(false);
+        return;
+      }
+
+      const col = colJson.data[0];
+      setCollection(col);
+
+      /* Fetch products for this collection */
+      const prodRes = await fetch(`/api/products?collection=${col.slug}&limit=6`);
+      const prodJson = await prodRes.json();
+
+      if (prodJson.success && prodJson.data?.length > 0) {
+        /* Take up to 3 products for the preview */
+        setProducts(prodJson.data.slice(0, 3));
+      }
+    } catch (err) {
+      console.error('[CollectionPreview] fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <section className="home-collection">
+        <div className="home-collection__inner container">
+          <div className="home-collection__header">
+            <Skeleton type="text" style={{ width: 120, height: 12, marginBottom: 10 }} />
+            <Skeleton type="text" style={{ width: 240, height: 28, marginBottom: 10 }} />
+            <Skeleton type="text" style={{ width: 300, height: 14 }} />
+          </div>
+          <div className="home-collection__grid">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={i} className="home-collection__item">
+                <Skeleton type="image" style={{ width: '100%', aspectRatio: '3/4' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (!collection || products.length === 0) return null;
 

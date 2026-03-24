@@ -6,7 +6,7 @@
  * Route: /admin/categories
  *
  * Fields: name, slug, sort_order, is_active.
- * Modal-based create/edit. Reorderable.
+ * Modal-based create/edit. Shows product count per category.
  */
 
 import { useState, useEffect } from 'react';
@@ -23,6 +23,7 @@ function slugify(str) {
 
 export default function AdminCategories() {
   const [categories, setCategories] = useState([]);
+  const [productCounts, setProductCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', slug: '', sort_order: 0, is_active: true });
@@ -46,11 +47,38 @@ export default function AdminCategories() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
-      if (json.success) setCategories(json.data || []);
+      if (json.success) {
+        setCategories(json.data || []);
+        fetchProductCounts(json.data || [], token);
+      }
     } catch {
       addToast('Failed to load categories.', 'error');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchProductCounts(cats, token) {
+    if (cats.length === 0) return;
+    try {
+      const res = await fetch('/api/admin/products?limit=1000', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const counts = {};
+        for (const cat of cats) {
+          counts[cat.id] = 0;
+        }
+        for (const product of json.data) {
+          if (product.category_id && counts[product.category_id] !== undefined) {
+            counts[product.category_id]++;
+          }
+        }
+        setProductCounts(counts);
+      }
+    } catch {
+      /* Silent */
     }
   }
 
@@ -118,6 +146,12 @@ export default function AdminCategories() {
     }
   }
 
+  function formatCount(id) {
+    const count = productCounts[id];
+    if (count === undefined) return '';
+    return `${count} ${count === 1 ? 'piece' : 'pieces'}`;
+  }
+
   return (
     <div className="admin-page">
       <div className="admin-page-header">
@@ -155,6 +189,7 @@ export default function AdminCategories() {
                 <span className="settings-list__name">{cat.name}</span>
                 <span className="settings-list__meta">
                   /{cat.slug} · Order: {cat.sort_order}
+                  {formatCount(cat.id) && ` · ${formatCount(cat.id)}`}
                 </span>
               </div>
               <div className="settings-list__right">

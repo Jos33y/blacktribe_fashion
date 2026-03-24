@@ -45,11 +45,11 @@
 }
 
 .btn--primary:hover {
-  background-color: var(--bt-interactive-hover);
+  background-color: var(--bt-interactive-pressed);
 }
 
 .btn--primary:active {
-  background-color: var(--bt-interactive-pressed);
+  background-color: #C0BCB8;
 }
 
 

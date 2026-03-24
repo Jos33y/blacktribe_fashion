@@ -1,3 +1,13 @@
+/*
+ * BLACKTRIBE FASHION — PRODUCT DETAIL PAGE (Phase 5)
+ *
+ * Wired to real API:
+ *   GET /api/products/:slug          — single product
+ *   GET /api/products/:slug/related  — related products
+ *
+
+ */
+
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router';
 import ImageGallery from '../../components/product/ImageGallery';
@@ -13,8 +23,8 @@ import Skeleton from '../../components/ui/Skeleton';
 import { useToast } from '../../components/ui/Toast';
 import useCartStore from '../../store/cartStore';
 import useUIStore from '../../store/uiStore';
-import { getProductBySlug, getRelatedProducts, categories } from '../../utils/mockData';
 import { formatPrice } from '../../utils/formatPrice';
+import { trackProductView } from '../../utils/tracker';
 import '../../styles/pages/ProductDetail.css';
 import '../../styles/product/WishlistHeart.css';
 
@@ -124,30 +134,50 @@ export default function ProductDetail() {
   const addItem = useCartStore((s) => s.addItem);
   const openCartDrawer = useUIStore((s) => s.openCartDrawer);
 
-  /* ─── Load product ─── */
+  /* ─── Load product from API ─── */
   useEffect(() => {
     setLoading(true);
+    setProduct(null);
+    setRelatedProducts([]);
+    setSelectedSize('');
+    setSelectedColor('');
+    setQuantity(1);
+    setSizeError('');
     window.scrollTo(0, 0);
 
-    const timer = setTimeout(() => {
-      const found = getProductBySlug(slug);
-      if (found) {
-        setProduct(found);
-        setRelatedProducts(getRelatedProducts(found.id));
-        if (found.colors?.length > 0) {
-          setSelectedColor(found.colors[0].name || found.colors[0]);
-        }
-      } else {
-        setProduct(null);
-        setRelatedProducts([]);
-      }
-      setSelectedSize('');
-      setQuantity(1);
-      setSizeError('');
-      setLoading(false);
-    }, 300);
+    async function loadProduct() {
+      try {
+        const res = await fetch(`/api/products/${slug}`);
+        const json = await res.json();
 
-    return () => clearTimeout(timer);
+        if (json.success && json.data) {
+          const p = json.data;
+          setProduct(p);
+          trackProductView(p.id, p.name);
+          if (p.colors?.length > 0) {
+            setSelectedColor(p.colors[0].name || p.colors[0]);
+          }
+
+          /* Fetch related products */
+          try {
+            const relRes = await fetch(`/api/products/${slug}/related`);
+            const relJson = await relRes.json();
+            if (relJson.success) setRelatedProducts(relJson.data || []);
+          } catch {
+            /* Silent — related products are supplementary */
+          }
+        } else {
+          setProduct(null);
+        }
+      } catch (err) {
+        console.error('[ProductDetail] fetch error:', err);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProduct();
   }, [slug]);
 
   /* ─── Document title ─── */
@@ -204,7 +234,7 @@ export default function ProductDetail() {
   /* ─── Remaining inventory ─── */
   const getRemainingInventory = (p) => {
     if (!p?.sizes || !p.show_inventory) return undefined;
-    return p.sizes.reduce((sum, s) => sum + (s.stock || 0), 0);
+    return p.remaining_inventory || p.sizes.reduce((sum, s) => sum + (s.stock || 0), 0);
   };
 
   /* ─── Add to bag ─── */
@@ -283,7 +313,7 @@ export default function ProductDetail() {
 
 
   /* ═══ RENDER ═══ */
-  const categoryObj = categories.find((c) => c.id === product.category_id);
+  const categoryObj = product.categories || null;
   const remainingInventory = getRemainingInventory(product);
 
   /* ─── Button label ─── */
@@ -317,7 +347,7 @@ export default function ProductDetail() {
         <div className="pd-gallery-col">
           <ImageGallery
             images={product.images}
-            videoUrl={product.video_url || product.video || null}
+            videoUrl={product.video_url || null}
             productName={product.name}
           />
         </div>
@@ -339,9 +369,9 @@ export default function ProductDetail() {
             </div>
 
             {/* Description */}
-            {(product.short_description || product.shortDescription) && (
+            {product.short_description && (
               <p className="pd-description">
-                {product.short_description || product.shortDescription}
+                {product.short_description}
               </p>
             )}
 
@@ -421,8 +451,8 @@ export default function ProductDetail() {
               </ExpandableSection>
               <ExpandableSection title="Shipping and Returns" defaultOpen={false}>
                 <div className="pd-expand-content">
-                  <p>Nigeria: 3–5 business days. Free over ₦50,000.</p>
-                  <p>International: 7–14 business days. Calculated at checkout.</p>
+                  <p>Nigeria: 3-5 business days. Free over ₦50,000.</p>
+                  <p>International: 7-14 business days. Calculated at checkout.</p>
                   <p>Returns accepted within 14 days of delivery. Unworn with tags attached.</p>
                 </div>
               </ExpandableSection>

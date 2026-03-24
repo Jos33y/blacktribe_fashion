@@ -5,6 +5,7 @@
 import express from 'express';
 import { requirePermission } from '../../middleware/auth.js';
 import { supabaseAdmin } from '../../config/database.js';
+import { logActivity, getRequestIp } from '../../utils/activityLog.js';
 
 const router = express.Router();
 
@@ -71,6 +72,7 @@ router.put('/shipping/:id', requirePermission('shipping'), async (req, res, next
 
     if (error) throw error;
     res.json({ success: true, data });
+    logActivity(supabaseAdmin, { userId: req.user.id, action: 'shipping.updated', resourceType: 'shipping', resourceId: data.id, details: { name: data.name, rate: data.rate }, ip: getRequestIp(req) });
   } catch (err) { next(err); }
 });
 

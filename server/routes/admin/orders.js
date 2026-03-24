@@ -7,6 +7,11 @@ import { requirePermission } from '../../middleware/auth.js';
 import { supabaseAdmin } from '../../config/database.js';
 import { createError } from '../../middleware/errorHandler.js';
 import { logActivity, getRequestIp } from '../../utils/activityLog.js';
+import { sendEmail } from '../../services/emailService.js';
+import { shippingNotificationEmail } from '../../templates/shippingNotification.js';
+import { deliveryConfirmationEmail } from '../../templates/deliveryConfirmation.js';
+import { walkInReceiptEmail } from '../../templates/walkInReceipt.js';
+import { env } from '../../config/env.js';
 
 const router = express.Router();
 
@@ -36,6 +41,64 @@ router.get('/orders', requirePermission('orders'), async (req, res, next) => {
     if (error) throw error;
 
     res.json({ success: true, data, total: count, page: parseInt(page), limit: parseInt(limit) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+/* ─── CSV Export (must be before :id route) ─── */
+
+router.get('/orders/export/csv', requirePermission('orders'), async (req, res, next) => {
+  try {
+    const { status, order_type, from, to } = req.query;
+
+    let query = supabaseAdmin
+      .from('orders')
+      .select('order_number, guest_email, status, order_type, payment_method, payment_status, subtotal, shipping_cost, discount_amount, total, created_at')
+      .order('created_at', { ascending: false });
+
+    if (status && status !== 'all') query = query.eq('status', status);
+    if (order_type && order_type !== 'all') query = query.eq('order_type', order_type);
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to);
+
+    const { data: orders, error } = await query.limit(5000);
+    if (error) throw error;
+
+    /* Guard: no orders to export */
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ success: false, error: 'No orders to export.' });
+    }
+
+    /* Use ASCII-safe headers — avoids encoding issues in Excel */
+    const headers = ['Order Number', 'Email', 'Status', 'Type', 'Payment Method', 'Payment Status', 'Subtotal (NGN)', 'Shipping (NGN)', 'Discount (NGN)', 'Total (NGN)', 'Date'];
+
+    const rows = orders.map((o) => [
+      o.order_number,
+      o.guest_email || '',
+      o.status,
+      o.order_type || 'online',
+      o.payment_method || 'paystack',
+      o.payment_status,
+      Math.floor((o.subtotal || 0) / 100),
+      Math.floor((o.shipping_cost || 0) / 100),
+      Math.floor((o.discount_amount || 0) / 100),
+      Math.floor((o.total || 0) / 100),
+      new Date(o.created_at).toISOString().split('T')[0],
+    ]);
+
+    /* UTF-8 BOM + CSV content — BOM tells Excel to read as UTF-8 */
+    const BOM = '\uFEFF';
+    const csv = BOM + [
+      headers.join(','),
+      ...rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')),
+    ].join('\n');
+
+    const filename = `blacktribe-orders-${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csv);
   } catch (err) {
     next(err);
   }
@@ -103,7 +166,36 @@ router.patch('/orders/:id', requirePermission('orders'), async (req, res, next) 
     if (error) throw error;
 
     res.json({ success: true, data });
-    if (status) logActivity(supabaseAdmin, { userId: req.user.id, action: 'order.status_changed', resourceType: 'order', resourceId: req.params.id, details: { order_number: data.order_number, status, tracking_number: tracking_number || null }, ip: getRequestIp(req) });
+
+    /* Fire-and-forget: activity log + status emails */
+    if (status) {
+      logActivity(supabaseAdmin, { userId: req.user.id, action: 'order.status_changed', resourceType: 'order', resourceId: req.params.id, details: { order_number: data.order_number, status, tracking_number: tracking_number || null }, ip: getRequestIp(req) });
+
+      /* Send status email to customer */
+      const customerEmail = data.guest_email || null;
+      if (customerEmail && (status === 'shipped' || status === 'delivered')) {
+        try {
+          /* Fetch order items for email */
+          const { data: items } = await supabaseAdmin
+            .from('order_items')
+            .select('*')
+            .eq('order_id', data.id);
+
+          const siteUrl = env.siteUrl || 'https://blacktribefashion.com';
+          const trackingUrl = `${siteUrl}/track?order=${data.order_number}&token=${data.tracking_token}`;
+
+          if (status === 'shipped') {
+            const email = shippingNotificationEmail({ order: data, items: items || [], trackingUrl });
+            sendEmail({ to: customerEmail, subject: email.subject, html: email.html });
+          } else if (status === 'delivered') {
+            const email = deliveryConfirmationEmail({ order: data });
+            sendEmail({ to: customerEmail, subject: email.subject, html: email.html });
+          }
+        } catch (emailErr) {
+          console.error('[orders] Status email failed:', emailErr.message);
+        }
+      }
+    }
   } catch (err) {
     next(err);
   }
@@ -296,6 +388,80 @@ router.post('/orders/walk-in', requirePermission('orders'), async (req, res, nex
       data: { ...order, items: orderItems },
     });
     logActivity(supabaseAdmin, { userId: req.user.id, action: 'order.walkin_created', resourceType: 'order', resourceId: order.id, details: { order_number: order.order_number, total: order.total, payment_method, items: items.length }, ip: getRequestIp(req) });
+
+    /* Send receipt email if customer email was provided */
+    if (guest_email) {
+      try {
+        const email = walkInReceiptEmail({ order, items: orderItems });
+        sendEmail({ to: guest_email, subject: email.subject, html: email.html });
+      } catch (emailErr) {
+        console.error('[walk-in] Receipt email failed:', emailErr.message);
+      }
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+/* ─── Refund order (Paystack API) ─── */
+
+router.post('/orders/:id/refund', requirePermission('orders'), async (req, res, next) => {
+  try {
+    const { reason } = req.body;
+
+    /* Fetch order */
+    const { data: order, error: fetchErr } = await supabaseAdmin
+      .from('orders')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (fetchErr || !order) return next(createError(404, 'Order not found.'));
+    if (order.payment_status !== 'paid') return next(createError(400, 'Only paid orders can be refunded.'));
+    if (order.payment_status === 'refunded') return next(createError(400, 'This order has already been refunded.'));
+
+    /* If Paystack payment, call Paystack Refund API */
+    if (order.payment_method === 'paystack' && order.payment_reference) {
+      try {
+        const paystackRes = await fetch('https://api.paystack.co/refund', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${env.paystackSecretKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            transaction: order.payment_reference,
+          }),
+        });
+        const paystackData = await paystackRes.json();
+
+        if (!paystackData.status) {
+          return next(createError(400, paystackData.message || 'Paystack refund failed.'));
+        }
+      } catch (paystackErr) {
+        console.error('[refund] Paystack API error:', paystackErr.message);
+        return next(createError(500, 'Failed to process Paystack refund. Try again or refund manually from the Paystack dashboard.'));
+      }
+    }
+
+    /* Update order status */
+    const { data: updated, error: updateErr } = await supabaseAdmin
+      .from('orders')
+      .update({
+        payment_status: 'refunded',
+        status: 'cancelled',
+        notes: [order.notes, `Refund processed${reason ? ': ' + reason : ''}`].filter(Boolean).join('\n'),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (updateErr) throw updateErr;
+
+    res.json({ success: true, data: updated });
+    logActivity(supabaseAdmin, { userId: req.user.id, action: 'order.refunded', resourceType: 'order', resourceId: req.params.id, details: { order_number: order.order_number, total: order.total, reason: reason || null, method: order.payment_method }, ip: getRequestIp(req) });
   } catch (err) {
     next(err);
   }

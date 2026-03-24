@@ -2,8 +2,7 @@ import { useState } from 'react';
 
 /**
  * DiscountInput — single-line code input.
- * For Phase 3: validates against mock discounts locally.
- * Phase 5: validates against Supabase discounts table.
+ * Validates against POST /api/admin/validate-discount via parent's onApply.
  */
 export default function DiscountInput({ onApply, onRemove, appliedCode, discountDisplay }) {
   const [code, setCode] = useState('');
@@ -19,16 +18,17 @@ export default function DiscountInput({ onApply, onRemove, appliedCode, discount
     setError('');
     setLoading(true);
 
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, 400));
-
-    const result = onApply(trimmed);
-    setLoading(false);
-
-    if (result?.error) {
-      setError(result.error);
-    } else {
-      setCode('');
+    try {
+      const result = await onApply(trimmed);
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        setCode('');
+      }
+    } catch {
+      setError('Something went wrong. Try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

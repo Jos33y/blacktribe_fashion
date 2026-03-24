@@ -61,6 +61,7 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const { addToast } = useToast();
 
   const page = parseInt(searchParams.get('page') || '1');
@@ -109,6 +110,46 @@ export default function AdminOrders() {
     }
   }
 
+  async function handleExportCSV() {
+    setExporting(true);
+    try {
+      const token = await getToken();
+      const params = new URLSearchParams();
+      if (status) params.set('status', status);
+      if (orderType) params.set('order_type', orderType);
+
+      const res = await fetch(`/api/admin/orders/export/csv?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      /* Backend returns 404 JSON when no orders to export */
+      if (res.status === 404) {
+        addToast('No orders to export.', 'error');
+        return;
+      }
+
+      if (!res.ok) {
+        addToast('Failed to export.', 'error');
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `blacktribe-orders-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      addToast('Orders exported.', 'info');
+    } catch {
+      addToast('Export failed.', 'error');
+    } finally {
+      setExporting(false);
+    }
+  }
+
   function updateFilter(key, value) {
     const next = new URLSearchParams(searchParams);
     if (value) next.set(key, value);
@@ -118,7 +159,7 @@ export default function AdminOrders() {
   }
 
   const totalPages = Math.ceil(total / LIMIT);
-  const pendingCount = orders.filter((o) => o.status === 'pending').length;
+  const hasOrders = total > 0;
 
   return (
     <div className="admin-page">
@@ -132,6 +173,14 @@ export default function AdminOrders() {
           </p>
         </div>
         <div className="admin-page-header__actions">
+          <Button
+            variant="secondary"
+            size="small"
+            onClick={handleExportCSV}
+            disabled={!hasOrders || exporting}
+          >
+            {exporting ? 'Exporting...' : 'Export CSV'}
+          </Button>
           <Button to="/admin/orders/new" variant="primary" size="small">
             + Walk-in Order
           </Button>

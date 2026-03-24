@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '../../components/ui/Toast';
 import Skeleton from '../../components/ui/Skeleton';
+import BehavioralAnalytics from '../../components/admin/BehavioralAnalytics';
 import '../../styles/admin/admin-analytics.css';
 
 let rechartsModule = null;
@@ -55,6 +56,7 @@ export default function AdminAnalytics() {
   const [loading, setLoading] = useState(true);
   const [chartsReady, setChartsReady] = useState(!!rechartsModule);
   const [period, setPeriod] = useState('30d');
+  const [tab, setTab] = useState('revenue');
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -115,6 +117,30 @@ export default function AdminAnalytics() {
           ))}
         </div>
       </div>
+
+      {/* Tab bar */}
+      <div className="analytics-tabs">
+        <button
+          className={`analytics-tabs__btn ${tab === 'revenue' ? 'analytics-tabs__btn--active' : ''}`}
+          onClick={() => setTab('revenue')}
+        >
+          Revenue
+        </button>
+        <button
+          className={`analytics-tabs__btn ${tab === 'behavior' ? 'analytics-tabs__btn--active' : ''}`}
+          onClick={() => setTab('behavior')}
+        >
+          Behavior
+        </button>
+      </div>
+
+      {/* Behavior tab */}
+      {tab === 'behavior' && (
+        <BehavioralAnalytics period={period} />
+      )}
+
+      {/* Revenue tab */}
+      {tab === 'revenue' && (<>
 
       {!chartsAvailable && (
         <div className="analytics-notice">
@@ -266,6 +292,8 @@ export default function AdminAnalytics() {
           <ChartPlaceholder label="Geographic distribution" />
         )}
       </div>
+
+      </>)}
     </div>
   );
 }

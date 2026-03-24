@@ -1,59 +1,25 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router';
-import '../../styles/pages/Lookbook.css';
+/*
+ * BLACKTRIBE FASHION — LOOKBOOK PAGE (Phase 5)
+ *
+ * Dynamic editorial layout. Fetches real products from API
+ * and distributes them into curated grid sections.
+ *
+ * Layout pattern:
+ *   1. hero-pair (1 large + 1 small)
+ *   2. trio (3 equal)
+ *   3. editorial quote
+ *   4. pair (2 equal)
+ *   5. hero-pair-reverse (1 small + 1 large)
+ *   6. trio (3 equal)
+ *
+ * Needs minimum 11 products to fill all slots.
+ * Gracefully degrades with fewer products.
+ */
 
-const EDITORIAL_SECTIONS = [
-  {
-    id: 'shadow',
-    label: 'Shadow Collection',
-    layout: 'hero-pair',
-    images: [
-      { src: '/mock/crystal-velvet-trucker-front.PNG', name: 'Crystal Velvet Trucker', slug: 'crystal-velvet-trucker', span: 'large' },
-      { src: '/mock/full-crystal-trucker-front.PNG', name: 'Full Crystal Trucker', slug: 'full-crystal-trucker', span: 'small' },
-    ],
-  },
-  {
-    id: 'detail',
-    layout: 'trio',
-    images: [
-      { src: '/mock/rhinestone-denim-jacket-front.PNG', name: 'Rhinestone Denim Jacket', slug: 'rhinestone-denim-jacket' },
-      { src: '/mock/sequin-script-zip-shirt-front.PNG', name: 'Sequin Script Zip Shirt', slug: 'sequin-script-zip-shirt' },
-      { src: '/mock/crystal-star-crop-shirt-front.PNG', name: 'Crystal Star Crop Shirt', slug: 'crystal-star-crop-shirt' },
-    ],
-  },
-  {
-    id: 'quote',
-    layout: 'editorial',
-    quote: 'Not just clothing. A statement of where you come from and where you are going.',
-  },
-  {
-    id: 'urban',
-    label: 'Urban Ritual',
-    layout: 'pair',
-    images: [
-      { src: '/mock/varsity-jacket-white-front.PNG', name: 'Varsity Jacket — White', slug: 'varsity-jacket-white' },
-      { src: '/mock/varsity-jacket-black-front.PNG', name: 'Varsity Jacket — Black', slug: 'varsity-jacket-black' },
-    ],
-  },
-  {
-    id: 'noir',
-    label: 'Noir Essentials',
-    layout: 'hero-pair-reverse',
-    images: [
-      { src: '/mock/cow-print-panel-shirt-black.PNG', name: 'Cow Print Panel Shirt', slug: 'cow-print-panel-shirt-black', span: 'small' },
-      { src: '/mock/obsidian-oversized-tee-black-front.PNG', name: 'Obsidian Oversized Tee', slug: 'obsidian-oversized-tee-black', span: 'large' },
-    ],
-  },
-  {
-    id: 'accessories',
-    layout: 'trio',
-    images: [
-      { src: '/mock/rhinestone-wide-leg-jeans-front.PNG', name: 'Rhinestone Wide-Leg Jeans', slug: 'rhinestone-wide-leg-jeans' },
-      { src: '/mock/embossed-denim-jean-short.PNG', name: 'Embossed Denim Jean Short', slug: 'embossed-denim-jean-short' },
-      { src: '/mock/tribal-mask-snapback-grey-front.PNG', name: 'Tribal Mask Snapback', slug: 'tribal-mask-snapback-grey' },
-    ],
-  },
-];
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router';
+import Skeleton from '../../components/ui/Skeleton';
+import '../../styles/pages/Lookbook.css';
 
 function LookbookImage({ src, name, slug }) {
   return (
@@ -69,12 +35,135 @@ function LookbookImage({ src, name, slug }) {
   );
 }
 
+/* Build editorial sections from a flat product array */
+function buildSections(products) {
+  const sections = [];
+  let idx = 0;
+
+  function take(count) {
+    const items = products.slice(idx, idx + count);
+    idx += count;
+    return items;
+  }
+
+  /* Section 1: hero-pair (2 products) */
+  const heroPair = take(2);
+  if (heroPair.length >= 2) {
+    sections.push({
+      id: 'hero-1',
+      layout: 'hero-pair',
+      images: [
+        { src: heroPair[0].images[0], name: heroPair[0].name, slug: heroPair[0].slug, span: 'large' },
+        { src: heroPair[1].images[0], name: heroPair[1].name, slug: heroPair[1].slug, span: 'small' },
+      ],
+    });
+  } else if (heroPair.length === 1) {
+    sections.push({
+      id: 'hero-1',
+      layout: 'hero-pair',
+      images: [
+        { src: heroPair[0].images[0], name: heroPair[0].name, slug: heroPair[0].slug, span: 'large' },
+      ],
+    });
+  }
+
+  /* Section 2: trio (3 products) */
+  const trio1 = take(3);
+  if (trio1.length > 0) {
+    sections.push({
+      id: 'trio-1',
+      layout: 'trio',
+      images: trio1.map((p) => ({
+        src: p.images[0], name: p.name, slug: p.slug,
+      })),
+    });
+  }
+
+  /* Section 3: editorial quote (always shown) */
+  sections.push({
+    id: 'quote',
+    layout: 'editorial',
+    quote: 'Not just clothing. A statement of where you come from and where you are going.',
+  });
+
+  /* Section 4: pair (2 products) */
+  const pair = take(2);
+  if (pair.length > 0) {
+    sections.push({
+      id: 'pair-1',
+      layout: 'pair',
+      images: pair.map((p) => ({
+        src: p.images[0], name: p.name, slug: p.slug,
+      })),
+    });
+  }
+
+  /* Section 5: hero-pair-reverse (2 products) */
+  const heroReverse = take(2);
+  if (heroReverse.length >= 2) {
+    sections.push({
+      id: 'hero-2',
+      layout: 'hero-pair-reverse',
+      images: [
+        { src: heroReverse[0].images[0], name: heroReverse[0].name, slug: heroReverse[0].slug, span: 'small' },
+        { src: heroReverse[1].images[0], name: heroReverse[1].name, slug: heroReverse[1].slug, span: 'large' },
+      ],
+    });
+  } else if (heroReverse.length === 1) {
+    sections.push({
+      id: 'hero-2',
+      layout: 'pair',
+      images: [
+        { src: heroReverse[0].images[0], name: heroReverse[0].name, slug: heroReverse[0].slug },
+      ],
+    });
+  }
+
+  /* Section 6: trio (remaining products, up to 3) */
+  const trio2 = take(3);
+  if (trio2.length > 0) {
+    sections.push({
+      id: 'trio-2',
+      layout: 'trio',
+      images: trio2.map((p) => ({
+        src: p.images[0], name: p.name, slug: p.slug,
+      })),
+    });
+  }
+
+  return sections;
+}
+
 export default function Lookbook() {
+  const [sections, setSections] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     document.title = 'Lookbook. BlackTribe Fashion.';
   }, []);
 
   useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const res = await fetch('/api/products?limit=14&sort=newest');
+        const json = await res.json();
+        if (json.success && json.data) {
+          /* Only use products that have images */
+          const withImages = json.data.filter((p) => p.images?.length > 0);
+          setSections(buildSections(withImages));
+        }
+      } catch (err) {
+        console.error('[Lookbook] fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  /* Scroll reveals */
+  useEffect(() => {
+    if (loading) return;
     const elements = document.querySelectorAll('.lb-reveal');
     const observer = new IntersectionObserver(
       (entries) => {
@@ -89,7 +178,31 @@ export default function Lookbook() {
     );
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [loading, sections]);
+
+  if (loading) {
+    return (
+      <article className="lookbook">
+        <section className="page-hero lb-hero">
+          <div className="page-hero__inner">
+            <span className="page-eyebrow">Editorial</span>
+            <h1 className="page-headline lb-headline">Lookbook</h1>
+            <p className="page-intro page-intro--serif">
+              Behind the lens. Campaign imagery from BlackTribe Fashion.
+            </p>
+          </div>
+        </section>
+        <div style={{ padding: '40px 20px', maxWidth: 1200, margin: '0 auto' }}>
+          <Skeleton type="image" style={{ width: '100%', aspectRatio: '16/9', marginBottom: 24 }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+            <Skeleton type="image" style={{ width: '100%', aspectRatio: '3/4' }} />
+            <Skeleton type="image" style={{ width: '100%', aspectRatio: '3/4' }} />
+            <Skeleton type="image" style={{ width: '100%', aspectRatio: '3/4' }} />
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <article className="lookbook">
@@ -106,7 +219,7 @@ export default function Lookbook() {
       </section>
 
       {/* ═══ EDITORIAL SECTIONS ═══ */}
-      {EDITORIAL_SECTIONS.map((section) => {
+      {sections.map((section) => {
         if (section.layout === 'editorial') {
           return (
             <section key={section.id} className="lb-editorial lb-reveal">
@@ -114,7 +227,7 @@ export default function Lookbook() {
                 <blockquote className="lb-quote">
                   <p>{section.quote}</p>
                 </blockquote>
-                <span className="lb-quote-attr">Redefining Luxury Since 2018</span>
+                <span className="lb-quote-attr">Redefining Luxury Since 2017</span>
               </div>
             </section>
           );
@@ -122,11 +235,6 @@ export default function Lookbook() {
 
         return (
           <section key={section.id} className="lb-section lb-reveal">
-            {section.label && (
-              <div className="lb-section-header">
-                <span className="lb-section-label">{section.label}</span>
-              </div>
-            )}
             <div className={`lb-grid lb-grid--${section.layout}`}>
               {section.images.map((img) => (
                 <div

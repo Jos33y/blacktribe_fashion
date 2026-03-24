@@ -40,6 +40,19 @@
   margin-bottom: var(--space-3);
 }
 
+/* Prevent grid children from overflowing their column */
+.admin-form-row > * {
+  min-width: 0;
+}
+
+/* Ensure all inputs inside form rows respect boundaries */
+.admin-form-row input,
+.admin-form-row select,
+.admin-form-row textarea {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 @media (min-width: 640px) {
   .admin-form-row--2 {
     grid-template-columns: 1fr 1fr;
@@ -195,6 +208,7 @@
   font-size: 14px;
   line-height: 1.6;
   resize: vertical;
+  box-sizing: border-box;
   transition: border-color var(--duration-fast);
 }
 

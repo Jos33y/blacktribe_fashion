@@ -1,0 +1,472 @@
+/* ═══════════════════════════════════════════════════════════
+   BLACKTRIBE FASHION — BEHAVIORAL ANALYTICS
+   Funnel, most viewed, devices, trends, search terms.
+   ═══════════════════════════════════════════════════════════ */
+
+.beh {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+
+/* ─── Summary Strip ─── */
+
+.beh__summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .beh__summary {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.beh__summary-item {
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.beh__summary-value {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: var(--weight-bold);
+  color: var(--bt-text);
+  letter-spacing: -0.01em;
+}
+
+.beh__summary-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+
+/* ─── Section ─── */
+
+.beh__section {
+  display: flex;
+  flex-direction: column;
+}
+
+.beh__section-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: var(--weight-bold);
+  color: var(--bt-text);
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+
+.beh__empty-text {
+  font-size: 13px;
+  color: var(--bt-text-muted);
+  padding: 20px 0;
+}
+
+
+/* ═══ CONVERSION FUNNEL ═══ */
+
+.beh__funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.beh__funnel-step {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.beh__funnel-bar-wrap {
+  flex: 1;
+  height: 28px;
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.beh__funnel-bar {
+  height: 100%;
+  background: var(--bt-border-hover);
+  border-radius: var(--radius-sm);
+  transition: width 600ms var(--ease-out);
+  min-width: 4px;
+}
+
+.beh__funnel-bar--success {
+  background: var(--bt-success);
+  opacity: 0.4;
+}
+
+.beh__funnel-info {
+  flex-shrink: 0;
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+@media (max-width: 639px) {
+  .beh__funnel-step {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .beh__funnel-info {
+    width: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+}
+
+.beh__funnel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.beh__funnel-label {
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}
+
+.beh__funnel-count {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}
+
+.beh__funnel-rate {
+  font-size: 11px;
+  color: var(--bt-text-muted);
+}
+
+.beh__funnel-step--last .beh__funnel-label {
+  color: var(--bt-success);
+}
+
+.beh__funnel-step--last .beh__funnel-count {
+  color: var(--bt-success);
+}
+
+.beh__funnel-failed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bt-error-bg);
+  border: 1px solid rgba(248, 113, 113, 0.1);
+  border-radius: var(--radius-sm);
+  margin-top: 4px;
+}
+
+.beh__funnel-failed-count {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  color: var(--bt-error);
+}
+
+.beh__funnel-failed-label {
+  font-size: 12px;
+  color: var(--bt-error);
+}
+
+
+/* ═══ MOST VIEWED PRODUCTS ═══ */
+
+.beh__products {
+  display: flex;
+  flex-direction: column;
+}
+
+.beh__product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.beh__product:last-child {
+  border-bottom: none;
+}
+
+.beh__product-rank {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bt-text-muted);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.beh__product-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 2px;
+  background: var(--bt-canvas-alt);
+  flex-shrink: 0;
+}
+
+.beh__product-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.beh__product-name {
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.beh__product-meta {
+  font-size: 11px;
+  color: var(--bt-text-muted);
+}
+
+.beh__product-rate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.beh__product-rate-value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  color: var(--bt-text);
+}
+
+.beh__product-rate-label {
+  font-size: 10px;
+  color: var(--bt-text-muted);
+}
+
+
+/* ═══ DEVICE BREAKDOWN ═══ */
+
+.beh__devices {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.beh__device-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.beh__device-label {
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}
+
+.beh__device-value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}
+
+.beh__device-bar-track {
+  height: 6px;
+  background: var(--bt-surface);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.beh__device-bar-fill {
+  height: 100%;
+  background: var(--bt-text);
+  border-radius: 3px;
+  transition: width 600ms var(--ease-out);
+  min-width: 2px;
+  opacity: 0.6;
+}
+
+.beh__device-sub {
+  font-size: 11px;
+  color: var(--bt-text-muted);
+  margin-top: 2px;
+}
+
+
+/* ═══ SEARCH TERMS ═══ */
+
+.beh__searches {
+  display: flex;
+  flex-direction: column;
+}
+
+.beh__search-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.beh__search-item:last-child {
+  border-bottom: none;
+}
+
+.beh__search-term {
+  font-size: 13px;
+  color: var(--bt-text);
+}
+
+.beh__search-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bt-text-muted);
+}
+
+
+/* ═══ DAILY TRENDS ═══ */
+
+.beh__trends-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.beh__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--bt-text-muted);
+}
+
+.beh__legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.beh__legend-dot--views { background: var(--bt-text-secondary); opacity: 0.5; }
+.beh__legend-dot--carts { background: var(--bt-info); opacity: 0.6; }
+.beh__legend-dot--payments { background: var(--bt-success); opacity: 0.6; }
+
+.beh__trends-chart {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: 100px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.beh__trends-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 24px;
+}
+
+.beh__trends-bars {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  height: 80px;
+  width: 100%;
+}
+
+.beh__trends-bar {
+  flex: 1;
+  min-height: 2px;
+  border-radius: 1px;
+  transition: height 400ms var(--ease-out);
+}
+
+.beh__trends-bar--views { background: var(--bt-text-secondary); opacity: 0.3; }
+.beh__trends-bar--carts { background: var(--bt-info); opacity: 0.5; }
+.beh__trends-bar--payments { background: var(--bt-success); opacity: 0.6; }
+
+.beh__trends-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--bt-text-muted);
+  white-space: nowrap;
+}
+
+
+/* ─── Loading ─── */
+
+.beh__loading {
+  padding: 48px 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--bt-text-muted);
+}
+
+
+/* ─── Small Screen (375px) ─── */
+
+@media (max-width: 399px) {
+  .beh {
+    gap: 22px;
+  }
+
+  .beh__summary {
+    gap: 8px;
+  }
+
+  .beh__summary-item {
+    padding: 12px;
+  }
+
+  .beh__summary-value {
+    font-size: 17px;
+  }
+
+  .beh__product-img {
+    width: 34px;
+    height: 34px;
+  }
+
+  .beh__product-rate-value {
+    font-size: 12px;
+  }
+
+  .beh__trends-chart {
+    gap: 2px;
+  }
+
+  .beh__trends-day {
+    min-width: 18px;
+  }
+}

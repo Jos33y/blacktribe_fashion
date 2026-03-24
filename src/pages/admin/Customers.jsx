@@ -2,16 +2,17 @@
  * BLACKTRIBE FASHION — ADMIN CUSTOMERS
  *
  * List of all customers with aggregated order data.
- * Search by name or email. Click to see customer's orders.
+ * Search by name or email. Click row to see customer detail.
  *
  * Fetches from GET /api/admin/customers.
  */
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import Input from '../../components/ui/Input';
 import Skeleton from '../../components/ui/Skeleton';
 import { useToast } from '../../components/ui/Toast';
+import '../../styles/admin/admin-customers.css';
 
 function formatPrice(kobo) {
   if (!kobo && kobo !== 0) return '₦0';
@@ -28,6 +29,7 @@ export default function AdminCustomers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const { addToast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.title = 'Customers. BlackTribe Admin.';
@@ -99,7 +101,7 @@ export default function AdminCustomers() {
       ) : (
         <>
           {/* Desktop Table */}
-          <div className="products-table-wrap">
+          <div className="customers-table-wrap">
             <div className="admin-card admin-card--flush">
               <div className="admin-table-wrapper">
                 <table className="admin-table">
@@ -114,8 +116,14 @@ export default function AdminCustomers() {
                   </thead>
                   <tbody>
                     {filtered.map((c) => (
-                      <tr key={c.id}>
-                        <td className="admin-table__primary">{c.full_name || '—'}</td>
+                      <tr
+                        key={c.id}
+                        onClick={() => navigate(`/admin/customers/${c.id}`)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <td>
+                          <span className="admin-table__primary">{c.full_name || '—'}</span>
+                        </td>
                         <td>{c.email}</td>
                         <td className="admin-table__mono">{c.order_count || 0}</td>
                         <td className="admin-table__mono">{formatPrice(c.total_spent || 0)}</td>
@@ -129,10 +137,10 @@ export default function AdminCustomers() {
           </div>
 
           {/* Mobile Card List */}
-          <div className="products-card-wrap">
+          <div className="customers-card-wrap">
             <div className="admin-card-list">
               {filtered.map((c) => (
-                <div key={c.id} className="admin-card-list__item">
+                <Link key={c.id} to={`/admin/customers/${c.id}`} className="admin-card-list__item">
                   <div className="admin-card-list__info">
                     <span className="admin-card-list__title">{c.full_name || c.email}</span>
                     <div className="admin-card-list__meta">
@@ -141,7 +149,7 @@ export default function AdminCustomers() {
                       <span>{formatDate(c.created_at)}</span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

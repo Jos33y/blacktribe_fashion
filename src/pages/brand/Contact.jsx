@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import '../../styles/pages/Contact.css';
@@ -8,6 +8,7 @@ export default function Contact() {
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     document.title = 'Contact. BlackTribe Fashion.';
@@ -47,19 +48,40 @@ export default function Contact() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
+
     setSubmitting(true);
-    // TODO: connect to API in Phase 5
-    setTimeout(() => {
-      setSubmitted(true);
+    setSubmitError('');
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          message: form.message.trim(),
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        setSubmitted(true);
+      } else {
+        setSubmitError(json.error || 'Something went wrong. Try again.');
+      }
+    } catch {
+      setSubmitError('Something went wrong. Try again or email us directly at support@blacktribefashion.com.');
+    } finally {
       setSubmitting(false);
-    }, 800);
+    }
   };
 
   if (submitted) {
@@ -108,10 +130,10 @@ export default function Contact() {
             <div className="contact-channel">
               <span className="contact-channel-label">Email</span>
               <a
-                href="mailto:support@blacktribe_fashion.com"
+                href="mailto:support@blacktribefashion.com"
                 className="contact-channel-value contact-channel-link"
               >
-                support@blacktribe_fashion.com
+                support@blacktribefashion.com
               </a>
             </div>
 
@@ -182,6 +204,11 @@ export default function Contact() {
                   </p>
                 )}
               </div>
+
+              {submitError && (
+                <p className="contact-textarea-error" role="alert">{submitError}</p>
+              )}
+
               <Button variant="primary" type="submit" disabled={submitting}>
                 {submitting ? 'Sending...' : 'Send Message'}
               </Button>

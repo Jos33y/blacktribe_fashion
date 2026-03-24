@@ -6,6 +6,7 @@ import express from 'express';
 import { requirePermission } from '../../middleware/auth.js';
 import { supabaseAdmin } from '../../config/database.js';
 import { createError } from '../../middleware/errorHandler.js';
+import { logActivity, getRequestIp } from '../../utils/activityLog.js';
 
 const router = express.Router();
 
@@ -47,6 +48,7 @@ router.post('/categories', requirePermission('products'), async (req, res, next)
       throw error;
     }
     res.status(201).json({ success: true, data });
+    logActivity(supabaseAdmin, { userId: req.user.id, action: 'category.created', resourceType: 'category', resourceId: data.id, details: { name: data.name }, ip: getRequestIp(req) });
   } catch (err) {
     next(err);
   }
@@ -73,6 +75,7 @@ router.put('/categories/:id', requirePermission('products'), async (req, res, ne
       throw error;
     }
     res.json({ success: true, data });
+    logActivity(supabaseAdmin, { userId: req.user.id, action: 'category.updated', resourceType: 'category', resourceId: data.id, details: { name: data.name }, ip: getRequestIp(req) });
   } catch (err) {
     next(err);
   }
@@ -120,6 +123,7 @@ router.post('/collections', requirePermission('collections'), async (req, res, n
       throw error;
     }
     res.status(201).json({ success: true, data });
+    logActivity(supabaseAdmin, { userId: req.user.id, action: 'collection.created', resourceType: 'collection', resourceId: data.id, details: { name: data.name }, ip: getRequestIp(req) });
   } catch (err) {
     next(err);
   }
@@ -150,6 +154,7 @@ router.put('/collections/:id', requirePermission('collections'), async (req, res
       throw error;
     }
     res.json({ success: true, data });
+    logActivity(supabaseAdmin, { userId: req.user.id, action: 'collection.updated', resourceType: 'collection', resourceId: data.id, details: { name: data.name }, ip: getRequestIp(req) });
   } catch (err) {
     next(err);
   }

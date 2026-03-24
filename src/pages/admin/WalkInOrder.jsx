@@ -21,6 +21,8 @@ import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import { useToast } from '../../components/ui/Toast';
 import useAuthStore from '../../store/authStore';
+import WalkInReceiptImage from '../../components/admin/WalkInReceiptImage';
+import { offlineQueue } from '../../utils/offlineQueue';
 import '../../styles/admin/admin-walkin.css';
 
 /* ═══ HELPERS ═══ */
@@ -32,6 +34,11 @@ function formatPrice(kobo) {
 
 function koboToNaira(kobo) {
   return Math.floor(kobo / 100);
+}
+
+/* Formats kobo to comma-separated naira string (no ₦ symbol) for placeholders */
+function formatNairaPlain(kobo) {
+  return Math.floor(kobo / 100).toLocaleString('en-NG');
 }
 
 const PAYMENT_METHODS = [
@@ -129,28 +136,72 @@ export default function WalkInOrder() {
   const [completing, setCompleting] = useState(false);
   const [completedOrder, setCompletedOrder] = useState(null);
   const [mobileOrderOpen, setMobileOrderOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(offlineQueue.isOnline());
+  const [pendingCount, setPendingCount] = useState(offlineQueue.getPendingOrders().length);
 
   useEffect(() => {
     document.title = 'New Walk-in Order. BlackTribe Admin.';
     searchRef.current?.focus();
     loadCatalog();
+
+    /* Listen for online/offline changes */
+    const unsub = offlineQueue.onStatusChange((online) => {
+      setIsOnline(online);
+      if (online) {
+        /* Auto-sync queued orders when back online */
+        syncPendingOrders();
+      }
+    });
+
+    return unsub;
   }, []);
 
   async function getToken() {
     return useAuthStore.getState().getAccessToken();
   }
 
-  /* ─── Load catalog (featured/recent products for quick browse) ─── */
+  /* ─── Sync pending orders ─── */
+  async function syncPendingOrders() {
+    const result = await offlineQueue.syncPendingOrders(getToken);
+    setPendingCount(offlineQueue.getPendingOrders().length);
+    if (result.synced > 0) {
+      addToast(`${result.synced} queued ${result.synced === 1 ? 'order' : 'orders'} synced.`, 'success');
+    }
+    if (result.failed > 0) {
+      addToast(`${result.failed} ${result.failed === 1 ? 'order' : 'orders'} failed to sync.`, 'error');
+    }
+  }
+
+  /* ─── Load catalog (cache for offline use) ─── */
   async function loadCatalog() {
     setCatalogLoading(true);
+
+    /* If offline, use cached products */
+    if (!navigator.onLine) {
+      const cached = offlineQueue.getCachedProducts();
+      if (cached.length > 0) {
+        setCatalog(cached);
+        setCatalogLoading(false);
+        return;
+      }
+    }
+
     try {
       const token = await getToken();
       const res = await fetch('/api/admin/products?status=active&limit=24&sort=newest', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
-      if (json.success) setCatalog(json.data || []);
-    } catch { /* silent */ }
+      if (json.success) {
+        setCatalog(json.data || []);
+        /* Cache for offline use */
+        offlineQueue.cacheProducts(json.data || []);
+      }
+    } catch {
+      /* Network failed — try cache */
+      const cached = offlineQueue.getCachedProducts();
+      if (cached.length > 0) setCatalog(cached);
+    }
     finally { setCatalogLoading(false); }
   }
 
@@ -271,25 +322,52 @@ export default function WalkInOrder() {
   async function handleComplete() {
     if (items.length === 0) { addToast('Add items to the order.', 'error'); return; }
 
+    const payload = {
+      items: items.map((i) => ({
+        product_id: i.product.id,
+        name: i.product.name,
+        price: i.overridePrice !== null ? i.overridePrice : i.price,
+        quantity: i.quantity,
+        size: i.size,
+        image_url: i.product.images?.[0] || null,
+      })),
+      payment_method: paymentMethod,
+      subtotal,
+      total,
+      discount_amount: discountAmount,
+      discount_code: discountCode || null,
+      guest_email: customerEmail || null,
+    };
+
     setCompleting(true);
+
+    /* Offline: queue the order for later sync */
+    if (!navigator.onLine) {
+      const queued = offlineQueue.queueOrder(payload);
+      if (queued) {
+        setPendingCount(offlineQueue.getPendingOrders().length);
+        setCompletedOrder({
+          order_number: `QUEUED-${queued._queue_id}`,
+          created_at: queued._queued_at,
+          subtotal: payload.subtotal,
+          discount_amount: payload.discount_amount,
+          total: payload.total,
+          payment_method: payload.payment_method,
+          items: payload.items,
+          _offline: true,
+        });
+        setStep('receipt');
+        addToast('Order queued. Will sync when online.', 'info');
+      } else {
+        addToast('Failed to queue order.', 'error');
+      }
+      setCompleting(false);
+      return;
+    }
+
+    /* Online: send to server */
     try {
       const token = await getToken();
-      const payload = {
-        items: items.map((i) => ({
-          product_id: i.product.id,
-          name: i.product.name,
-          price: i.overridePrice !== null ? i.overridePrice : i.price,
-          quantity: i.quantity,
-          size: i.size,
-          image_url: i.product.images?.[0] || null,
-        })),
-        payment_method: paymentMethod,
-        subtotal,
-        total,
-        discount_amount: discountAmount,
-        discount_code: discountCode || null,
-        guest_email: customerEmail || null,
-      };
 
       const res = await fetch('/api/admin/orders/walk-in', {
         method: 'POST',
@@ -309,7 +387,25 @@ export default function WalkInOrder() {
         addToast(json.error || 'Failed to create order.', 'error');
       }
     } catch {
-      addToast('Something went wrong.', 'error');
+      /* Network error — queue offline */
+      const queued = offlineQueue.queueOrder(payload);
+      if (queued) {
+        setPendingCount(offlineQueue.getPendingOrders().length);
+        setCompletedOrder({
+          order_number: `QUEUED-${queued._queue_id}`,
+          created_at: queued._queued_at,
+          subtotal: payload.subtotal,
+          discount_amount: payload.discount_amount,
+          total: payload.total,
+          payment_method: payload.payment_method,
+          items: payload.items,
+          _offline: true,
+        });
+        setStep('receipt');
+        addToast('Connection lost. Order queued for sync.', 'info');
+      } else {
+        addToast('Something went wrong.', 'error');
+      }
     } finally {
       setCompleting(false);
     }
@@ -414,6 +510,12 @@ export default function WalkInOrder() {
               {PosIcons.plus} New Order
             </Button>
           </div>
+
+          {/* Shareable receipt image (WhatsApp / Save) */}
+          <WalkInReceiptImage
+            order={completedOrder}
+            items={completedOrder.items || items}
+          />
         </div>
       </div>
     );
@@ -424,6 +526,23 @@ export default function WalkInOrder() {
 
   return (
     <div className="admin-page pos">
+
+      {/* Offline indicator */}
+      {!isOnline && (
+        <div className="pos-offline-bar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/><path d="M5 12.55a10.94 10.94 0 015.17-2.39"/><path d="M10.71 5.05A16 16 0 0122.56 9"/><path d="M1.42 9a15.91 15.91 0 014.7-2.88"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span>You are offline. Orders will be queued and synced when connection returns.</span>
+        </div>
+      )}
+
+      {/* Pending sync bar */}
+      {pendingCount > 0 && isOnline && (
+        <div className="pos-pending-bar">
+          <span>{pendingCount} queued {pendingCount === 1 ? 'order' : 'orders'} waiting to sync.</span>
+          <button className="pos-pending-bar__sync" onClick={syncPendingOrders}>Sync Now</button>
+        </div>
+      )}
+
       <div className="pos-register">
 
         {/* ─── LEFT: Product Catalog ─── */}
@@ -729,7 +848,7 @@ function OrderTicket({
                   <input
                     type="number"
                     className="pos-ticket__item-override"
-                    placeholder={`₦${koboToNaira(item.price)}`}
+                    placeholder={`₦${formatNairaPlain(item.price)}`}
                     value={item.overridePrice !== null ? koboToNaira(item.overridePrice) : ''}
                     onChange={(e) => onOverridePrice(i, e.target.value)}
                     title="Override price (₦)"
@@ -815,7 +934,7 @@ function OrderTicket({
                   className="pos-ticket__cash-input"
                   value={cashReceived}
                   onChange={(e) => onCashReceivedChange(e.target.value)}
-                  placeholder={`Cash received (₦${koboToNaira(total)})`}
+                  placeholder={`Cash received (₦${formatNairaPlain(total)})`}
                   min="0"
                 />
                 {cashReceived && changeAmount >= 0 && (

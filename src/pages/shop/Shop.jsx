@@ -1,3 +1,12 @@
+/*
+ * BLACKTRIBE FASHION — SHOP PAGE (Phase 5)
+ *
+ * Wired to real API:
+ *   GET /api/products   — filtered, sorted, paginated
+ *   GET /api/categories — for filter sidebar
+ *
+ */
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useParams } from 'react-router';
 import ProductGrid from '../../components/product/ProductGrid';
@@ -5,14 +14,10 @@ import QuickView from '../../components/product/QuickView';
 import FilterDrawer from '../../components/shop/FilterDrawer';
 import SortDropdown from '../../components/shop/SortDropdown';
 import Breadcrumbs from '../../components/ui/Breadcrumbs';
-import {
-  getAllProducts,
-  sortProducts,
-  categories as allCategories,
-} from '../../utils/mockData';
+import Skeleton from '../../components/ui/Skeleton';
 import '../../styles/pages/Shop.css';
 
-const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '28', '30', '32', '34', '36'];
+const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL', 'ONE SIZE'];
 const PRODUCTS_PER_PAGE = 12;
 
 // Grid density icons
@@ -42,31 +47,113 @@ function GridIcon({ cols, isActive }) {
 }
 
 export default function Shop() {
-  const { category } = useParams();
+  const { category: categoryParam } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const [filterOpen, setFilterOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE);
   const [density, setDensity] = useState(4);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
 
-  // Read filters from URL
+  /* ─── Data state ─── */
+  const [products, setProducts] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+
+  /* ─── Read filters from URL ─── */
   const activeFilters = useMemo(() => ({
-    category: category
-      ? [category]
+    category: categoryParam
+      ? [categoryParam]
       : searchParams.get('category')?.split(',').filter(Boolean) || [],
     size: searchParams.get('size')?.split(',').filter(Boolean) || [],
     price: searchParams.get('price')?.split(',').filter(Boolean) || [],
-  }), [searchParams, category]);
+  }), [searchParams, categoryParam]);
 
   const sortValue = searchParams.get('sort') || 'newest';
 
+  /* ─── Fetch categories on mount ─── */
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/categories');
+        const json = await res.json();
+        if (json.success) setCategories(json.data || []);
+      } catch (err) {
+        console.error('[Shop] categories fetch error:', err);
+      }
+    }
+    loadCategories();
+  }, []);
+
+  /* ─── Fetch products when filters/sort change ─── */
+  useEffect(() => {
+    setPage(1);
+    fetchProducts(1, true);
+  }, [activeFilters.category.join(','), activeFilters.size.join(','), activeFilters.price.join(','), sortValue]);
+
+  async function fetchProducts(pageNum = 1, replace = false) {
+    if (replace) setLoading(true);
+    else setLoadingMore(true);
+
+    try {
+      const params = new URLSearchParams();
+      params.set('sort', sortValue);
+      params.set('page', String(pageNum));
+      params.set('limit', String(PRODUCTS_PER_PAGE));
+
+      /* Category filter */
+      const catFilter = activeFilters.category[0];
+      if (catFilter) params.set('category', catFilter);
+
+      /* Size filter — API supports single size, pick first */
+      if (activeFilters.size.length > 0) {
+        params.set('size', activeFilters.size[0]);
+      }
+
+      /* Price filter — convert range strings to min/max kobo */
+      if (activeFilters.price.length > 0) {
+        const range = activeFilters.price[0];
+        const [min, max] = range.split('-');
+        if (min) params.set('price_min', String(Number(min) * 100));
+        if (max && max !== 'up') params.set('price_max', String(Number(max) * 100));
+      }
+
+      const res = await fetch(`/api/products?${params}`);
+      const json = await res.json();
+
+      if (json.success) {
+        if (replace) {
+          setProducts(json.data || []);
+        } else {
+          setProducts((prev) => [...prev, ...(json.data || [])]);
+        }
+        setTotalProducts(json.total || 0);
+      }
+    } catch (err) {
+      console.error('[Shop] products fetch error:', err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }
+
+  /* ─── Load more ─── */
+  const handleLoadMore = useCallback(() => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchProducts(nextPage, false);
+  }, [page]);
+
+  const hasMore = products.length < totalProducts;
+
+  /* ─── Filter handlers ─── */
   const handleFilterChange = useCallback((type, values) => {
     const newParams = new URLSearchParams(searchParams);
     if (values.length > 0) newParams.set(type, values.join(','));
     else newParams.delete(type);
     setSearchParams(newParams, { replace: true });
-    setVisibleCount(PRODUCTS_PER_PAGE);
   }, [searchParams, setSearchParams]);
 
   const handleSortChange = useCallback((value) => {
@@ -78,7 +165,6 @@ export default function Shop() {
 
   const handleClearAll = useCallback(() => {
     setSearchParams({}, { replace: true });
-    setVisibleCount(PRODUCTS_PER_PAGE);
   }, [setSearchParams]);
 
   const removeFilter = useCallback((type, value) => {
@@ -86,7 +172,7 @@ export default function Shop() {
     handleFilterChange(type, current.filter((v) => v !== value));
   }, [activeFilters, handleFilterChange]);
 
-  // Quick View
+  /* ─── Quick View ─── */
   const openQuickView = useCallback((product) => {
     setQuickViewProduct(product);
     setQuickViewOpen(true);
@@ -96,48 +182,20 @@ export default function Shop() {
     setQuickViewOpen(false);
   }, []);
 
-  // Filter and sort
-  const allProducts = useMemo(() => getAllProducts(), []);
-
-  const filteredProducts = useMemo(() => {
-    let products = [...allProducts];
-    if (activeFilters.category.length > 0) {
-      products = products.filter((p) => {
-        const cat = allCategories.find((c) => c.id === p.category_id);
-        return cat && activeFilters.category.includes(cat.slug);
-      });
-    }
-    if (activeFilters.size.length > 0) {
-      products = products.filter((p) => p.sizes?.some((s) => activeFilters.size.includes(s.size || s.name)));
-    }
-    if (activeFilters.price.length > 0) {
-      products = products.filter((p) => {
-        const priceNaira = p.price / 100;
-        return activeFilters.price.some((range) => {
-          const [min, max] = range.split('-');
-          if (max === 'up') return priceNaira >= Number(min);
-          return priceNaira >= Number(min) && priceNaira <= Number(max);
-        });
-      });
-    }
-    return sortProducts(products, sortValue);
-  }, [allProducts, activeFilters, sortValue]);
-
-  const visibleProducts = filteredProducts.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredProducts.length;
-
+  /* ─── Category options for filter drawer ─── */
   const categoryOptions = useMemo(() => {
-    return allCategories.map((cat) => ({
+    return categories.map((cat) => ({
       ...cat,
-      count: allProducts.filter((p) => p.category_id === cat.id).length,
+      count: cat.product_count || 0,
     }));
-  }, [allProducts]);
+  }, [categories]);
 
+  /* ─── Filter chips ─── */
   const filterChips = useMemo(() => {
     const chips = [];
-    if (!category) {
+    if (!categoryParam) {
       activeFilters.category.forEach((slug) => {
-        const cat = allCategories.find((c) => c.slug === slug);
+        const cat = categories.find((c) => c.slug === slug);
         if (cat) chips.push({ type: 'category', value: slug, label: cat.name });
       });
     }
@@ -147,16 +205,18 @@ export default function Shop() {
       chips.push({ type: 'price', value: range, label: labels[range] || range });
     });
     return chips;
-  }, [activeFilters, category]);
+  }, [activeFilters, categoryParam, categories]);
+
+  /* ─── Page title ─── */
+  const pageTitle = categoryParam
+    ? categories.find((c) => c.slug === categoryParam)?.name || categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1)
+    : 'Shop';
 
   useEffect(() => {
-    const catName = category ? allCategories.find((c) => c.slug === category)?.name || 'Shop' : 'Shop';
-    document.title = `${catName}. BlackTribe Fashion.`;
-  }, [category]);
+    document.title = `${pageTitle}. BlackTribe Fashion.`;
+  }, [pageTitle]);
 
-  const pageTitle = category ? allCategories.find((c) => c.slug === category)?.name || 'Shop' : 'Shop';
-
-  const breadcrumbItems = category
+  const breadcrumbItems = categoryParam
     ? [{ label: 'Home', to: '/' }, { label: 'Shop', to: '/shop' }, { label: pageTitle }]
     : [{ label: 'Home', to: '/' }, { label: 'Shop' }];
 
@@ -183,7 +243,7 @@ export default function Shop() {
                 Filter
               </button>
               <span className="shop-count">
-                {filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}
+                {totalProducts} {totalProducts === 1 ? 'piece' : 'pieces'}
               </span>
             </div>
 
@@ -241,7 +301,9 @@ export default function Shop() {
       {/* ═══ PRODUCT GRID ═══ */}
       <section className="shop-grid-section">
         <div className="shop-grid-inner">
-          {filteredProducts.length === 0 ? (
+          {loading ? (
+            <ProductGrid products={[]} density={density} loading={true} />
+          ) : products.length === 0 ? (
             <div className="shop-empty">
               <p className="shop-empty-text">No pieces match your filters.</p>
               <button className="shop-empty-clear" onClick={handleClearAll} type="button">
@@ -251,7 +313,7 @@ export default function Shop() {
           ) : (
             <>
               <ProductGrid
-                products={visibleProducts}
+                products={products}
                 density={density}
                 onQuickView={openQuickView}
               />
@@ -260,13 +322,14 @@ export default function Shop() {
                 <div className="shop-load-more">
                   <button
                     className="shop-load-more-btn"
-                    onClick={() => setVisibleCount((prev) => prev + PRODUCTS_PER_PAGE)}
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
                     type="button"
                   >
-                    Load More
+                    {loadingMore ? 'Loading...' : 'Load More'}
                   </button>
                   <span className="shop-load-more-count">
-                    Showing {Math.min(visibleCount, filteredProducts.length)} of {filteredProducts.length}
+                    Showing {products.length} of {totalProducts}
                   </span>
                 </div>
               )}

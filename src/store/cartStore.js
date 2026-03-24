@@ -7,9 +7,12 @@
  *
  * Unique key: productId + size
  * All prices in kobo. maxStock enforced on add + update.
+ *
+ * Event tracking: fires add_to_cart / remove_from_cart events.
  */
 
 import { create } from 'zustand';
+import { trackAddToCart, trackRemoveFromCart } from '../utils/tracker';
 
 const STORAGE_KEY = 'bt-cart';
 
@@ -62,6 +65,10 @@ const useCartStore = create((set, get) => ({
 
     set({ items: next });
     saveCart(next);
+
+    /* Track event */
+    trackAddToCart(productId, size, name);
+
     return true;
   },
 
@@ -70,6 +77,9 @@ const useCartStore = create((set, get) => ({
     const next = get().items.filter((i) => itemKey(i.productId, i.size) !== key);
     set({ items: next });
     saveCart(next);
+
+    /* Track event */
+    trackRemoveFromCart(productId, size);
   },
 
   updateQuantity: (productId, size, quantity) => {
