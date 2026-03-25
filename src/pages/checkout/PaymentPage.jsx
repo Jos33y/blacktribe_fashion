@@ -3,6 +3,7 @@ import { useParams, useSearchParams, Link } from 'react-router';
 import Button from '../../components/ui/Button';
 import Skeleton from '../../components/ui/Skeleton';
 import { formatPrice } from '../../utils/formatPrice';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/PaymentPage.css';
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
@@ -55,8 +56,12 @@ export default function PaymentPage() {
   }, [orderNumber, token]);
 
   useEffect(() => {
-    document.title = `Pay ${orderNumber || ''}. BlackTribe Fashion.`;
-    return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
+    setPageMeta({
+      title: `Pay ${orderNumber || ''}. BlackTribe Fashion.`,
+      description: 'Complete your BlackTribe Fashion payment.',
+      path: `/pay/${orderNumber || ''}`,
+    });
+    return () => clearPageMeta();
   }, [orderNumber]);
 
   /* ─── Pay with Paystack ─── */

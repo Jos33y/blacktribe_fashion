@@ -10,12 +10,13 @@ import useAuth from '../../hooks/useAuth';
 import { api } from '../../utils/api';
 import { formatPrice } from '../../utils/formatPrice';
 import { trackCheckoutStart, trackPaymentSuccess, trackPaymentFailed } from '../../utils/tracker';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Checkout.css';
 
-/* Discount validation uses POST /api/admin/validate-discount */
+/* Discount validation uses POST /api/cart/validate-discount (public, no auth) */
 
-const FREE_SHIPPING_THRESHOLD = 5000000;
-const DEFAULT_SHIPPING = 350000;
+/* Client-side shipping estimate — server recalculates from shipping_zones at checkout */
+const DEFAULT_SHIPPING_ESTIMATE = 350000;
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
@@ -128,9 +129,13 @@ export default function Checkout() {
   }, [items.length, navigate]);
 
   useEffect(() => {
-    document.title = 'Checkout. BlackTribe Fashion.';
+    setPageMeta({
+      title: 'Checkout. BlackTribe Fashion.',
+      description: 'Complete your BlackTribe Fashion order.',
+      path: '/checkout',
+    });
     trackCheckoutStart();
-    return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
+    return () => clearPageMeta();
   }, []);
 
   /* ─── Pre-fill from auth (only if form is empty / no saved state) ─── */
@@ -173,7 +178,38 @@ export default function Checkout() {
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [isAuthenticated]);
 
-  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DEFAULT_SHIPPING;
+  const [shippingCost, setShippingCost] = useState(DEFAULT_SHIPPING_ESTIMATE);
+  const [shippingLoading, setShippingLoading] = useState(false);
+
+  /* ─── Fetch real shipping cost when state changes ─── */
+  useEffect(() => {
+    if (!address.state) {
+      setShippingCost(DEFAULT_SHIPPING_ESTIMATE);
+      return;
+    }
+
+    let cancelled = false;
+    setShippingLoading(true);
+
+    async function fetchShipping() {
+      try {
+        const res = await fetch(`/api/cart/shipping-estimate?state=${encodeURIComponent(address.state)}&subtotal=${subtotal}`);
+        const json = await res.json();
+        if (!cancelled && json.success) {
+          setShippingCost(json.data.shipping);
+        }
+      } catch {
+        /* Silent — keep current estimate */
+      } finally {
+        if (!cancelled) setShippingLoading(false);
+      }
+    }
+
+    fetchShipping();
+    return () => { cancelled = true; };
+  }, [address.state, subtotal]);
+
+  const shipping = shippingCost;
 
   const discountAmount = (() => {
     if (!appliedDiscount) return 0;
@@ -189,7 +225,7 @@ export default function Checkout() {
 
   const handleApplyDiscount = useCallback(async (code) => {
     try {
-      const res = await fetch('/api/admin/validate-discount', {
+      const res = await fetch('/api/cart/validate-discount', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, subtotal }),
@@ -310,13 +346,10 @@ export default function Checkout() {
           console.log('[paystack] Popup closed — order preserved for retry');
           setSubmitting(false);
           setPaymentError('Payment was cancelled. Your order has been saved. You can try again anytime.');
-
-          // Send payment reminder email (one time only, non-blocking)
-          fetch(`/api/orders/${orderId}/remind`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: contact.email }),
-          }).catch(() => { });
+          /* Reminder email is NOT sent here. The server handles abandoned order
+             reminders via the payment reminder system (48hr expiry window).
+             Sending instantly on popup close is too aggressive — the customer
+             may just be switching payment methods or fixing card details. */
         },
 
         onError: (error) => {
@@ -425,6 +458,15 @@ export default function Checkout() {
 
           <section className="checkout__section">
             <h2 className="checkout__section-title">Contact</h2>
+            {!isAuthenticated && (
+              <p className="checkout__signin-prompt">
+                Have an account?{' '}
+                <Link to="/auth?returnTo=/checkout" className="checkout__signin-link">
+                  Sign in
+                </Link>{' '}
+                for faster checkout.
+              </p>
+            )}
             <Input
               label="Email"
               id="checkout-email"

@@ -1,0 +1,224 @@
+/*
+ * BLACKTRIBE FASHION — PWA INSTALL PROMPT
+ *
+ * Bottom banner. Non-modal. Non-blocking.
+ * Sits above the cookie notice z-index layer.
+ */
+
+.install-prompt {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-toast);
+  padding: 0 var(--content-padding) 16px;
+  pointer-events: none;
+  animation: fadeUp var(--duration-normal) var(--ease-out);
+}
+
+.install-prompt__inner {
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  border-radius: 12px;
+  overflow: hidden;
+  pointer-events: auto;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+}
+
+
+/* ═══ STANDARD PROMPT (Android + desktop) ═══ */
+
+.install-prompt__standard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.install-prompt__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--bt-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.install-prompt__logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.install-prompt__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.install-prompt__title {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+  letter-spacing: 0.01em;
+}
+
+.install-prompt__sub {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: var(--weight-light);
+  color: var(--bt-text-muted);
+}
+
+.install-prompt__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.install-prompt__install-btn {
+  padding: 8px 20px;
+  background: var(--bt-text);
+  color: var(--bt-text-inverse);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.install-prompt__install-btn:hover {
+  background: var(--bt-interactive-pressed);
+}
+
+.install-prompt__close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bt-text-muted);
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color var(--duration-fast);
+  flex-shrink: 0;
+}
+
+.install-prompt__close:hover {
+  color: var(--bt-text);
+}
+
+
+/* ═══ iOS INSTRUCTIONS ═══ */
+
+.install-prompt__ios {
+  padding: 20px;
+}
+
+.install-prompt__ios-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.install-prompt__brand {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: var(--weight-extrabold);
+  letter-spacing: 0.12em;
+  color: var(--bt-text);
+}
+
+.install-prompt__ios-title {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+  margin-bottom: 16px;
+}
+
+.install-prompt__ios-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.install-prompt__ios-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--bt-text-secondary);
+  line-height: 1.4;
+}
+
+.install-prompt__ios-num {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bt-raised);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bt-text);
+  flex-shrink: 0;
+}
+
+.install-prompt__ios-step svg {
+  color: var(--bt-text-muted);
+  flex-shrink: 0;
+}
+
+.install-prompt__dismiss-btn {
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: 1px solid var(--bt-border);
+  color: var(--bt-text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: var(--weight-regular);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color var(--duration-fast), border-color var(--duration-fast);
+}
+
+.install-prompt__dismiss-btn:hover {
+  color: var(--bt-text-secondary);
+  border-color: var(--bt-border-hover);
+}
+
+
+/* ═══ SAFE AREA (iPhone notch) ═══ */
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .install-prompt {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}
+
+
+/* ═══ REDUCED MOTION ═══ */
+
+@media (prefers-reduced-motion: reduce) {
+  .install-prompt {
+    animation: none;
+  }
+}

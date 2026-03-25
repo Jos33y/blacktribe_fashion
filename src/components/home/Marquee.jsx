@@ -1,10 +1,10 @@
 export default function Marquee() {
   const items = [
     'New Season',
-    'Free shipping over ₦50,000',
     'Pre-order available',
     'Worldwide delivery',
     'Shadow Collection SS26',
+    'Limited pieces',
   ];
 
   // Duplicate for seamless loop

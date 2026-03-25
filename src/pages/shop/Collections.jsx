@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import Skeleton from '../../components/ui/Skeleton';
 import { formatPrice } from '../../utils/formatPrice';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Collections.css';
 
 export default function Collections() {
@@ -19,8 +20,13 @@ export default function Collections() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = 'Collections. BlackTribe Fashion.';
+    setPageMeta({
+      title: 'Collections. BlackTribe Fashion.',
+      description: 'Explore BlackTribe collections. Curated drops, limited pieces, premium streetwear.',
+      path: '/collections',
+    });
     fetchCollections();
+    return () => clearPageMeta();
   }, []);
 
   async function fetchCollections() {

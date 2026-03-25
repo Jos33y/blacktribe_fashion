@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/ShippingReturns.css';
 
 const SHIPPING_ZONES = [
   {
     region: 'Nigeria',
-    delivery: '3-5 business days',
-    cost: 'Free over ₦50,000',
-    note: 'Calculated by state at checkout',
+    delivery: '1-7 business days',
+    cost: 'Calculated at checkout',
+    note: 'Rates vary by state',
   },
   {
     region: 'West Africa',
@@ -25,7 +26,12 @@ const SHIPPING_ZONES = [
 
 export default function ShippingReturns() {
   useEffect(() => {
-    document.title = 'Shipping & Returns. BlackTribe Fashion.';
+    setPageMeta({
+      title: 'Shipping and Returns. BlackTribe Fashion.',
+      description: 'Shipping times, rates, and return policy for BlackTribe Fashion orders.',
+      path: '/shipping-returns',
+    });
+    return () => clearPageMeta();
   }, []);
 
   useEffect(() => {
@@ -54,7 +60,7 @@ export default function ShippingReturns() {
           <span className="page-eyebrow">Policy</span>
           <h1 className="page-headline sr-headline">Shipping & Returns</h1>
           <p className="sr-intro">
-            We ship worldwide. Free delivery within Nigeria on orders over ₦50,000. Returns accepted within 14 days.
+            We ship nationwide and worldwide. Shipping rates calculated at checkout. Returns accepted within 14 days.
           </p>
         </div>
       </section>

@@ -28,8 +28,7 @@ export function validateEnv() {
     process.exit(1);
   }
 
-  // Log loaded config (no secrets)
-  console.log(`[env] Supabase URL: ${process.env.SUPABASE_URL}`);
+  // Log environment (no secrets)
   console.log(`[env] Environment: ${process.env.NODE_ENV || 'development'}`);
 }
 

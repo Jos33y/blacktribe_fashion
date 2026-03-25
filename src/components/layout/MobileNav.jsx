@@ -1,69 +1,28 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { NavLink } from 'react-router';
 import { CloseIcon } from '../icons';
 import useAuth from '../../hooks/useAuth';
 import useAuthStore from '../../store/authStore';
+import useFocusTrap from '../../hooks/useFocusTrap';
 import '../../styles/layout/MobileNav.css';
 
 export default function MobileNav({ isOpen, onClose, navLinks }) {
-  const navRef = useRef(null);
-  const closeRef = useRef(null);
-
   const { isAuthenticated, isAdmin, displayName } = useAuth();
   const signOut = useAuthStore((s) => s.signOut);
+
+  /* ─── Focus trap (handles Tab cycling + Escape + focus restore) ─── */
+  const trapRef = useFocusTrap(isOpen, onClose);
 
   const handleSignOut = async () => {
     onClose();
     await signOut();
   };
 
-  // Close on Escape
+  /* ─── Lock body scroll ─── */
   useEffect(() => {
     if (!isOpen) return;
-
-    function handleKeyDown(e) {
-      if (e.key === 'Escape') onClose();
-    }
-
-    document.addEventListener('keydown', handleKeyDown);
-    // Focus the close button when opening
-    closeRef.current?.focus();
-    // Prevent body scroll
     document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, onClose]);
-
-  // Focus trap
-  useEffect(() => {
-    if (!isOpen || !navRef.current) return;
-
-    const focusable = navRef.current.querySelectorAll(
-      'a, button, [tabindex]:not([tabindex="-1"])'
-    );
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-
-    function handleTab(e) {
-      if (e.key !== 'Tab') return;
-      if (e.shiftKey) {
-        if (document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else {
-        if (document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }
-
-    document.addEventListener('keydown', handleTab);
-    return () => document.removeEventListener('keydown', handleTab);
+    return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
   return (
@@ -77,15 +36,15 @@ export default function MobileNav({ isOpen, onClose, navLinks }) {
 
       {/* Nav Panel */}
       <nav
-        ref={navRef}
+        ref={trapRef}
         className={`mobile-nav ${isOpen ? 'mobile-nav--open' : ''}`}
         aria-label="Mobile navigation"
         aria-hidden={!isOpen}
         role="dialog"
+        aria-modal="true"
       >
         <div className="mobile-nav__header">
           <button
-            ref={closeRef}
             className="mobile-nav__close"
             onClick={onClose}
             aria-label="Close menu"

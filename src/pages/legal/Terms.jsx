@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Legal.css';
 
 const SECTIONS = [
@@ -43,7 +44,12 @@ const SECTIONS = [
 
 export default function Terms() {
   useEffect(() => {
-    document.title = 'Terms and Conditions. BlackTribe Fashion.';
+    setPageMeta({
+      title: 'Terms and Conditions. BlackTribe Fashion.',
+      description: 'Terms and conditions for purchases on blacktribefashion.com.',
+      path: '/terms',
+    });
+    return () => clearPageMeta();
   }, []);
 
   useEffect(() => {

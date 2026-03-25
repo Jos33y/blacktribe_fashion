@@ -25,6 +25,8 @@ import useCartStore from '../../store/cartStore';
 import useUIStore from '../../store/uiStore';
 import { formatPrice } from '../../utils/formatPrice';
 import { trackProductView } from '../../utils/tracker';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
+import JsonLd, { buildProductSchema, buildBreadcrumbSchema } from '../../components/seo/JsonLd';
 import '../../styles/pages/ProductDetail.css';
 import '../../styles/product/WishlistHeart.css';
 
@@ -38,7 +40,7 @@ function TrustBar() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
           <path d="M20 12V22H4V12" /><path d="M22 7H2v5h20V7z" /><path d="M12 22V7" /><path d="M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
         </svg>
-        <span>Free shipping over ₦50,000</span>
+        <span>Nationwide and worldwide delivery</span>
       </div>
       <div className="pd-trust-item">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
@@ -180,10 +182,20 @@ export default function ProductDetail() {
     loadProduct();
   }, [slug]);
 
-  /* ─── Document title ─── */
+  /* ─── Page meta (title, OG, description, canonical) ─── */
   useEffect(() => {
-    if (product) document.title = `${product.name}. BlackTribe Fashion.`;
-    return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
+    if (product) {
+      setPageMeta({
+        title: `${product.name}. BlackTribe Fashion.`,
+        description: product.short_description
+          ? `${product.short_description} ${formatPrice(product.price)}. Shop at BlackTribe Fashion.`
+          : `${product.name}. ${formatPrice(product.price)}. Shop at BlackTribe Fashion.`,
+        path: `/product/${product.slug}`,
+        image: product.images?.[0],
+        type: 'product',
+      });
+    }
+    return () => clearPageMeta();
   }, [product]);
 
   /* ─── Scroll reveals ─── */
@@ -316,6 +328,14 @@ export default function ProductDetail() {
   const categoryObj = product.categories || null;
   const remainingInventory = getRemainingInventory(product);
 
+  /* ─── Structured data ─── */
+  const breadcrumbItems = [
+    { name: 'Home', path: '/' },
+    { name: 'Shop', path: '/shop' },
+    ...(categoryObj ? [{ name: categoryObj.name, path: `/shop/${categoryObj.slug}` }] : []),
+    { name: product.name },
+  ];
+
   /* ─── Button label ─── */
   let addBtnLabel = 'Add to Bag';
   if (isSoldOut) addBtnLabel = 'Sold Out';
@@ -323,6 +343,10 @@ export default function ProductDetail() {
 
   return (
     <article className="pd">
+
+      {/* ─── Structured Data (JSON-LD) ─── */}
+      <JsonLd data={buildProductSchema(product)} />
+      <JsonLd data={buildBreadcrumbSchema(breadcrumbItems)} />
 
       {/* ─── Breadcrumbs (desktop) ─── */}
       <nav className="pd-breadcrumbs" aria-label="Breadcrumb">
@@ -451,7 +475,7 @@ export default function ProductDetail() {
               </ExpandableSection>
               <ExpandableSection title="Shipping and Returns" defaultOpen={false}>
                 <div className="pd-expand-content">
-                  <p>Nigeria: 3-5 business days. Free over ₦50,000.</p>
+                  <p>Nigeria: 1-7 business days. Rates calculated at checkout.</p>
                   <p>International: 7-14 business days. Calculated at checkout.</p>
                   <p>Returns accepted within 14 days of delivery. Unworn with tags attached.</p>
                 </div>

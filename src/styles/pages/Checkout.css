@@ -153,6 +153,30 @@
   margin: 0 0 var(--space-4);
 }
 
+/* Sign-in nudge: sits between section title and first input.
+   Quiet. Not a banner. Just a line the returning customer notices. */
+.checkout__signin-prompt {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-muted);
+  margin: -8px 0 var(--space-4);
+  line-height: 1.4;
+}
+
+.checkout__signin-link {
+  color: var(--bt-text);
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--bt-border-hover);
+  transition: text-decoration-color var(--duration-fast);
+}
+
+.checkout__signin-link:hover {
+  text-decoration-color: var(--bt-text);
+}
+
 
 /* ═══ ADDRESS FORM ═══ */
 

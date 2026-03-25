@@ -1,10 +1,16 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router';
+import { setPageMeta, clearPageMeta } from '../utils/pageMeta';
 import '../styles/pages/NotFound.css';
 
 export default function NotFound() {
   useEffect(() => {
-    document.title = '404. BlackTribe Fashion.';
+    setPageMeta({
+      title: '404. BlackTribe Fashion.',
+      description: 'This page does not exist.',
+      path: window.location.pathname,
+    });
+    return () => clearPageMeta();
   }, []);
 
   return (

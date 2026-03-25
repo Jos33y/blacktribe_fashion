@@ -14,7 +14,6 @@ function formatNaira(kobo) {
 export function paymentReminderEmail({ order, items, paymentUrl }) {
   const orderNumber = order.order_number;
   const total = formatNaira(order.total);
-  const firstItem = items?.[0];
   const itemCount = items?.reduce((sum, i) => sum + i.quantity, 0) || 0;
 
   const subject = `Your bag is waiting`;
@@ -52,28 +51,39 @@ export function paymentReminderEmail({ order, items, paymentUrl }) {
             </td>
           </tr>
 
-          <!-- Product preview -->
-          ${firstItem ? `
+          <!-- Product items -->
+          ${(items || []).map((item) => `
           <tr>
-            <td style="padding-bottom: 24px;">
+            <td style="padding-bottom: 8px;">
               <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border: 1px solid #2A2A2A;">
                 <tr>
                   <td width="80" valign="top">
-                    <img src="${firstItem.image_url}" alt="${firstItem.name}" width="80" height="100" style="display: block; object-fit: cover; background: #FFFFFF;" />
+                    <img src="${item.image_url}" alt="${item.name}" width="80" height="100" style="display: block; object-fit: cover; background: #FFFFFF;" />
                   </td>
                   <td style="padding: 16px;" valign="middle">
-                    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #EDEBE8; margin-bottom: 4px;">${firstItem.name}</div>
-                    <div style="font-family: 'Courier New', monospace; font-size: 11px; color: #6A6662;">${firstItem.size}${firstItem.color ? ' / ' + firstItem.color : ''}</div>
-                    ${itemCount > 1 ? `<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 12px; color: #6A6662; margin-top: 8px;">+ ${itemCount - 1} more ${itemCount - 1 === 1 ? 'piece' : 'pieces'}</div>` : ''}
+                    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; color: #EDEBE8; margin-bottom: 4px;">${item.name}</div>
+                    <div style="font-family: 'Courier New', monospace; font-size: 11px; color: #6A6662;">${item.size || ''}${item.size && item.color ? ' / ' : ''}${item.color || ''}${item.quantity > 1 ? ' × ' + item.quantity : ''}</div>
                   </td>
                   <td align="right" style="padding: 16px;" valign="middle">
-                    <div style="font-family: 'Courier New', monospace; font-size: 16px; font-weight: 500; color: #EDEBE8;">${total}</div>
+                    <div style="font-family: 'Courier New', monospace; font-size: 14px; font-weight: 500; color: #EDEBE8;">${formatNaira(item.price * item.quantity)}</div>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
-          ` : ''}
+          `).join('')}
+
+          <!-- Total -->
+          <tr>
+            <td style="padding-bottom: 24px;">
+              <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; color: #9B9894; padding: 8px 0;">Total</td>
+                  <td align="right" style="font-family: 'Courier New', monospace; font-size: 16px; font-weight: 500; color: #EDEBE8; padding: 8px 0;">${total}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
 
           <!-- CTA -->
           <tr>

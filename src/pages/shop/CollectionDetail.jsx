@@ -12,6 +12,7 @@ import ProductGrid from '../../components/product/ProductGrid';
 import Button from '../../components/ui/Button';
 import Skeleton from '../../components/ui/Skeleton';
 import { formatPrice } from '../../utils/formatPrice';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/CollectionDetail.css';
 
 export default function CollectionDetail() {
@@ -50,8 +51,16 @@ export default function CollectionDetail() {
 
   useEffect(() => {
     if (collection) {
-      document.title = `${collection.name}. BlackTribe Fashion.`;
+      setPageMeta({
+        title: `${collection.name}. BlackTribe Fashion.`,
+        description: collection.description
+          ? `${collection.description}. Shop now.`
+          : `${collection.name} collection. Shop now.`,
+        path: `/collections/${collection.slug}`,
+        image: collection.cover_image || null,
+      });
     }
+    return () => clearPageMeta();
   }, [collection]);
 
   /* Scroll reveals */

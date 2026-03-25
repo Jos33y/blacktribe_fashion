@@ -1,0 +1,12 @@
+# BlackTribe Fashion — robots.txt
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth
+Disallow: /checkout
+Disallow: /pay/
+
+# Sitemap
+Sitemap: https://blacktribefashion.com/sitemap.xml

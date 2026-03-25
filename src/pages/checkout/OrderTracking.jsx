@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router';
 import Skeleton from '../../components/ui/Skeleton';
 import { formatPrice } from '../../utils/formatPrice';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/OrderConfirmation.css';
 
 /**
@@ -31,8 +32,12 @@ export default function OrderTracking() {
   const token = searchParams.get('token');
 
   useEffect(() => {
-    document.title = 'Track Your Order. BlackTribe Fashion.';
-    return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
+    setPageMeta({
+      title: 'Track Your Order. BlackTribe Fashion.',
+      description: 'Track your BlackTribe Fashion order status.',
+      path: '/track',
+    });
+    return () => clearPageMeta();
   }, []);
 
   useEffect(() => {

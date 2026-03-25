@@ -7,6 +7,7 @@ import CollectionGallery from '../../components/account/CollectionGallery';
 import OrderList from '../../components/account/OrderList';
 import WishlistGrid from '../../components/account/WishlistGrid';
 import AccountSettings from '../../components/account/AccountSettings';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Account.css';
 
 const TABS = [
@@ -34,10 +35,14 @@ export default function Account() {
     }
   };
 
-  /* ─── Page title ─── */
+  /* ─── Page meta ─── */
   useEffect(() => {
-    document.title = 'Your Tribe. BlackTribe Fashion.';
-    return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
+    setPageMeta({
+      title: 'Your Tribe. BlackTribe Fashion.',
+      description: 'Your collection, orders, and wishlist.',
+      path: '/account',
+    });
+    return () => clearPageMeta();
   }, []);
 
   /* ─── Auth guard ─── */

@@ -9,10 +9,12 @@
  * All prices in kobo. maxStock enforced on add + update.
  *
  * Event tracking: fires add_to_cart / remove_from_cart events.
+ * Screen reader: announces cart changes via aria-live region.
  */
 
 import { create } from 'zustand';
 import { trackAddToCart, trackRemoveFromCart } from '../utils/tracker';
+import { announce } from '../utils/announcer';
 
 const STORAGE_KEY = 'bt-cart';
 
@@ -69,17 +71,24 @@ const useCartStore = create((set, get) => ({
     /* Track event */
     trackAddToCart(productId, size, name);
 
+    /* Announce to screen readers */
+    announce(`${name} added to bag.`);
+
     return true;
   },
 
   removeItem: (productId, size) => {
     const key = itemKey(productId, size);
+    const removed = get().items.find((i) => itemKey(i.productId, i.size) === key);
     const next = get().items.filter((i) => itemKey(i.productId, i.size) !== key);
     set({ items: next });
     saveCart(next);
 
     /* Track event */
     trackRemoveFromCart(productId, size);
+
+    /* Announce to screen readers */
+    announce(removed ? `${removed.name} removed from bag.` : 'Item removed from bag.');
   },
 
   updateQuantity: (productId, size, quantity) => {
@@ -94,7 +103,12 @@ const useCartStore = create((set, get) => ({
     saveCart(next);
   },
 
-  clearCart: () => { set({ items: [] }); saveCart([]); },
+  clearCart: () => {
+    set({ items: [] });
+    saveCart([]);
+    announce('Bag cleared.');
+  },
+
   getSubtotal: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
   getItemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
 }));

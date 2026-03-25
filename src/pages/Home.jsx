@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { setPageMeta, clearPageMeta } from '../utils/pageMeta';
+import JsonLd, { buildOrganizationSchema } from '../components/seo/JsonLd';
 import ProductHero from '../components/home/ProductHero';
 import Marquee from '../components/home/Marquee';
 import FeaturedGrid from '../components/home/FeaturedGrid';
@@ -9,7 +11,12 @@ import '../styles/pages/Home.css';
 
 export default function Home() {
   useEffect(() => {
-    document.title = 'BlackTribe Fashion. Redefining Luxury.';
+    setPageMeta({
+      title: 'BlackTribe Fashion. Redefining Luxury.',
+      description: 'Premium streetwear and luxury fashion. Shop limited collections, pre-order new drops, worldwide shipping. Born from culture, refined by craft.',
+      path: '/',
+    });
+    return () => clearPageMeta();
   }, []);
 
   // Scroll reveal observer
@@ -62,6 +69,7 @@ export default function Home() {
 
   return (
     <div className="home">
+      <JsonLd data={buildOrganizationSchema()} />
       <ProductHero />
       <Marquee />
       <div className="home-reveal">

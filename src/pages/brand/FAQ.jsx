@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router';
 import ExpandableSection from '../../components/ui/ExpandableSection';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
+import JsonLd, { buildFAQSchema } from '../../components/seo/JsonLd';
 import '../../styles/pages/FAQ.css';
 
 const FAQ_CATEGORIES = [
@@ -13,9 +15,9 @@ const FAQ_CATEGORIES = [
           'Nigeria: 3-5 business days. International: 7-14 business days. You will receive a tracking number by email once your order ships.',
       },
       {
-        question: 'Is shipping free?',
+        question: 'How much is shipping?',
         answer:
-          'Shipping is free on all orders over ₦50,000 within Nigeria. International shipping is calculated at checkout based on your location.',
+          'Shipping rates are calculated at checkout based on your location. Rates vary by state within Nigeria and by region for international orders.',
       },
       {
         question: 'Do you ship internationally?',
@@ -73,7 +75,12 @@ const FAQ_CATEGORIES = [
 
 export default function FAQ() {
   useEffect(() => {
-    document.title = 'FAQ. BlackTribe Fashion.';
+    setPageMeta({
+      title: 'FAQ. BlackTribe Fashion.',
+      description: 'Shipping, returns, sizing, payments, and pre-orders. Everything you need to know.',
+      path: '/faq',
+    });
+    return () => clearPageMeta();
   }, []);
 
   // Scroll reveal
@@ -94,8 +101,16 @@ export default function FAQ() {
     return () => observer.disconnect();
   }, []);
 
+  /* ─── Flatten FAQ data for JSON-LD ─── */
+  const allFaqs = FAQ_CATEGORIES.flatMap((cat) =>
+    cat.items.map((item) => ({ question: item.question, answer: item.answer }))
+  );
+
   return (
     <article className="faq">
+
+      {/* ─── Structured Data (JSON-LD) ─── */}
+      <JsonLd data={buildFAQSchema(allFaqs)} />
 
       {/* ═══ HERO ═══ */}
       <section className="page-hero faq-hero">

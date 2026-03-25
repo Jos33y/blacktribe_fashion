@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/About.css';
 
 export default function About() {
@@ -12,7 +13,12 @@ export default function About() {
   const [productImages, setProductImages] = useState([]);
 
   useEffect(() => {
-    document.title = 'About. BlackTribe Fashion.';
+    setPageMeta({
+      title: 'About. BlackTribe Fashion.',
+      description: 'Born in Lagos in 2017. Premium streetwear and luxury fashion for people who set the standard.',
+      path: '/about',
+    });
+    return () => clearPageMeta();
   }, []);
 
   /* Fetch product images for the strip */

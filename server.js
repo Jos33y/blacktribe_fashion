@@ -23,6 +23,9 @@ import eventsRouter from './server/routes/events.js';
 // Route imports — admin
 import adminRouter from './server/routes/admin/index.js';
 
+// Route imports — SEO
+import sitemapRouter from './server/routes/sitemap.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -67,6 +70,9 @@ app.use('/api/events', eventsRouter);
 
 // API Routes — admin
 app.use('/api/admin', adminRouter);
+
+// SEO — dynamic sitemap (must be BEFORE static file serving + SPA catch-all)
+app.use('/sitemap.xml', sitemapRouter);
 
 // Serve static files in production
 if (!isDev) {

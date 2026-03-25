@@ -7,6 +7,7 @@ import { useToast } from '../../components/ui/Toast';
 import useAuth from '../../hooks/useAuth';
 import useAuthStore from '../../store/authStore';
 import { formatPrice } from '../../utils/formatPrice';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/OrderConfirmation.css';
 
 export default function OrderConfirmation() {
@@ -50,11 +51,15 @@ export default function OrderConfirmation() {
   }, [id]);
 
   useEffect(() => {
-    document.title = order
-      ? `Order ${order.order_number} Confirmed. BlackTribe Fashion.`
-      : 'Order Confirmed. BlackTribe Fashion.';
-    return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
-  }, [order]);
+    setPageMeta({
+      title: order
+        ? `Order ${order.order_number} Confirmed. BlackTribe Fashion.`
+        : 'Order Confirmed. BlackTribe Fashion.',
+      description: 'Your BlackTribe Fashion order has been confirmed.',
+      path: `/order-confirmation/${id}`,
+    });
+    return () => clearPageMeta();
+  }, [order, id]);
 
   const handleImageReady = useCallback((blob, url) => {
     setImageBlob(blob);

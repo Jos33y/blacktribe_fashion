@@ -7,6 +7,7 @@ import PasswordlessForm from '../../components/auth/PasswordlessForm';
 import LoginForm from '../../components/auth/LoginForm';
 import RegisterForm from '../../components/auth/RegisterForm';
 import ForgotPasswordForm from '../../components/auth/ForgotPasswordForm';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Auth.css';
 
 /**
@@ -41,7 +42,7 @@ export default function Auth() {
   /* Track whether we just signed in (to show toast once) */
   const justSignedIn = useRef(false);
 
-  /* ─── Page title ─── */
+  /* ─── Page meta ─── */
   useEffect(() => {
     const titles = {
       otp: 'Sign In. BlackTribe Fashion.',
@@ -50,8 +51,12 @@ export default function Auth() {
       forgot: 'Reset Password. BlackTribe Fashion.',
       reset: 'Reset Password. BlackTribe Fashion.',
     };
-    document.title = titles[view] || 'Sign In. BlackTribe Fashion.';
-    return () => { document.title = 'BlackTribe Fashion. Redefining Luxury.'; };
+    setPageMeta({
+      title: titles[view] || 'Sign In. BlackTribe Fashion.',
+      description: 'Sign in or create your BlackTribe Fashion account.',
+      path: '/auth',
+    });
+    return () => clearPageMeta();
   }, [view]);
 
   /* ─── Role-based redirect ───

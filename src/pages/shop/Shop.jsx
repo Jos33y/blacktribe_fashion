@@ -15,6 +15,7 @@ import FilterDrawer from '../../components/shop/FilterDrawer';
 import SortDropdown from '../../components/shop/SortDropdown';
 import Breadcrumbs from '../../components/ui/Breadcrumbs';
 import Skeleton from '../../components/ui/Skeleton';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Shop.css';
 
 const ALL_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL', 'ONE SIZE'];
@@ -213,8 +214,16 @@ export default function Shop() {
     : 'Shop';
 
   useEffect(() => {
-    document.title = `${pageTitle}. BlackTribe Fashion.`;
-  }, [pageTitle]);
+    const desc = categoryParam
+      ? `Shop ${pageTitle} at BlackTribe Fashion. Premium streetwear, limited drops.`
+      : 'Browse the full BlackTribe collection. Premium streetwear, luxury fashion, limited drops.';
+    setPageMeta({
+      title: `${pageTitle}. BlackTribe Fashion.`,
+      description: desc,
+      path: categoryParam ? `/shop/${categoryParam}` : '/shop',
+    });
+    return () => clearPageMeta();
+  }, [pageTitle, categoryParam]);
 
   const breadcrumbItems = categoryParam
     ? [{ label: 'Home', to: '/' }, { label: 'Shop', to: '/shop' }, { label: pageTitle }]

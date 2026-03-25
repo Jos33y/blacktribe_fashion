@@ -3,6 +3,7 @@ import { getOrderById } from '../services/orderService.js';
 import { sendEmail } from '../services/emailService.js';
 import { paymentReminderEmail } from '../templates/paymentReminder.js';
 import { createError } from '../middleware/errorHandler.js';
+import { requireAuth } from '../middleware/auth.js';
 import { supabaseAdmin } from '../config/database.js';
 import { env } from '../config/env.js';
 
@@ -41,69 +42,6 @@ router.get('/track', async (req, res, next) => {
       .eq('order_id', data.id);
 
     res.json({ success: true, data: { ...data, items: items || [] } });
-  } catch (err) {
-    next(err);
-  }
-});
-
-
-/**
- * GET /api/orders/:id
- * Returns order with items for the confirmation page.
- */
-router.get('/:id', async (req, res, next) => {
-  try {
-    const order = await getOrderById(req.params.id);
-    if (!order) throw createError(404, 'Order not found.');
-    res.json({ success: true, data: order });
-  } catch (err) {
-    next(err);
-  }
-});
-
-
-/**
- * POST /api/orders/:id/remind
- * Sends the abandoned payment reminder email with payment page link.
- * Called by the client when Paystack popup is cancelled.
- * Only sends once per order (tracked via notes field).
- */
-router.post('/:id/remind', async (req, res, next) => {
-  try {
-    const order = await getOrderById(req.params.id);
-    if (!order) throw createError(404, 'Order not found.');
-
-    // Don't send if already paid
-    if (order.payment_status === 'paid') {
-      return res.json({ success: true, message: 'Order already paid.' });
-    }
-
-    // Don't send reminder twice
-    if (order.notes?.includes('reminder_sent')) {
-      return res.json({ success: true, message: 'Reminder already sent.' });
-    }
-
-    const email = order.guest_email || req.body.email;
-    if (!email) throw createError(400, 'No email address available.');
-
-    // Build payment page URL
-    const paymentUrl = `${env.siteUrl}/pay/${order.order_number}?token=${order.tracking_token}`;
-
-    const { subject, html } = paymentReminderEmail({
-      order,
-      items: order.items || [],
-      paymentUrl,
-    });
-
-    await sendEmail({ to: email, subject, html });
-
-    // Mark reminder as sent
-    await supabaseAdmin
-      .from('orders')
-      .update({ notes: (order.notes ? order.notes + ' | ' : '') + 'reminder_sent' })
-      .eq('id', order.id);
-
-    res.json({ success: true, message: 'Reminder sent.' });
   } catch (err) {
     next(err);
   }
@@ -150,6 +88,111 @@ router.get('/pay/:orderNumber', async (req, res, next) => {
       .eq('order_id', order.id);
 
     res.json({ success: true, data: { ...order, items: items || [] } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+/**
+ * GET /api/orders
+ * Returns the authenticated user's orders.
+ * Supports ?status= filter (comma-separated).
+ */
+router.get('/', requireAuth, async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const userEmail = req.user.email;
+    const { status } = req.query;
+
+    /* Build query — match by user_id OR guest_email */
+    let query = supabaseAdmin
+      .from('orders')
+      .select('*, order_items(*)')
+      .or(`user_id.eq.${userId},guest_email.ilike.${userEmail}`)
+      .order('created_at', { ascending: false });
+
+    /* Filter by status if provided */
+    if (status) {
+      const statuses = status.split(',').map((s) => s.trim()).filter(Boolean);
+      if (statuses.length > 0) {
+        query = query.in('status', statuses);
+      }
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('[orders] List error:', error);
+      throw createError(500, 'Could not fetch orders.');
+    }
+
+    /* Format: flatten order_items into items */
+    const orders = (data || []).map((order) => ({
+      ...order,
+      items: order.order_items || [],
+      order_items: undefined,
+    }));
+
+    res.json({ success: true, data: orders });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+/**
+ * GET /api/orders/:id
+ * Returns order with items for the confirmation page.
+ */
+router.get('/:id', async (req, res, next) => {
+  try {
+    const order = await getOrderById(req.params.id);
+    if (!order) throw createError(404, 'Order not found.');
+    res.json({ success: true, data: order });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+/**
+ * POST /api/orders/:id/remind
+ * Sends the abandoned payment reminder email with payment page link.
+ * Only sends once per order (tracked via notes field).
+ */
+router.post('/:id/remind', async (req, res, next) => {
+  try {
+    const order = await getOrderById(req.params.id);
+    if (!order) throw createError(404, 'Order not found.');
+
+    if (order.payment_status === 'paid') {
+      return res.json({ success: true, message: 'Order already paid.' });
+    }
+
+    if (order.notes?.includes('reminder_sent')) {
+      return res.json({ success: true, message: 'Reminder already sent.' });
+    }
+
+    const email = order.guest_email || req.body.email;
+    if (!email) throw createError(400, 'No email address available.');
+
+    const paymentUrl = `${env.siteUrl}/pay/${order.order_number}?token=${order.tracking_token}`;
+
+    const { subject, html } = paymentReminderEmail({
+      order,
+      items: order.items || [],
+      paymentUrl,
+    });
+
+    await sendEmail({ to: email, subject, html });
+
+    await supabaseAdmin
+      .from('orders')
+      .update({ notes: (order.notes ? order.notes + ' | ' : '') + 'reminder_sent' })
+      .eq('id', order.id);
+
+    res.json({ success: true, message: 'Reminder sent.' });
   } catch (err) {
     next(err);
   }

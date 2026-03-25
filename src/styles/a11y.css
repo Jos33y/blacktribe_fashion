@@ -1,0 +1,144 @@
+/*
+ * BLACKTRIBE FASHION — ACCESSIBILITY ENHANCEMENTS
+ *
+ * Supplements base.css (which already defines .skip-link, .sr-only, :focus-visible).
+ * This file adds: focus refinements, reduced-motion hardening, high-contrast mode,
+ * and touch target enforcement.
+ *
+ * Imported in main.jsx after page-shared.css.
+ */
+
+
+/* ═══ SKIP LINK ENHANCEMENT ═══ */
+/* base.css handles positioning + transition. This adds the opacity fade. */
+
+.skip-link {
+  opacity: 0;
+}
+
+.skip-link:focus {
+  opacity: 1;
+}
+
+
+/* ═══ FOCUS INDICATOR REFINEMENTS ═══ */
+/* base.css sets :focus-visible globally. These are per-element overrides. */
+
+/* Product cards — outline with offset so it doesn't clip the card */
+.product-card:focus-visible,
+.product-card > a:focus-visible {
+  outline: 2px solid var(--bt-border-active);
+  outline-offset: 4px;
+}
+
+/* Size selector buttons */
+.size-btn:focus-visible {
+  outline: 2px solid var(--bt-border-active);
+  outline-offset: 2px;
+}
+
+/* Color selector buttons */
+.color-btn:focus-visible {
+  outline: 2px solid var(--bt-border-active);
+  outline-offset: 3px;
+}
+
+/* Inputs — outline hugs the border */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-offset: 0;
+  border-color: var(--bt-border-active);
+}
+
+
+/* ═══ REDUCED MOTION HARDENING ═══ */
+/* animations.css handles the core reduced-motion reset.
+   This catches any patterns that slip through. */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Page-specific reveal classes */
+  .pd-reveal,
+  .home-reveal,
+  .page-reveal,
+  [class*="-reveal"] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  /* Overlays and drawers — instant show/hide */
+  .cart-drawer,
+  .mobile-nav,
+  .search-overlay,
+  .modal-overlay {
+    transition: none !important;
+  }
+
+  /* Smooth scroll override */
+  html {
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ═══ HIGH CONTRAST MODE ═══ */
+
+@media (forced-colors: active) {
+  /* Ensure borders remain visible */
+  button,
+  input,
+  select,
+  textarea {
+    border: 1px solid ButtonText;
+  }
+
+  /* Focus rings use system highlight */
+  *:focus-visible {
+    outline: 2px solid Highlight;
+  }
+
+  /* Badges maintain visibility */
+  .badge {
+    border: 1px solid ButtonText;
+  }
+}
+
+
+/* ═══ TOUCH TARGET MINIMUM (44×44px) ═══ */
+/* WCAG 2.5.8 AAA — applied only on touch devices */
+
+@media (pointer: coarse) {
+  /* All buttons and links meet 44px height */
+  button,
+  [role="button"] {
+    min-height: 44px;
+  }
+
+  /* Inline text links are exempt */
+  p a,
+  span a,
+  li a,
+  .pd-crumb {
+    min-height: auto;
+    min-width: auto;
+  }
+
+  /* Quantity +/- buttons */
+  .quantity-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Close buttons on overlays */
+  .cart-drawer__close,
+  .mobile-nav__close,
+  .search-close,
+  .modal-close {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

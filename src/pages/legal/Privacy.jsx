@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Legal.css';
 
 const SECTIONS = [
@@ -38,7 +39,12 @@ const SECTIONS = [
 
 export default function Privacy() {
   useEffect(() => {
-    document.title = 'Privacy Policy. BlackTribe Fashion.';
+    setPageMeta({
+      title: 'Privacy Policy. BlackTribe Fashion.',
+      description: 'How BlackTribe Fashion collects, uses, and protects your information.',
+      path: '/privacy',
+    });
+    return () => clearPageMeta();
   }, []);
 
   useEffect(() => {

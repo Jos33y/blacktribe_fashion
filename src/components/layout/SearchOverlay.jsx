@@ -1,12 +1,14 @@
 /*
- * BLACKTRIBE FASHION — SEARCH OVERLAY (Phase 5)
+ * BLACKTRIBE FASHION — SEARCH OVERLAY (Phase 5 + Phase 7 a11y)
  *
  * Wired to GET /api/products?search=
+ * Focus trap via useFocusTrap hook.
  */
 
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import useDebounce from '../../hooks/useDebounce';
+import useFocusTrap from '../../hooks/useFocusTrap';
 import { formatPrice } from '../../utils/formatPrice';
 import { trackSearch } from '../../utils/tracker';
 import '../../styles/layout/SearchOverlay.css';
@@ -38,20 +40,19 @@ export default function SearchOverlay({ isOpen, onClose }) {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
 
+  /* ─── Focus trap (handles Tab cycling + Escape + focus restore) ─── */
+  const trapRef = useFocusTrap(isOpen, onClose);
+
+  /* ─── Body lock + focus input on open ─── */
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
       setRecentSearches(getRecentSearches());
+      /* Focus the search input specifically (overrides useFocusTrap's generic first-focusable) */
       requestAnimationFrame(() => inputRef.current?.focus());
     }
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
-
-  useEffect(() => {
-    const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
-    if (isOpen) document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [isOpen, onClose]);
 
   /* Fetch from API when debounced query changes */
   useEffect(() => {
@@ -102,7 +103,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
   return (
     <div className="search-overlay" role="dialog" aria-modal="true" aria-label="Search">
       <div className="search-overlay-backdrop" onClick={onClose} aria-hidden="true" />
-      <div className="search-overlay-content">
+      <div className="search-overlay-content" ref={trapRef}>
         <div className="search-input-wrapper">
           <svg className="search-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
             <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
@@ -144,15 +145,15 @@ export default function SearchOverlay({ isOpen, onClose }) {
 
           {/* Searching indicator */}
           {searching && debouncedQuery.length >= 2 && (
-            <div className="search-no-results">
+            <div className="search-no-results" role="status">
               <p className="search-no-results-text">Searching...</p>
             </div>
           )}
 
           {showResults && !noResults && (
-            <div className="search-results">
+            <div className="search-results" role="listbox" aria-label="Search results">
               {results.map((product) => (
-                <Link key={product.id} to={`/product/${product.slug}`} className="search-result" onClick={handleResultClick}>
+                <Link key={product.id} to={`/product/${product.slug}`} className="search-result" onClick={handleResultClick} role="option">
                   <div className="search-result-image">
                     <img src={product.images?.[0]} alt="" loading="lazy" />
                   </div>
@@ -175,7 +176,7 @@ export default function SearchOverlay({ isOpen, onClose }) {
           )}
 
           {noResults && (
-            <div className="search-no-results">
+            <div className="search-no-results" role="status">
               <p className="search-no-results-text">No pieces match your search.</p>
               <button className="search-no-results-clear" onClick={() => setQuery('')} type="button">Clear Search</button>
             </div>

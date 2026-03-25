@@ -1,10 +1,16 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/RefundPolicy.css';
 
 export default function RefundPolicy() {
   useEffect(() => {
-    document.title = 'Refund Policy. BlackTribe Fashion.';
+    setPageMeta({
+      title: 'Refund Policy. BlackTribe Fashion.',
+      description: 'Refund eligibility, process, and exceptions for BlackTribe Fashion purchases.',
+      path: '/refund-policy',
+    });
+    return () => clearPageMeta();
   }, []);
 
   useEffect(() => {

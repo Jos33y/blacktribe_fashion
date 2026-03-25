@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router';
 import useCartStore from '../../store/cartStore';
 import useUIStore from '../../store/uiStore';
+import useFocusTrap from '../../hooks/useFocusTrap';
+import { announce } from '../../utils/announcer';
 import CartItem from './CartItem';
 import CartSummary from './CartSummary';
 import '../../styles/ui/CartDrawer.css';
@@ -10,46 +12,26 @@ export default function CartDrawer() {
   const items = useCartStore((s) => s.items);
   const isOpen = useUIStore((s) => s.cartDrawerOpen);
   const closeCartDrawer = useUIStore((s) => s.closeCartDrawer);
-  const panelRef = useRef(null);
-  const closeRef = useRef(null);
 
   const isEmpty = items.length === 0;
   const itemCount = useCartStore((s) => s.getItemCount());
 
-  /* ─── Lock body scroll + Escape ─── */
+  /* ─── Focus trap (handles Tab cycling + Escape + focus restore) ─── */
+  const trapRef = useFocusTrap(isOpen, closeCartDrawer);
+
+  /* ─── Lock body scroll ─── */
   useEffect(() => {
     if (!isOpen) return;
     document.body.style.overflow = 'hidden';
-    closeRef.current?.focus();
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
 
-    const handleKey = (e) => { if (e.key === 'Escape') closeCartDrawer(); };
-    document.addEventListener('keydown', handleKey);
-    return () => {
-      document.body.style.overflow = '';
-      document.removeEventListener('keydown', handleKey);
-    };
-  }, [isOpen, closeCartDrawer]);
-
-  /* ─── Focus trap ─── */
+  /* ─── Announce to screen readers ─── */
   useEffect(() => {
-    if (!isOpen || !panelRef.current) return;
-    const focusable = panelRef.current.querySelectorAll(
-      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    );
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-
-    const handleTab = (e) => {
-      if (e.key !== 'Tab') return;
-      if (e.shiftKey) {
-        if (document.activeElement === first) { e.preventDefault(); last?.focus(); }
-      } else {
-        if (document.activeElement === last) { e.preventDefault(); first?.focus(); }
-      }
-    };
-    document.addEventListener('keydown', handleTab);
-    return () => document.removeEventListener('keydown', handleTab);
-  }, [isOpen, items]);
+    if (isOpen) {
+      announce(`Shopping bag opened. ${itemCount} ${itemCount === 1 ? 'item' : 'items'} in bag.`);
+    }
+  }, [isOpen, itemCount]);
 
   return (
     <>
@@ -60,7 +42,7 @@ export default function CartDrawer() {
       />
 
       <aside
-        ref={panelRef}
+        ref={trapRef}
         className={`cart-drawer ${isOpen ? 'cart-drawer--open' : ''}`}
         role="dialog"
         aria-modal="true"
@@ -73,7 +55,6 @@ export default function CartDrawer() {
             <span className="cart-drawer__count">({itemCount})</span>
           </h2>
           <button
-            ref={closeRef}
             className="cart-drawer__close"
             onClick={closeCartDrawer}
             aria-label="Close bag"

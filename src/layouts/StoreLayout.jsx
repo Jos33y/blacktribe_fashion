@@ -5,9 +5,11 @@ import Footer from '../components/layout/Footer';
 import MobileNav from '../components/layout/MobileNav';
 import SearchOverlay from '../components/layout/SearchOverlay';
 import CartDrawer from '../components/cart/CartDrawer';
+import InstallPrompt from '../components/ui/InstallPrompt';
 import useUIStore from '../store/uiStore';
 import useCartStore from '../store/cartStore';
 import { trackPageView } from '../utils/tracker';
+import { announceRouteChange } from '../utils/announcer';
 
 const navLinks = [
   { to: '/shop', label: 'Shop' },
@@ -40,11 +42,18 @@ export default function StoreLayout() {
     (route) => location.pathname.startsWith(route)
   );
 
-  /* ─── Close overlays, scroll to top, track page view on route change ─── */
+  /* ─── Close overlays, scroll to top, track page view, announce route ─── */
   useEffect(() => {
     closeAll();
     window.scrollTo(0, 0);
     trackPageView(location.pathname);
+
+    /* Announce page change to screen readers after title updates */
+    const timer = setTimeout(() => {
+      announceRouteChange(document.title);
+    }, 300);
+
+    return () => clearTimeout(timer);
   }, [location.pathname, closeAll]);
 
   /* ─── Bag click handler ─── */
@@ -90,6 +99,8 @@ export default function StoreLayout() {
       </main>
 
       <Footer />
+
+      <InstallPrompt />
     </>
   );
 }

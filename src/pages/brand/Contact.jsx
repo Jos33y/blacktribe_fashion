@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Contact.css';
 
 export default function Contact() {
@@ -11,7 +12,12 @@ export default function Contact() {
   const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
-    document.title = 'Contact. BlackTribe Fashion.';
+    setPageMeta({
+      title: 'Contact. BlackTribe Fashion.',
+      description: 'Questions about orders, sizing, or collaborations. We respond within 24 hours.',
+      path: '/contact',
+    });
+    return () => clearPageMeta();
   }, []);
 
   // Scroll reveal

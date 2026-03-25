@@ -19,6 +19,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import Skeleton from '../../components/ui/Skeleton';
+import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Lookbook.css';
 
 function LookbookImage({ src, name, slug }) {
@@ -139,7 +140,12 @@ export default function Lookbook() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = 'Lookbook. BlackTribe Fashion.';
+    setPageMeta({
+      title: 'Lookbook. BlackTribe Fashion.',
+      description: 'Behind the lens. Editorial photography and campaign imagery from BlackTribe Fashion.',
+      path: '/lookbook',
+    });
+    return () => clearPageMeta();
   }, []);
 
   useEffect(() => {
