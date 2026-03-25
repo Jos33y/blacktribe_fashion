@@ -846,11 +846,16 @@ function OrderTicket({
                     {formatPrice((item.overridePrice ?? item.price) * item.quantity)}
                   </span>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     className="pos-ticket__item-override"
-                    placeholder={`₦${formatNairaPlain(item.price)}`}
+                    placeholder={formatNairaPlain(item.price)}
                     value={item.overridePrice !== null ? koboToNaira(item.overridePrice) : ''}
-                    onChange={(e) => onOverridePrice(i, e.target.value)}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, '');
+                      onOverridePrice(i, raw || '');
+                    }}
                     title="Override price (₦)"
                   />
                 </div>
@@ -930,11 +935,16 @@ function OrderTicket({
             {paymentMethod === 'cash' && (
               <div className="pos-ticket__cash">
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   className="pos-ticket__cash-input"
                   value={cashReceived}
-                  onChange={(e) => onCashReceivedChange(e.target.value)}
-                  placeholder={`Cash received (₦${formatNairaPlain(total)})`}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^0-9]/g, '');
+                    onCashReceivedChange(raw);
+                  }}
+                  placeholder={`Cash received (${formatNairaPlain(total)})`}
                   min="0"
                 />
                 {cashReceived && changeAmount >= 0 && (

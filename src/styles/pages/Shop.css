@@ -97,7 +97,7 @@
 .shop-count {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.04em;
 }
 
@@ -150,7 +150,7 @@
 .sort-dropdown-trigger:hover { border-color: var(--bt-border-hover); }
 .sort-dropdown-trigger:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 
-.sort-dropdown-label { color: var(--bt-text-muted); font-weight: 400; }
+.sort-dropdown-label { color: var(--bt-text-secondary); font-weight: 400; }
 .sort-dropdown-value { font-weight: 500; }
 
 .sort-dropdown-icon { transition: transform 0.2s ease; color: var(--bt-text-muted); }
@@ -291,7 +291,7 @@
 .shop-load-more-count {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.06em;
 }
 
@@ -340,7 +340,7 @@
 
 .filter-section-title {
   font-family: var(--font-body); font-size: 11px; font-weight: 500;
-  color: var(--bt-text-muted); letter-spacing: 0.15em; text-transform: uppercase; margin: 0 0 14px;
+  color: var(--bt-text-secondary); letter-spacing: 0.15em; text-transform: uppercase; margin: 0 0 14px;
 }
 
 .filter-options { display: flex; flex-direction: column; gap: 2px; }

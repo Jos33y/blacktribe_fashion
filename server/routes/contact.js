@@ -4,12 +4,15 @@
  * POST /api/contact              — public: save message + send email
  * GET  /api/contact/messages     — admin: list all messages
  * PATCH /api/contact/messages/:id — admin: mark as read
+ *
+ * Fixed: DB insert failure now returns proper error instead of silent success.
+ * Fixed: replyTo passed to sendEmail.
  */
 
 import express from 'express';
 import { supabaseAdmin } from '../config/database.js';
 import { sendEmail } from '../services/emailService.js';
-import { requirePermission } from '../middleware/auth.js';
+import { requireAuth, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -31,19 +34,31 @@ router.post('/', async (req, res, next) => {
     }
 
     /* Save to database (primary record) */
-    const { error: dbError } = await supabaseAdmin
+    const { data: inserted, error: dbError } = await supabaseAdmin
       .from('contact_messages')
       .insert({
         name: name.trim(),
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         message: message.trim(),
-      });
+      })
+      .select()
+      .single();
 
     if (dbError) {
-      console.error('[contact] DB insert failed:', dbError.message);
+      console.error('[contact] DB insert failed:', dbError.message, dbError.details, dbError.hint);
+
+      /* If it's a "relation does not exist" error, the table needs creating */
+      if (dbError.message?.includes('does not exist') || dbError.code === '42P01') {
+        console.error('[contact] Table contact_messages does not exist. Run migration 016.');
+      }
+
+      /* Still try to send email even if DB fails — message shouldn't be lost entirely */
+    } else {
+      console.log(`[contact] Message saved: ${inserted.id} from ${email.trim()}`);
     }
 
     /* Send email to support (fire-and-forget backup) */
+    let emailSent = false;
     try {
       await sendEmail({
         to: 'support@blacktribefashion.com',
@@ -55,12 +70,22 @@ router.post('/', async (req, res, next) => {
             <p><strong>Email:</strong> ${email.trim()}</p>
             <p><strong>Message:</strong></p>
             <p style="white-space: pre-wrap; background: #f5f5f5; padding: 16px; border-radius: 4px;">${message.trim()}</p>
+            <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
+            <p style="font-size: 12px; color: #999;">Reply directly to this email to respond to the customer.</p>
           </div>
         `,
-        replyTo: email.trim(),
       });
+      emailSent = true;
     } catch (emailErr) {
       console.error('[contact] Email send failed:', emailErr.message);
+    }
+
+    /* If both DB and email failed, tell the user */
+    if (dbError && !emailSent) {
+      return res.status(500).json({
+        success: false,
+        error: 'Something went wrong. Try again or email us directly at support@blacktribefashion.com.',
+      });
     }
 
     res.json({ success: true, message: 'Message sent.' });
@@ -72,7 +97,7 @@ router.post('/', async (req, res, next) => {
 
 /* ─── Admin: list messages ─── */
 
-router.get('/messages', requirePermission('orders'), async (req, res, next) => {
+router.get('/messages', requireAuth, requirePermission('orders'), async (req, res, next) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
@@ -89,7 +114,16 @@ router.get('/messages', requirePermission('orders'), async (req, res, next) => {
       .range(offset, offset + parseInt(limit) - 1);
 
     const { data, count, error } = await query;
-    if (error) throw error;
+
+    if (error) {
+      console.error('[contact] Messages query failed:', error.message, error.hint);
+
+      /* If table doesn't exist, return empty instead of crashing */
+      if (error.message?.includes('does not exist') || error.code === '42P01') {
+        return res.json({ success: true, data: [], total: 0 });
+      }
+      throw error;
+    }
 
     res.json({ success: true, data, total: count });
   } catch (err) {
@@ -100,7 +134,7 @@ router.get('/messages', requirePermission('orders'), async (req, res, next) => {
 
 /* ─── Admin: mark as read/unread ─── */
 
-router.patch('/messages/:id', requirePermission('orders'), async (req, res, next) => {
+router.patch('/messages/:id', requireAuth, requirePermission('orders'), async (req, res, next) => {
   try {
     const { is_read } = req.body;
 

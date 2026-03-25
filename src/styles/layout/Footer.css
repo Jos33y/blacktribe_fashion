@@ -55,7 +55,7 @@
   font-weight: var(--weight-medium);
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   margin-bottom: var(--space-3);
 }
 
@@ -90,7 +90,7 @@
 .footer__copyright {
   font-size: var(--text-caption);
   font-family: var(--font-mono);
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.05em;
 }
 
@@ -102,7 +102,7 @@
 .footer__social-link {
   font-size: var(--text-caption);
   font-family: var(--font-mono);
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.05em;
   transition: color var(--duration-fast) var(--ease-out);
 }

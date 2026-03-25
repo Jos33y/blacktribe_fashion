@@ -8,6 +8,19 @@ import Skeleton from '../../components/ui/Skeleton';
  * Purchased product images displayed as a personal lookbook.
  * Each piece links to the product detail page.
  */
+
+/**
+ * Generate a URL-safe slug from a product name.
+ * Matches the convention used in the products table.
+ */
+function slugify(name) {
+  return name
+    .toLowerCase()
+    .replace(/['']/g, '')              // remove apostrophes
+    .replace(/[^a-z0-9]+/g, '-')       // non-alphanumeric → hyphens
+    .replace(/(^-|-$)/g, '');           // trim leading/trailing hyphens
+}
+
 export default function CollectionGallery() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +41,7 @@ export default function CollectionGallery() {
                   id: key,
                   name: item.name,
                   image: item.image_url,
-                  slug: item.slug || null,
+                  slug: item.slug || slugify(item.name),
                 });
               }
             }
@@ -78,12 +91,13 @@ export default function CollectionGallery() {
         {items.map((item) => (
           <Link
             key={item.id}
-            to={item.slug ? `/product/${item.slug}` : '/shop'}
+            to={`/product/${item.slug}`}
             className="collection-gallery__item"
           >
             <div className="collection-gallery__image">
               <img src={item.image} alt={item.name} loading="lazy" />
             </div>
+            <span className="collection-gallery__name">{item.name}</span>
           </Link>
         ))}
       </div>

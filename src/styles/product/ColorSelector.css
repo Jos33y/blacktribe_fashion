@@ -21,7 +21,7 @@
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 400;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   text-transform: capitalize;
 }
 

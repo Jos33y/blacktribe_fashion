@@ -21,7 +21,8 @@ export default function WishlistHeart({ productId, className = '' }) {
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      navigate('/auth');
+      addToast('Sign in to save items.', 'info');
+      navigate('/auth?returnTo=' + encodeURIComponent(window.location.pathname));
       return;
     }
 

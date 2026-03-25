@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/database.js';
-import { createOrder, retryOrder } from '../services/orderService.js';
+import { createOrder, retryOrder, saveCheckoutProfile } from '../services/orderService.js';
+import { sendEmail } from '../services/emailService.js';
+import { paymentLinkEmail } from '../templates/paymentLink.js';
 import { createError } from '../middleware/errorHandler.js';
 
 const router = Router();
@@ -162,13 +164,35 @@ async function calculateShipping(state, subtotal) {
 
 
 /**
+ * Extract authenticated user from Authorization header (optional).
+ * Returns userId or null. Never blocks checkout for guests.
+ */
+async function extractOptionalUser(req) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) return null;
+
+    const token = authHeader.split(' ')[1];
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !user) return null;
+
+    return user.id;
+  } catch {
+    return null;
+  }
+}
+
+
+/**
  * POST /api/cart/checkout
  *
- * Creates order in Supabase (pending), returns orderId + reference.
- * Paystack popup is opened client-side with the public key.
+ * Creates order in Supabase (pending), sends payment link email,
+ * returns orderId + reference for Paystack popup.
  *
- * Shipping is now calculated server-side from shipping_zones.
+ * Shipping is calculated server-side from shipping_zones.
  * Client-sent shipping value is ignored — server is the source of truth.
+ *
+ * If user is authenticated, saves profile and address for faster checkout next time.
  */
 router.post('/checkout', async (req, res, next) => {
   try {
@@ -184,6 +208,9 @@ router.post('/checkout', async (req, res, next) => {
     if (!address?.street) throw createError(400, 'Street address is required.');
     if (!address?.city) throw createError(400, 'City is required.');
     if (!address?.state) throw createError(400, 'State is required.');
+
+    // ─── Optional auth extraction (never blocks guest checkout) ───
+    const userId = await extractOptionalUser(req);
 
     // ─── Server-side shipping calculation ───
     const calculatedShipping = await calculateShipping(address.state, subtotal || 0);
@@ -219,6 +246,7 @@ router.post('/checkout', async (req, res, next) => {
       discountCode: discount?.code || null,
       total: calculatedTotal,
       paymentRef,
+      userId,
     };
 
     let order;
@@ -236,6 +264,45 @@ router.post('/checkout', async (req, res, next) => {
     }
 
     console.log(`[checkout] Order ${order.order_number || order.id} | ₦${calculatedTotal / 100} | Shipping: ₦${calculatedShipping / 100} | ${contact.email}`);
+
+    // ─── Send payment link email (non-blocking) ───
+    // Insurance: if browser crashes, user can complete payment from email
+    try {
+      const orderForEmail = {
+        ...order,
+        subtotal: subtotal || 0,
+        shipping_cost: calculatedShipping,
+        discount_amount: discountAmount,
+        discount_code: discount?.code || null,
+        total: calculatedTotal,
+        shipping_address: shippingAddress,
+      };
+      const emailItems = items.map((item) => ({
+        name: item.name,
+        size: item.size || '',
+        color: item.color || null,
+        quantity: item.quantity || 1,
+        price: item.price,
+        image_url: item.image || '',
+      }));
+      const { subject, html } = paymentLinkEmail({ order: orderForEmail, items: emailItems });
+      // Fire and forget — don't block checkout response
+      sendEmail({ to: contact.email, subject, html });
+    } catch (emailErr) {
+      console.error('[checkout] Payment link email error:', emailErr.message);
+    }
+
+    // ─── Save profile/address for authenticated users (non-blocking) ───
+    if (userId) {
+      saveCheckoutProfile({
+        userId,
+        fullName: address.fullName,
+        phone: contact.phone || address.phone || null,
+        address: shippingAddress,
+      }).catch((err) => {
+        console.error('[checkout] Profile save error:', err.message);
+      });
+    }
 
     res.json({
       success: true,

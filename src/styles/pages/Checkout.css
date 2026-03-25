@@ -28,13 +28,13 @@
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 400;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   margin-bottom: var(--space-4);
   transition: color var(--duration-fast);
 }
 
 .checkout__back:hover {
-  color: var(--bt-text-secondary);
+  color: var(--bt-text);
 }
 
 /*

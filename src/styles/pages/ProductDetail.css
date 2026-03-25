@@ -48,7 +48,7 @@
 .pd-crumb {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.06em;
   text-decoration: none;
   transition: color var(--duration-fast) var(--ease-out);
@@ -190,7 +190,7 @@
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 400;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.02em;
 }
 

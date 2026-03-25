@@ -4,6 +4,7 @@ import Button from '../../components/ui/Button';
 import Skeleton from '../../components/ui/Skeleton';
 import { formatPrice } from '../../utils/formatPrice';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
+import { loadPaystack } from '../../utils/loadPaystack';
 import '../../styles/pages/PaymentPage.css';
 
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
@@ -61,20 +62,31 @@ export default function PaymentPage() {
       description: 'Complete your BlackTribe Fashion payment.',
       path: `/pay/${orderNumber || ''}`,
     });
+    // Preload Paystack in background
+    loadPaystack().catch(() => {});
     return () => clearPageMeta();
   }, [orderNumber]);
 
   /* ─── Pay with Paystack ─── */
   const handlePay = async () => {
-    if (!order || !window.PaystackPop) return;
+    if (!order) return;
 
     setPaying(true);
     setPaymentError('');
 
+    let PaystackPop;
+    try {
+      PaystackPop = await loadPaystack();
+    } catch (loadErr) {
+      setPaying(false);
+      setPaymentError(loadErr.message || 'Payment system could not be loaded. Check your connection.');
+      return;
+    }
+
     const email = order.guest_email || '';
     const reference = `bt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-    const paystackInstance = new window.PaystackPop();
+    const paystackInstance = new PaystackPop();
 
     // Update payment reference on server BEFORE opening popup
     // so the webhook can match this reference

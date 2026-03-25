@@ -672,13 +672,13 @@
 }
 
 .pos-ticket__item-override {
-  width: 72px;
-  padding: 2px 6px;
+  width: 90px;
+  padding: 4px 8px;
   background: var(--bt-bg);
   border: 1px solid var(--bt-border);
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   text-align: right;
   border-radius: var(--radius-sm);
   transition: border-color 150ms;
@@ -1336,7 +1336,7 @@
   }
 
   .pos-ticket__item-override {
-    width: 64px;
+    width: 80px;
   }
 
   /* Payment buttons stack on very small */

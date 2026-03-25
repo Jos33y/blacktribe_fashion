@@ -226,3 +226,79 @@ export async function getOrderById(orderId) {
 
   return { ...order, items: items || [] };
 }
+
+
+/**
+ * Save profile and address from checkout for authenticated users.
+ * Called after order creation — non-blocking, fire-and-forget.
+ *
+ * Updates profiles table with name/phone (only if currently empty).
+ * Inserts address if no matching address exists for this user.
+ */
+export async function saveCheckoutProfile({ userId, fullName, phone, address }) {
+  if (!userId) return;
+
+  try {
+    // ─── Update profile (name + phone) if currently empty ───
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('full_name, phone')
+      .eq('id', userId)
+      .single();
+
+    if (profile) {
+      const updates = {};
+      if (!profile.full_name && fullName) updates.full_name = fullName;
+      if (!profile.phone && phone) updates.phone = phone;
+
+      if (Object.keys(updates).length > 0) {
+        updates.updated_at = new Date().toISOString();
+        await supabaseAdmin
+          .from('profiles')
+          .update(updates)
+          .eq('id', userId);
+        console.log(`[profile] Updated profile for ${userId}: ${Object.keys(updates).join(', ')}`);
+      }
+    }
+
+    // ─── Save address if not a duplicate ───
+    if (address?.street && address?.city && address?.state) {
+      // Check if user already has this address (match on street + state)
+      const { data: existing } = await supabaseAdmin
+        .from('addresses')
+        .select('id')
+        .eq('user_id', userId)
+        .ilike('street', address.street.trim())
+        .ilike('state', address.state.trim())
+        .limit(1);
+
+      if (!existing || existing.length === 0) {
+        // Check how many addresses user has
+        const { count } = await supabaseAdmin
+          .from('addresses')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId);
+
+        const isFirst = (count || 0) === 0;
+
+        await supabaseAdmin
+          .from('addresses')
+          .insert({
+            user_id: userId,
+            full_name: address.name || fullName,
+            street: address.street,
+            city: address.city,
+            state: address.state,
+            lga: address.lga || null,
+            phone: address.phone || phone || null,
+            is_default: isFirst, // First address becomes default
+            label: isFirst ? 'Home' : null,
+          });
+        console.log(`[profile] Saved address for ${userId}: ${address.city}, ${address.state}`);
+      }
+    }
+  } catch (err) {
+    console.error('[profile] Error saving checkout profile:', err.message);
+    // Never throw — this is a background enhancement, not critical path
+  }
+}

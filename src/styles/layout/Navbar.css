@@ -12,10 +12,18 @@
   right: 0;
   z-index: var(--z-sticky);
   height: var(--nav-height);
+  padding-top: env(safe-area-inset-top, 0px);
   background: rgba(12, 12, 12, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--bt-border);
+}
+
+/* In standalone PWA mode, navbar height must include the safe area */
+@media (display-mode: standalone) {
+  :root {
+    --nav-height: calc(64px + env(safe-area-inset-top, 0px));
+  }
 }
 
 .navbar__inner {

@@ -10,6 +10,7 @@ import useAuth from '../../hooks/useAuth';
 import { api } from '../../utils/api';
 import { formatPrice } from '../../utils/formatPrice';
 import { trackCheckoutStart, trackPaymentSuccess, trackPaymentFailed } from '../../utils/tracker';
+import { loadPaystack } from '../../utils/loadPaystack';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Checkout.css';
 
@@ -135,6 +136,8 @@ export default function Checkout() {
       path: '/checkout',
     });
     trackCheckoutStart();
+    // Preload Paystack script in background so it's ready when user clicks Pay
+    loadPaystack().catch(() => {});
     return () => clearPageMeta();
   }, []);
 
@@ -291,9 +294,20 @@ export default function Checkout() {
         payload.pendingOrderId = existing.orderId;
       }
 
+      const headers = { 'Content-Type': 'application/json' };
+
+      // If authenticated, send token so server can link order to user + save profile
+      if (isAuthenticated) {
+        try {
+          const authStore = (await import('../../store/authStore')).default;
+          const token = authStore.getState().getAccessToken();
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+        } catch { /* Non-blocking — guest checkout still works */ }
+      }
+
       const res = await fetch('/api/cart/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload),
       });
 
@@ -309,11 +323,14 @@ export default function Checkout() {
       savePendingOrder(orderId, orderNumber, reference);
 
       // ─── 2. Open Paystack inline popup (v2 API) ───
-      if (typeof window.PaystackPop === 'undefined') {
-        throw new Error('Payment system is loading. Please try again.');
+      let PaystackPop;
+      try {
+        PaystackPop = await loadPaystack();
+      } catch (loadErr) {
+        throw new Error(loadErr.message || 'Payment system is loading. Please try again.');
       }
 
-      const paystackInstance = new window.PaystackPop();
+      const paystackInstance = new PaystackPop();
 
       paystackInstance.newTransaction({
         key: PAYSTACK_PUBLIC_KEY,

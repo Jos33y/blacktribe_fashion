@@ -10,10 +10,34 @@ import { logActivity, getRequestIp } from '../../utils/activityLog.js';
 import { sendEmail } from '../../services/emailService.js';
 import { shippingNotificationEmail } from '../../templates/shippingNotification.js';
 import { deliveryConfirmationEmail } from '../../templates/deliveryConfirmation.js';
+import { orderStatusUpdateEmail } from '../../templates/orderStatusUpdate.js';
 import { walkInReceiptEmail } from '../../templates/walkInReceipt.js';
 import { env } from '../../config/env.js';
 
 const router = express.Router();
+
+
+/**
+ * Resolve customer email for an order.
+ * Checks guest_email first, then looks up auth user email.
+ * Returns email string or null.
+ */
+async function resolveCustomerEmail(order) {
+  // Guest orders have guest_email
+  if (order.guest_email) return order.guest_email;
+
+  // Authenticated orders: look up email from auth
+  if (order.user_id) {
+    try {
+      const { data: { user }, error } = await supabaseAdmin.auth.admin.getUserById(order.user_id);
+      if (!error && user?.email) return user.email;
+    } catch (err) {
+      console.error('[orders] Failed to resolve user email:', err.message);
+    }
+  }
+
+  return null;
+}
 
 
 /* ─── List orders ─── */
@@ -167,33 +191,46 @@ router.patch('/orders/:id', requirePermission('orders'), async (req, res, next) 
 
     res.json({ success: true, data });
 
-    /* Fire-and-forget: activity log + status emails */
+    /* ─── Fire-and-forget: activity log + status emails ─── */
     if (status) {
       logActivity(supabaseAdmin, { userId: req.user.id, action: 'order.status_changed', resourceType: 'order', resourceId: req.params.id, details: { order_number: data.order_number, status, tracking_number: tracking_number || null }, ip: getRequestIp(req) });
 
-      /* Send status email to customer */
-      const customerEmail = data.guest_email || null;
-      if (customerEmail && (status === 'shipped' || status === 'delivered')) {
-        try {
-          /* Fetch order items for email */
-          const { data: items } = await supabaseAdmin
-            .from('order_items')
-            .select('*')
-            .eq('order_id', data.id);
+      /* Resolve customer email (works for BOTH guest and authenticated users) */
+      const customerEmail = await resolveCustomerEmail(data);
 
+      if (customerEmail) {
+        try {
           const siteUrl = env.siteUrl || 'https://blacktribefashion.com';
           const trackingUrl = `${siteUrl}/track?order=${data.order_number}&token=${data.tracking_token}`;
 
           if (status === 'shipped') {
+            /* Fetch order items for shipping email */
+            const { data: items } = await supabaseAdmin
+              .from('order_items')
+              .select('*')
+              .eq('order_id', data.id);
+
             const email = shippingNotificationEmail({ order: data, items: items || [], trackingUrl });
-            sendEmail({ to: customerEmail, subject: email.subject, html: email.html });
+            await sendEmail({ to: customerEmail, subject: email.subject, html: email.html });
+            console.log(`[orders] Shipping email sent to ${customerEmail}`);
+
           } else if (status === 'delivered') {
             const email = deliveryConfirmationEmail({ order: data });
-            sendEmail({ to: customerEmail, subject: email.subject, html: email.html });
+            await sendEmail({ to: customerEmail, subject: email.subject, html: email.html });
+            console.log(`[orders] Delivery email sent to ${customerEmail}`);
+
+          } else if (status === 'confirmed' || status === 'processing') {
+            const email = orderStatusUpdateEmail({ order: data, statusKey: status });
+            if (email) {
+              await sendEmail({ to: customerEmail, subject: email.subject, html: email.html });
+              console.log(`[orders] Status update email (${status}) sent to ${customerEmail}`);
+            }
           }
         } catch (emailErr) {
-          console.error('[orders] Status email failed:', emailErr.message);
+          console.error(`[orders] Status email failed (${status}):`, emailErr.message);
         }
+      } else {
+        console.warn(`[orders] No email found for order ${data.order_number} — status email skipped`);
       }
     }
   } catch (err) {
@@ -231,7 +268,7 @@ router.post('/validate-discount', async (req, res, next) => {
       return res.json({ success: false, error: 'This code is not yet active.' });
     }
 
-    if (discount.usage_limit && (discount.times_used || 0) >= discount.usage_limit) {
+    if (discount.usage_limit && discount.times_used >= discount.usage_limit) {
       return res.json({ success: false, error: 'This code has reached its usage limit.' });
     }
 
@@ -364,23 +401,7 @@ router.post('/orders/walk-in', requirePermission('orders'), async (req, res, nex
 
     /* Increment discount times_used if discount was applied */
     if (discount_code) {
-      await supabaseAdmin.rpc('increment_discount_usage', { discount_code_param: discount_code }).catch(() => {
-        /* Fallback: manual increment if RPC not available */
-        supabaseAdmin
-          .from('discounts')
-          .select('times_used')
-          .eq('code', discount_code)
-          .single()
-          .then(({ data: disc }) => {
-            if (disc) {
-              supabaseAdmin
-                .from('discounts')
-                .update({ times_used: (disc.times_used || 0) + 1 })
-                .eq('code', discount_code)
-                .then(() => {});
-            }
-          });
-      });
+      incrementDiscountUsage(discount_code);
     }
 
     res.status(201).json({
@@ -402,6 +423,33 @@ router.post('/orders/walk-in', requirePermission('orders'), async (req, res, nex
     next(err);
   }
 });
+
+
+/**
+ * Increment discount usage count.
+ * Shared by walk-in orders and webhook confirmation.
+ * Fire-and-forget — never blocks the caller.
+ */
+export async function incrementDiscountUsage(discountCode) {
+  if (!discountCode) return;
+  try {
+    const { data: disc } = await supabaseAdmin
+      .from('discounts')
+      .select('id, times_used')
+      .eq('code', discountCode.toUpperCase())
+      .single();
+
+    if (disc) {
+      await supabaseAdmin
+        .from('discounts')
+        .update({ times_used: (disc.times_used || 0) + 1 })
+        .eq('id', disc.id);
+      console.log(`[discount] Incremented usage for ${discountCode}: ${(disc.times_used || 0) + 1}`);
+    }
+  } catch (err) {
+    console.error('[discount] Failed to increment usage:', err.message);
+  }
+}
 
 
 /* ─── Refund order (Paystack API) ─── */

@@ -3,9 +3,7 @@ import { useParams, Link } from 'react-router';
 import ShareableImage from '../../components/confirmation/ShareableImage';
 import ShareButtons from '../../components/confirmation/ShareButtons';
 import Skeleton from '../../components/ui/Skeleton';
-import { useToast } from '../../components/ui/Toast';
 import useAuth from '../../hooks/useAuth';
-import useAuthStore from '../../store/authStore';
 import { formatPrice } from '../../utils/formatPrice';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/OrderConfirmation.css';
@@ -20,10 +18,6 @@ export default function OrderConfirmation() {
 
   /* ─── Post-checkout account creation ─── */
   const { isAuthenticated } = useAuth();
-  const sendOtp = useAuthStore((s) => s.sendOtp);
-  const { addToast } = useToast();
-  const [accountCreated, setAccountCreated] = useState(false);
-  const [creatingAccount, setCreatingAccount] = useState(false);
 
   /* ─── Fetch order data ─── */
   useEffect(() => {
@@ -193,39 +187,15 @@ export default function OrderConfirmation() {
         )}
 
 
-        {/* ═══ Post-checkout account creation (guest users) ═══ */}
-        {!isAuthenticated && !accountCreated && email && (
+        {/* ═══ Post-checkout account nudge (guest users) ═══ */}
+        {!isAuthenticated && email && (
           <div className="oc__create-account">
             <p className="oc__create-prompt">
-              Save your details for faster checkout next time?
+              Sign in with {email} next time for faster checkout.
             </p>
-            <button
-              type="button"
-              className="oc__create-btn"
-              onClick={async () => {
-                setCreatingAccount(true);
-                const success = await sendOtp(email);
-                setCreatingAccount(false);
-                if (success) {
-                  setAccountCreated(true);
-                  addToast('Check your email for a sign-in code.', 'success');
-                }
-              }}
-              disabled={creatingAccount}
-            >
-              {creatingAccount ? 'Sending...' : 'Create Account'}
-            </button>
-            <p className="oc__create-skip">
-              We will send a code to {email} to set up your account.
-            </p>
-          </div>
-        )}
-
-        {accountCreated && (
-          <div className="oc__create-account">
-            <p className="oc__create-success">
-              Code sent to {email}. Sign in anytime at <Link to="/auth">blacktribefashion.com/auth</Link> to access your order history.
-            </p>
+            <Link to="/auth" className="oc__create-btn">
+              Sign In
+            </Link>
           </div>
         )}
 

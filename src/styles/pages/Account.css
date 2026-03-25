@@ -33,7 +33,7 @@
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 400;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.2em;
   text-transform: uppercase;
   margin-bottom: var(--space-3);
@@ -61,7 +61,7 @@
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 400;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.08em;
   margin-bottom: var(--space-5);
 }
@@ -219,7 +219,7 @@
 .collection-gallery__count {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.06em;
   margin: 0 0 var(--space-4);
 }
@@ -285,7 +285,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 400;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.04em;
 }
 
@@ -377,7 +377,7 @@
 .order-list__more {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--bt-text-muted);
+  color: var(--bt-text-secondary);
   letter-spacing: 0.04em;
 }
 
@@ -907,5 +907,263 @@
   .collection-gallery__image img,
   .wishlist-grid__image img {
     transition: none;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════
+   ORDER LIST — ADDITIONS
+   Add these rules to src/styles/pages/Account.css
+   after existing .order-list styles.
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Card states ─── */
+.order-list__card--expanded {
+  border-color: var(--bt-border-hover);
+}
+
+.order-list__card--pending {
+  border-color: rgba(237, 235, 232, 0.15);
+}
+
+/* ─── Header clickable ─── */
+.order-list__header {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-list__header:focus-visible {
+  outline: 2px solid var(--bt-border-active);
+  outline-offset: -2px;
+}
+
+.order-list__header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.order-list__date {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+}
+
+/* ─── Detail toggle link ─── */
+.order-list__detail-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--bt-text-secondary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--duration-fast) ease;
+}
+
+.order-list__detail-toggle:hover {
+  color: var(--bt-text);
+}
+
+/* ─── Pending actions ─── */
+.order-list__pending-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--bt-border);
+}
+
+.order-list__payment-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  background: var(--bt-text);
+  color: var(--bt-text-inverse);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.order-list__payment-btn:hover {
+  opacity: 0.85;
+}
+
+/* ─── Expanded detail ─── */
+.order-list__detail {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--bt-border);
+  animation: fadeUp var(--duration-normal) var(--ease-out);
+}
+
+.order-list__detail-section {
+  margin-bottom: 20px;
+}
+
+.order-list__detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.order-list__detail-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--bt-text-secondary);
+  margin-bottom: 10px;
+}
+
+/* ─── Detail items ─── */
+.order-list__detail-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.order-list__detail-item:last-child {
+  border-bottom: none;
+}
+
+.order-list__detail-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-list__detail-item-name {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--bt-text);
+}
+
+.order-list__detail-item-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--bt-text-secondary);
+}
+
+.order-list__detail-item-price {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--bt-text-secondary);
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+/* ─── Detail address ─── */
+.order-list__detail-address {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--bt-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ─── Detail totals ─── */
+.order-list__detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--bt-text-secondary);
+}
+
+.order-list__detail-row span:last-child {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.order-list__detail-row--discount {
+  color: var(--bt-success);
+}
+
+.order-list__detail-row--total {
+  padding-top: 10px;
+  margin-top: 8px;
+  border-top: 1px solid var(--bt-border);
+  font-weight: 500;
+  color: var(--bt-text);
+}
+
+.order-list__detail-row--total span:last-child {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bt-text);
+}
+
+/* ─── Detail tracking ─── */
+.order-list__detail-tracking {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--bt-text);
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Detail actions ─── */
+.order-list__detail-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--bt-border);
+}
+
+.order-list__track-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--bt-text);
+  border: 1px solid var(--bt-border-hover);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: border-color var(--duration-fast) ease;
+}
+
+.order-list__track-btn:hover {
+  border-color: var(--bt-text);
+}
+
+/* ─── Mobile tweaks ─── */
+@media (max-width: 480px) {
+  .order-list__header-left {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .order-list__pending-actions {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .order-list__payment-btn {
+    text-align: center;
+  }
+
+  .order-list__detail-toggle {
+    text-align: center;
   }
 }

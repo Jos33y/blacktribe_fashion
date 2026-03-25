@@ -88,10 +88,9 @@
 
 @media (max-width: 600px) {
   .toast-container {
-    top: auto;
-    bottom: 20px;
-    right: 16px;
-    left: 16px;
+    top: calc(var(--nav-height) + 12px);
+    right: 12px;
+    left: 12px;
   }
 
   .toast {
