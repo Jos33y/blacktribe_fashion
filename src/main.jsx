@@ -10,18 +10,38 @@ import './styles/animations.css';
 import './styles/page-shared.css';
 import './styles/a11y.css';
 
-// Hide the inline loader once React has painted
+// Hide the inline loader once React has painted AND content is ready.
+// The 800ms minimum ensures lazy routes have resolved via Suspense.
+// Without this, the loader vanishes in ~32ms while the page is still blank.
 function dismissLoader() {
   const loader = document.getElementById('bt-loader');
-  if (loader) {
+  if (!loader) return;
+
+  function hide() {
     loader.classList.add('bt-loader--hidden');
-    // Remove from DOM after fade-out completes
     loader.addEventListener('transitionend', () => loader.remove(), { once: true });
   }
-  // Clear the safety timeout since we loaded successfully
-  if (window.__btLoaderTimeout) {
-    clearTimeout(window.__btLoaderTimeout);
+
+  // Wait for the actual page content to be in the DOM
+  // Lazy routes + Suspense mean React mounts before content exists
+  const minDelay = 800;
+  const start = performance.now();
+
+  function check() {
+    const elapsed = performance.now() - start;
+    const hasContent = document.querySelector('main')?.children.length > 0;
+
+    if (hasContent && elapsed >= minDelay) {
+      hide();
+    } else if (elapsed > 4000) {
+      // Safety: hide after 4s regardless
+      hide();
+    } else {
+      requestAnimationFrame(check);
+    }
   }
+
+  requestAnimationFrame(check);
 }
 
 // Register service worker (production only)
@@ -62,10 +82,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>
 );
 
-// Dismiss after first paint
-requestAnimationFrame(() => {
-  requestAnimationFrame(dismissLoader);
-});
+// Dismiss loader once content is ready
+dismissLoader();
+
+// Clear the safety timeout from index.html
+if (window.__btLoaderTimeout) {
+  clearTimeout(window.__btLoaderTimeout);
+}
 
 // Register SW
 registerServiceWorker();

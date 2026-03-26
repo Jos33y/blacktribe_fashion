@@ -45,15 +45,25 @@ export default function StoreLayout() {
   /* ─── Close overlays, scroll to top, track page view, announce route ─── */
   useEffect(() => {
     closeAll();
-    window.scrollTo(0, 0);
+
+    // Delay scroll to top so the new lazy route has time to mount.
+    // Without this, scrollTo fires while Suspense is still showing
+    // the skeleton, then the real page mounts below the fold.
+    const scrollTimer = requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
+
     trackPageView(location.pathname);
 
     /* Announce page change to screen readers after title updates */
-    const timer = setTimeout(() => {
+    const announceTimer = setTimeout(() => {
       announceRouteChange(document.title);
     }, 300);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelAnimationFrame(scrollTimer);
+      clearTimeout(announceTimer);
+    };
   }, [location.pathname, closeAll]);
 
   /* ─── Bag click handler ─── */

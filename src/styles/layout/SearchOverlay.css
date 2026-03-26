@@ -25,6 +25,7 @@
   max-width: 640px;
   margin: 0 auto;
   padding: 80px 20px 40px;
+  padding-top: calc(80px + env(safe-area-inset-top, 0px));
   display: flex;
   flex-direction: column;
   max-height: 100vh;
@@ -175,6 +176,9 @@
 }
 
 @media (max-width: 600px) {
-  .search-overlay-content { padding: 20px 16px; }
+  .search-overlay-content {
+    padding: 20px 16px;
+    padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  }
   .search-input-wrapper { height: 52px; }
 }

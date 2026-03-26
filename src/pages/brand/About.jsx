@@ -4,12 +4,12 @@
  * Image strip now fetches real product images from API.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
+import useScrollReveal from '../../hooks/useScrollReveal';
 import '../../styles/pages/About.css';
 
 export default function About() {
-  const observerRef = useRef(null);
   const [productImages, setProductImages] = useState([]);
 
   useEffect(() => {
@@ -39,24 +39,8 @@ export default function About() {
     loadImages();
   }, []);
 
-  useEffect(() => {
-    const elements = document.querySelectorAll('.about-reveal');
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('about-reveal--visible');
-            observerRef.current.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
-    );
-
-    elements.forEach((el) => observerRef.current.observe(el));
-    return () => observerRef.current?.disconnect();
-  }, [productImages]);
+  /* Scroll reveals — immediately shows above-fold, observes rest */
+  useScrollReveal('.about-reveal', 'about-reveal--visible', [productImages]);
 
   return (
     <article className="about">

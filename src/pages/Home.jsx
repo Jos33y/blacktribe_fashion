@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { setPageMeta, clearPageMeta } from '../utils/pageMeta';
 import JsonLd, { buildOrganizationSchema } from '../components/seo/JsonLd';
+import useScrollReveal from '../hooks/useScrollReveal';
 import ProductHero from '../components/home/ProductHero';
 import Marquee from '../components/home/Marquee';
 import FeaturedGrid from '../components/home/FeaturedGrid';
@@ -19,24 +20,8 @@ export default function Home() {
     return () => clearPageMeta();
   }, []);
 
-  // Scroll reveal observer
-  useEffect(() => {
-    const els = document.querySelectorAll('.home-reveal');
-    if (!els.length) return;
-
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('home-reveal--visible');
-          obs.unobserve(e.target);
-        }
-      }),
-      { threshold: 0.08 }
-    );
-
-    els.forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-  }, []);
+  // Scroll reveal — immediately shows above-fold elements, observes the rest
+  useScrollReveal('.home-reveal', 'home-reveal--visible');
 
   // Navbar transparency: add class while hero is in viewport
   useEffect(() => {

@@ -19,6 +19,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import Skeleton from '../../components/ui/Skeleton';
+import useScrollReveal from '../../hooks/useScrollReveal';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Lookbook.css';
 
@@ -167,24 +168,8 @@ export default function Lookbook() {
     fetchProducts();
   }, []);
 
-  /* Scroll reveals */
-  useEffect(() => {
-    if (loading) return;
-    const elements = document.querySelectorAll('.lb-reveal');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('lb-reveal--visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -60px 0px' }
-    );
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [loading, sections]);
+  /* Scroll reveals — immediately shows above-fold, observes rest */
+  useScrollReveal('.lb-reveal', 'lb-reveal--visible', [loading, sections]);
 
   if (loading) {
     return (

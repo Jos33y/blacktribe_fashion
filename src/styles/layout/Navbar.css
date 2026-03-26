@@ -19,18 +19,21 @@
   border-bottom: 1px solid var(--bt-border);
 }
 
-/* In standalone PWA mode, navbar height must include the safe area */
-@media (display-mode: standalone) {
-  :root {
-    --nav-height: calc(64px + env(safe-area-inset-top, 0px));
-  }
-}
+/*
+ * Safe-area handling:
+ * --nav-height is defined in variables.css as calc(64px + safe-area-inset-top).
+ * --nav-height-base (64px) is used for the inner content height.
+ * The navbar's padding-top pushes content below the notch/status bar.
+ * Every element referencing --nav-height (main, sticky bars, checkout)
+ * automatically accounts for the safe area.
+ */
 
 .navbar__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 100%;
+  height: var(--nav-height-base);
+  padding: 0 var(--content-padding);
   gap: var(--space-3);
 }
 
