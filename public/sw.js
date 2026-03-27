@@ -10,7 +10,7 @@
  * Cache versioning: bump CACHE_VERSION to force full refresh.
  */
 
-const CACHE_VERSION = 'bt-v2';
+const CACHE_VERSION = 'bt-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
@@ -234,7 +234,7 @@ async function cacheFirst(request, cacheName, maxItems) {
 async function networkFirst(request, cacheName) {
   try {
     const response = await fetch(request);
-    if (response.ok) {
+     if (response.ok && response.status !== 206) {
       const cache = await caches.open(cacheName);
       cache.put(request, response.clone());
       trimCache(cacheName, MAX_DYNAMIC_ITEMS);
