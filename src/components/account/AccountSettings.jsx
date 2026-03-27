@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import useAuth from '../../hooks/useAuth';
 import useAuthStore from '../../store/authStore';
@@ -27,6 +27,13 @@ export default function AccountSettings() {
   const [phone, setPhone] = useState(profile?.phone || '');
   const [savingPhone, setSavingPhone] = useState(false);
   const phoneChanged = phone !== (profile?.phone || '');
+
+  useEffect(() => {
+  if (profile) {
+    setName(profile.full_name || '');
+    setPhone(profile.phone || '');
+  }
+}, [profile]);
 
   /* ─── Email change ─── */
   const [showEmailEdit, setShowEmailEdit] = useState(false);

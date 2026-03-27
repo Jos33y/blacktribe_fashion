@@ -85,6 +85,17 @@ router.put('/profile', requireAuth, async (req, res, next) => {
       return next(createError(500, 'Could not update profile.'));
     }
 
+    // Sync to auth.users metadata
+    try {
+      const metadata = {};
+      if (updates.full_name !== undefined) metadata.full_name = updates.full_name;
+      if (updates.phone !== undefined) metadata.phone = updates.phone;
+      await supabaseAdmin.auth.admin.updateUserById(req.user.id, {
+        user_metadata: metadata,
+      });
+    } catch (syncErr) {
+      console.warn('[auth] Could not sync to auth.users:', syncErr.message);
+    }
     res.json({
       success: true,
       data: updates,
