@@ -22,8 +22,8 @@ const DEFAULT_SHIPPING_ESTIMATE = 350000;
 const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
 /* ─── Persistence (localStorage — survives browser close) ─── */
-const CHECKOUT_STORAGE = 'bt-checkout';
-const PENDING_ORDER_STORAGE = 'bt-pending-order';
+const CHECKOUT_STORAGE = 'bt-checkout-v1';
+const PENDING_ORDER_STORAGE = 'bt-pending-order-v1';
 
 function loadFormState() {
   try {

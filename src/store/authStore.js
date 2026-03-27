@@ -252,8 +252,8 @@ const useAuthStore = create((set, get) => ({
    * Update profile fields. Used from Account settings.
    */
   updateProfile: async ({ full_name, phone }) => {
-    const userId = get().user?.id;
-    if (!userId) return false;
+    const token = get().session?.access_token;
+    if (!token) return false;
 
     set({ error: null });
 
@@ -261,22 +261,33 @@ const useAuthStore = create((set, get) => ({
     if (full_name !== undefined) updates.full_name = full_name;
     if (phone !== undefined) updates.phone = phone;
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userId);
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(updates),
+      });
 
-    if (error) {
-      set({ error: error.message });
+      const result = await res.json();
+
+      if (!result.success) {
+        set({ error: result.error || 'Could not update profile.' });
+        return false;
+      }
+
+      // Update local profile state
+      set((state) => ({
+        profile: state.profile ? { ...state.profile, ...updates } : null,
+      }));
+
+      return true;
+    } catch (err) {
+      set({ error: 'Could not update profile.' });
       return false;
     }
-
-    // Update local profile state
-    set((state) => ({
-      profile: state.profile ? { ...state.profile, ...updates } : null,
-    }));
-
-    return true;
   },
 
 
