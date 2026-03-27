@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router';
+import useScrollReveal from '../../hooks/useScrollReveal';
 import ProductGrid from '../../components/product/ProductGrid';
 import Button from '../../components/ui/Button';
 import Skeleton from '../../components/ui/Skeleton';
@@ -64,23 +65,8 @@ export default function CollectionDetail() {
   }, [collection]);
 
   /* Scroll reveals */
-  useEffect(() => {
-    if (loading) return;
-    const elements = document.querySelectorAll('.cd-reveal');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('cd-reveal--visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
-    );
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [loading]);
+/* Scroll reveals */
+  useScrollReveal('.cd-reveal', 'cd-reveal--visible', [loading]);
 
   const heroImage = collection?.cover_image || products[0]?.images?.[0] || null;
 

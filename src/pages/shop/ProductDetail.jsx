@@ -21,6 +21,7 @@ import ProductCard from '../../components/product/ProductCard';
 import WishlistHeart from '../../components/product/WishlistHeart';
 import Skeleton from '../../components/ui/Skeleton';
 import { useToast } from '../../components/ui/Toast';
+import useScrollReveal from '../../hooks/useScrollReveal';
 import useCartStore from '../../store/cartStore';
 import useUIStore from '../../store/uiStore';
 import { formatPrice } from '../../utils/formatPrice';
@@ -198,19 +199,9 @@ export default function ProductDetail() {
     return () => clearPageMeta();
   }, [product]);
 
+
   /* ─── Scroll reveals ─── */
-  useEffect(() => {
-    const els = document.querySelectorAll('.pd-reveal');
-    if (!els.length) return;
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) { e.target.classList.add('pd-reveal--visible'); obs.unobserve(e.target); }
-      }),
-      { threshold: 0.08 }
-    );
-    els.forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-  }, [loading, relatedProducts]);
+  useScrollReveal('.pd-reveal', 'pd-reveal--visible', [loading, relatedProducts]);
 
   /* ─── Mobile sticky CTA ─── */
   useEffect(() => {

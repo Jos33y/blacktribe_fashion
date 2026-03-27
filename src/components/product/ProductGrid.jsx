@@ -34,9 +34,8 @@ export default function ProductGrid({
         <div
           key={product.id}
           className="product-grid__item"
-          style={{ '--stagger': index % gridDensity }}
         >
-          <ProductCard product={product} onQuickView={onQuickView} />
+          <ProductCard product={product} onQuickView={onQuickView} index={index} />
         </div>
       ))}
     </div>

@@ -358,6 +358,7 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-decoration: none;
   transition: opacity var(--duration-fast);
   margin-bottom: var(--space-2);
 }
@@ -394,11 +395,86 @@
 
 
 /* ═══════════════════════════════════════════════════════════
-   ORDER TRACKING — Status progress tracker
+   ORDER TRACKING — Premium Status Timeline
+   
+   Monochrome design (no green — stays on-brand).
+   Completed = solid white dot + checkmark.
+   Current = white dot + subtle pulse ring.
+   Future = hollow dot, muted.
+   Lines: 2px, white completed, border pending.
    ═══════════════════════════════════════════════════════════ */
 
+
+/* ─── Tracking Header ─── */
+
+.ot-header {
+  text-align: center;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.ot-eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--bt-text-secondary);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-3);
+}
+
+.ot-order-id {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--bt-text);
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-2);
+}
+
+.ot-summary {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  line-height: 1.5;
+  margin: 0 0 var(--space-3);
+}
+
+.ot-badge-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.ot-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border: 1px solid var(--bt-border-hover);
+  color: var(--bt-text-secondary);
+}
+
+.ot-badge--delivered {
+  border-color: var(--bt-text);
+  color: var(--bt-text);
+}
+
+.ot-badge--shipped {
+  border-color: var(--bt-text-secondary);
+  color: var(--bt-text);
+}
+
+
+/* ─── Timeline Tracker ─── */
+
 .ot-tracker {
-  padding: var(--space-4) 0 var(--space-5);
+  padding: var(--space-4) 0;
   margin-bottom: var(--space-5);
   border-bottom: 1px solid var(--bt-border);
 }
@@ -413,81 +489,157 @@
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
-  width: 20px;
+  width: 24px;
 }
+
+
+/* ─── Dots ─── */
 
 .ot-step__dot {
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: var(--bt-border);
   flex-shrink: 0;
-  margin-top: 4px;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  
+  /* Future (default): hollow */
+  background: transparent;
+  border: 1.5px solid var(--bt-border-hover);
 }
 
+/* Completed: solid white with checkmark */
 .ot-step--complete .ot-step__dot {
-  background: var(--bt-success);
+  background: var(--bt-text);
+  border-color: var(--bt-text);
 }
 
+/* Current: white dot with ring */
 .ot-step--current .ot-step__dot {
   background: var(--bt-text);
-  box-shadow: 0 0 0 3px var(--bt-bg), 0 0 0 4px var(--bt-text);
+  border-color: var(--bt-text);
+  box-shadow: 0 0 0 3px var(--bt-bg), 0 0 0 5px var(--bt-border-active);
 }
 
+/* Pulse animation on current dot */
+.ot-step__pulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid var(--bt-text);
+  opacity: 0;
+  animation: ot-pulse 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes ot-pulse {
+  0% { transform: scale(0.7); opacity: 0.6; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+
+
+/* ─── Lines ─── */
+
 .ot-step__line {
-  width: 1px;
+  width: 2px;
   flex: 1;
-  min-height: 24px;
+  min-height: 28px;
+  border-radius: 1px;
+  
+  /* Default: pending */
   background: var(--bt-border);
 }
 
 .ot-step--complete .ot-step__line {
-  background: var(--bt-success);
+  background: var(--bt-text);
 }
 
+
+/* ─── Content ─── */
+
 .ot-step__content {
-  padding-bottom: var(--space-3);
+  padding-bottom: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  min-height: 28px;
+  justify-content: center;
+}
+
+/* Last step: no bottom padding */
+.ot-step:last-child .ot-step__content {
+  padding-bottom: var(--space-2);
 }
 
 .ot-step__label {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   color: var(--bt-text-muted);
+  line-height: 1.3;
 }
 
 .ot-step--complete .ot-step__label {
-  color: var(--bt-text-secondary);
+  color: var(--bt-text);
+  font-weight: 400;
 }
 
 .ot-step--current .ot-step__label {
   color: var(--bt-text);
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.ot-step--future .ot-step__label {
+  color: var(--bt-text-muted);
 }
 
 .ot-step__desc {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 300;
   color: var(--bt-text-secondary);
+  line-height: 1.5;
 }
 
-.ot-step__tracking {
+.ot-step__time {
   font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--bt-text-secondary);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
   letter-spacing: 0.04em;
   margin-top: 2px;
 }
+
+.ot-step__tracking {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--bt-text);
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+  padding: 6px 10px;
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+}
+
+
+/* ─── Cancelled State ─── */
 
 .ot-cancelled {
   padding: var(--space-5) 0;
   margin-bottom: var(--space-5);
   border-bottom: 1px solid var(--bt-border);
   text-align: center;
+}
+
+.ot-cancelled__icon {
+  color: var(--bt-error);
+  margin-bottom: var(--space-3);
 }
 
 .ot-cancelled p {
@@ -498,6 +650,68 @@
   margin: 0;
 }
 
+.ot-cancelled__sub {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-secondary) !important;
+  margin-top: var(--space-2) !important;
+}
+
+.ot-cancelled__sub a {
+  color: var(--bt-text);
+  border-bottom: 1px solid var(--bt-border-hover);
+  transition: border-color var(--duration-fast);
+}
+
+.ot-cancelled__sub a:hover {
+  border-color: var(--bt-text);
+}
+
+
+/* ─── Help Section ─── */
+
+.ot-help {
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.ot-help__text {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.ot-help__link {
+  color: var(--bt-text);
+  border-bottom: 1px solid var(--bt-border-hover);
+  transition: border-color var(--duration-fast);
+}
+
+.ot-help__link:hover {
+  border-color: var(--bt-text);
+}
+
+
+/* ─── Desktop ─── */
+
+@media (min-width: 768px) {
+  .ot-order-id {
+    font-size: 24px;
+  }
+  
+  .ot-summary {
+    font-size: 15px;
+  }
+
+  .ot-step__label {
+    font-size: 15px;
+  }
+}
+
 
 /* ─── Reduced motion ─── */
 
@@ -505,5 +719,10 @@
   .oc__check {
     animation: none;
     opacity: 1;
+  }
+
+  .ot-step__pulse {
+    animation: none;
+    display: none;
   }
 }

@@ -3,7 +3,7 @@ import Badge from '../ui/Badge';
 import { formatPrice } from '../../utils/formatPrice';
 import '../../styles/product/ProductCard.css';
 
-export default function ProductCard({ product, onQuickView }) {
+export default function ProductCard({ product, onQuickView, index }) {
   if (!product) return null;
 
   const mainImage = product.images?.[0];
@@ -23,7 +23,7 @@ export default function ProductCard({ product, onQuickView }) {
               src={mainImage}
               alt={product.name}
               className="product-card__image product-card__image--main"
-              loading="lazy"
+              loading={index !== undefined && index < 2 ? 'eager' : 'lazy'}
             />
           )}
           {hoverImage && (
@@ -31,7 +31,7 @@ export default function ProductCard({ product, onQuickView }) {
               src={hoverImage}
               alt=""
               className="product-card__image product-card__image--hover"
-              loading="lazy"
+              loading={index !== undefined && index < 2 ? 'eager' : 'lazy'}
               aria-hidden="true"
             />
           )}

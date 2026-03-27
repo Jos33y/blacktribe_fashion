@@ -3,7 +3,7 @@
    Hero structure: .page-hero--tall + .page-hero__inner (from page-shared.css)
    ═══════════════════════════════════════════════════════════ */
 
-.about { overflow-x: hidden; }
+.about { overflow-x: hidden; } 
 
 .about-reveal {
   opacity: 0;
@@ -14,15 +14,12 @@
 .about-reveal--visible { opacity: 1; transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) { .about-reveal { opacity: 1; transform: none; transition: none; } }
 
-
 /* ═══ SHARED ═══ */
-
 .about-section-inner {
   max-width: 1080px;
   margin: 0 auto;
   padding: 0 var(--content-padding);
 }
-
 
 /* ═══ HERO — unique headline size + decorative line ═══ */
 

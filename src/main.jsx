@@ -24,16 +24,16 @@ function dismissLoader() {
 
   // Wait for the actual page content to be in the DOM
   // Lazy routes + Suspense mean React mounts before content exists
-  const minDelay = 800;
+  const minDelay = 2000;
   const start = performance.now();
 
   function check() {
     const elapsed = performance.now() - start;
-    const hasContent = document.querySelector('main')?.children.length > 0;
+    const hasContent = document.querySelector('.home-hero, .shop-hero, .page-hero, .pd, .checkout, .account, .lookbook, .brand-page, .oc')?.children.length > 0;
 
     if (hasContent && elapsed >= minDelay) {
       hide();
-    } else if (elapsed > 4000) {
+    } else if (elapsed > 6000) {
       // Safety: hide after 4s regardless
       hide();
     } else {

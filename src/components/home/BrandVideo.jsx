@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function BrandVideo() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showSound, setShowSound] = useState(false);
   const videoRef = useRef(null);
+  const wrapRef = useRef(null);
 
   const handlePlaySound = () => {
     if (videoRef.current) {
@@ -17,6 +18,28 @@ export default function BrandVideo() {
     }
   };
 
+  // Only load and play video when user scrolls to this section
+  useEffect(() => {
+    const video = videoRef.current;
+    const wrap = wrapRef.current;
+    if (!video || !wrap) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => { });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(wrap);
+    return () => observer.disconnect();
+  }, []);
+
+
+
   return (
     <section className="home-brand">
       <div className="home-brand__inner">
@@ -26,20 +49,19 @@ export default function BrandVideo() {
           <blockquote className="home-brand__quote">
             <p>Not just clothing. A statement of where you come from and where you are going.</p>
           </blockquote>
-          <span className="home-brand__attr">Redefining Luxury Since 2018</span>
+          <span className="home-brand__attr">Redefining Luxury Since 2017</span>
         </div>
 
         {/* Video — right side / below on mobile */}
-        <div className="home-brand__video-wrap">
+        <div className="home-brand__video-wrap" ref={wrapRef}>
           <video
             ref={videoRef}
             src="/video/black_tribe_hero_vid.mp4"
             className="home-brand__video"
-            autoPlay
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="none"
             onPlay={() => setIsPlaying(true)}
           />
 

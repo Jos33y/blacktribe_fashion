@@ -7,11 +7,9 @@
    This file: unique headline size + all section styles.
    ═══════════════════════════════════════════════════════════ */
 
-.lookbook { overflow-x: hidden; }
-
+.lookbook { overflow-x: hidden; } 
 
 /* ═══ SCROLL REVEAL (Lookbook uses slower 1s + deeper 32px) ═══ */
-
 .lb-reveal {
   opacity: 0;
   transform: translateY(32px);
