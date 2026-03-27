@@ -76,7 +76,7 @@ export default function About() {
       <section className="about-section about-reveal">
         <div className="about-section-inner about-story">
           <p className="about-story-lead">
-            BlackTribe started in Lagos in 2017 — not as a fashion brand, but as a gathering. Art shows. Warehouse parties. A community of creatives who believed African culture deserved a louder voice. The clothes came later. The identity was always there.
+            BlackTribe started in Lagos in 2017. Not as a fashion brand, but as a gathering. Art shows. Warehouse parties. A community of creatives who believed African culture deserved a louder voice. The clothes came later. The identity was always there.
           </p>
         </div>
       </section>
@@ -102,7 +102,7 @@ export default function About() {
           </div>
           <div className="about-split-content">
             <p className="about-body">
-              For four years, BlackTribe was a cultural movement. Events that brought together artists, musicians, and designers across Lagos. The energy at those gatherings — the way people dressed, the way they carried themselves — became the blueprint for everything that followed.
+              For four years, BlackTribe was a cultural movement. Events that brought together artists, musicians, and designers across Lagos. The energy at those gatherings, the way people dressed, the way they carried themselves, became the blueprint for everything that followed.
             </p>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function About() {
           </div>
           <div className="about-split-content">
             <p className="about-body">
-              In 2021, the fashion arm launched. Not as a pivot — as an evolution. Every piece carries the DNA of those early gatherings: hand-set crystal details, tribal mask emblems, and the confidence of people who create culture rather than consume it. Limited runs. No mass production. No compromise.
+              In 2021, the fashion arm launched. Not as a pivot, but as an evolution. Every piece carries the DNA of those early gatherings: hand-set crystal details, tribal mask emblems, and the confidence of people who create culture rather than consume it. Limited runs. No mass production. No compromise.
             </p>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function About() {
           </div>
           <div className="about-split-content">
             <p className="about-body">
-              "Tribe" is belonging. "Black" is identity. Together, they represent a community that wears its culture without apology. The tribal mask in our logo is not decoration — it is heritage, rendered in a language the world understands.
+              "Tribe" is belonging. "Black" is identity. Together, they represent a community that wears its culture without apology. The tribal mask in our logo is not decoration, it is heritage, rendered in a language the world understands.
             </p>
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function About() {
           <div className="about-feature-image">
             <img
               src={productImages[0]}
-              alt="BlackTribe Fashion — crafted by hand"
+              alt="BlackTribe Fashion, crafted by hand"
               loading="lazy"
             />
           </div>

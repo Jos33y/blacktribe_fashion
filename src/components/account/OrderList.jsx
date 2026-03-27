@@ -236,8 +236,8 @@ export default function OrderList() {
                   </div>
                 )}
 
-                {/* Track link for shipped/delivered */}
-                {(order.status === 'shipped' || order.status === 'delivered') && (
+                {/* Track link for all non-cancelled orders */}
+                {order.status !== 'cancelled' && order.tracking_token && (
                   <div className="order-list__detail-actions">
                     <Link
                       to={`/track?order=${order.order_number}&token=${order.tracking_token}`}
