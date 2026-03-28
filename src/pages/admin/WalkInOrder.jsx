@@ -17,8 +17,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
+import useScrollLock from '../../hooks/useScrollLock';
 import { useToast } from '../../components/ui/Toast';
 import useAuthStore from '../../store/authStore';
 import WalkInReceiptImage from '../../components/admin/WalkInReceiptImage';
@@ -138,7 +137,9 @@ export default function WalkInOrder() {
   const [mobileOrderOpen, setMobileOrderOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(offlineQueue.isOnline());
   const [pendingCount, setPendingCount] = useState(offlineQueue.getPendingOrders().length);
-
+/* Lock background scroll when mobile order panel is open */
+  useScrollLock(mobileOrderOpen);
+  
   useEffect(() => {
     document.title = 'New Walk-in Order. BlackTribe Admin.';
     if (window.innerWidth >= 768) searchRef.current?.focus();

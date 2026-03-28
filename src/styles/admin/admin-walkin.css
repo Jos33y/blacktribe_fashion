@@ -1080,9 +1080,7 @@
   background: var(--bt-surface);
   z-index: calc(var(--z-drawer) + 1);
   border-radius: 12px 12px 0 0;
- overflow: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   animation: slideInUp 300ms var(--ease-out);
@@ -1097,15 +1095,34 @@
   flex-shrink: 0;
 }
 
-/* Inside mobile panel, ticket items should scroll */
-.pos-mobile-panel .pos-ticket__items {
-  max-height: none;
+/* Override ticket inner for mobile: proper flex column, no clip */
+.pos-mobile-panel .pos-ticket__inner {
   flex: 1;
   min-height: 0;
+  height: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Items area is the ONLY thing that scrolls */
+.pos-mobile-panel .pos-ticket__items {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Footer (totals + complete button) stays pinned at bottom */
 .pos-mobile-panel .pos-ticket__footer {
+  flex-shrink: 0;
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Header stays pinned at top */
+.pos-mobile-panel .pos-ticket__header {
+  flex-shrink: 0;
 }
 
 
