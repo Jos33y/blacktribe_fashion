@@ -13,25 +13,8 @@ export default function RefundPolicy() {
     return () => clearPageMeta();
   }, []);
 
-  useEffect(() => {
-    const elements = document.querySelectorAll('.rp-reveal');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('rp-reveal--visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
-    );
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <article className="refund-policy">
+    <article className="refund-policy page-enter">
 
       {/* ═══ HERO ═══ */}
       <section className="page-hero rp-hero">
@@ -43,7 +26,7 @@ export default function RefundPolicy() {
       </section>
 
       {/* ═══ OVERVIEW ═══ */}
-      <section className="rp-section rp-reveal">
+      <section className="rp-section">
         <div className="rp-section-inner">
           <div className="rp-split-label">
             <span className="rp-label-number">01</span>
@@ -61,7 +44,7 @@ export default function RefundPolicy() {
       </section>
 
       {/* ═══ PROCESS ═══ */}
-      <section className="rp-section rp-reveal">
+      <section className="rp-section">
         <div className="rp-section-inner">
           <div className="rp-split-label">
             <span className="rp-label-number">02</span>
@@ -102,7 +85,7 @@ export default function RefundPolicy() {
       </section>
 
       {/* ═══ EXCEPTIONS ═══ */}
-      <section className="rp-section rp-reveal">
+      <section className="rp-section">
         <div className="rp-section-inner">
           <div className="rp-split-label">
             <span className="rp-label-number">03</span>
@@ -128,7 +111,7 @@ export default function RefundPolicy() {
       </section>
 
       {/* ═══ CLOSING ═══ */}
-      <section className="rp-closing rp-reveal">
+      <section className="rp-closing">
         <div className="rp-closing-inner">
           <div className="rp-closing-line" />
           <p className="rp-closing-text">Questions about a refund?</p>

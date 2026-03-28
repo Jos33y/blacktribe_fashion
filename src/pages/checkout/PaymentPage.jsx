@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useSearchParams, Link } from 'react-router';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router';
 import Button from '../../components/ui/Button';
 import Skeleton from '../../components/ui/Skeleton';
+import useCartStore from '../../store/cartStore';
 import { formatPrice } from '../../utils/formatPrice';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import { loadPaystack } from '../../utils/loadPaystack';
@@ -12,7 +13,10 @@ const PAYSTACK_PUBLIC_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 export default function PaymentPage() {
   const { orderNumber } = useParams();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const token = searchParams.get('token');
+
+  const clearCart = useCartStore((s) => s.clearCart);
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,6 +25,13 @@ export default function PaymentPage() {
   const [paymentError, setPaymentError] = useState('');
   const [paid, setPaid] = useState(false);
   const paymentComplete = useRef(false);
+
+  /*
+   * orderId is stored separately so that even when the API returns
+   * alreadyPaid (and we don't populate the full `order` state),
+   * we still have the UUID to link to the confirmation page.
+   */
+  const [orderId, setOrderId] = useState(null);
 
   /* ─── Fetch order ─── */
   useEffect(() => {
@@ -36,6 +47,9 @@ export default function PaymentPage() {
         const result = await res.json();
 
         if (result.success && result.data) {
+          // Always capture the ID when present
+          if (result.data.id) setOrderId(result.data.id);
+
           if (result.data.alreadyPaid) {
             setPaid(true);
           } else if (result.data.expired) {
@@ -115,8 +129,18 @@ export default function PaymentPage() {
       onSuccess: (transaction) => {
         console.log('[pay] Payment success:', transaction.reference);
         paymentComplete.current = true;
+
+        // Clear cart (same items may exist if same device)
+        clearCart();
+
+        // Clean up any pending-order localStorage from checkout
+        try { localStorage.removeItem('bt-pending-order-v1'); } catch {}
+
         setPaying(false);
-        setPaid(true);
+
+        // Navigate to full confirmation page — identical experience to checkout flow
+        window.scrollTo(0, 0);
+        navigate(`/order-confirmation/${order.id}`);
       },
 
       onCancel: () => {
@@ -157,8 +181,15 @@ export default function PaymentPage() {
           </svg>
           <h1 className="pay-page__title">Payment complete.</h1>
           <p className="pay-page__subtitle">Order {orderNumber} has been confirmed.</p>
-          <p className="pay-page__text">You will receive tracking details at your email within 48 hours.</p>
-          <Link to="/shop" className="pay-page__link">Continue Shopping</Link>
+          <p className="pay-page__text">You will receive tracking details within 48 hours.</p>
+          <div className="pay-page__actions">
+            {orderId && (
+              <Link to={`/order-confirmation/${orderId}`} className="pay-page__btn-primary">
+                View Order
+              </Link>
+            )}
+            <Link to="/shop" className="pay-page__link">Continue Shopping</Link>
+          </div>
         </div>
       </div>
     );

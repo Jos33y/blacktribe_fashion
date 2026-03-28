@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import useScrollLock from '../../hooks/useScrollLock';
 
 export default function FilterDrawer({
   isOpen,
@@ -11,6 +12,9 @@ export default function FilterDrawer({
 }) {
   const drawerRef = useRef(null);
 
+  /* ─── Lock background scroll (works on iOS Safari) ─── */
+  useScrollLock(isOpen);
+
   const handleKeyDown = useCallback(
     (e) => {
       if (e.key === 'Escape') onClose();
@@ -20,11 +24,9 @@ export default function FilterDrawer({
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
       document.addEventListener('keydown', handleKeyDown);
     }
     return () => {
-      document.body.style.overflow = '';
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, handleKeyDown]);

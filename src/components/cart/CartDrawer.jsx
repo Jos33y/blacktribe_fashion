@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import useCartStore from '../../store/cartStore';
 import useUIStore from '../../store/uiStore';
 import useFocusTrap from '../../hooks/useFocusTrap';
+import useScrollLock from '../../hooks/useScrollLock';
 import { announce } from '../../utils/announcer';
 import CartItem from './CartItem';
 import CartSummary from './CartSummary';
@@ -19,12 +20,8 @@ export default function CartDrawer() {
   /* ─── Focus trap (handles Tab cycling + Escape + focus restore) ─── */
   const trapRef = useFocusTrap(isOpen, closeCartDrawer);
 
-  /* ─── Lock body scroll ─── */
-  useEffect(() => {
-    if (!isOpen) return;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
+  /* ─── Lock background scroll (works on iOS Safari) ─── */
+  useScrollLock(isOpen);
 
   /* ─── Announce to screen readers ─── */
   useEffect(() => {

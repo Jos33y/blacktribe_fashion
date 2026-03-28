@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import useScrollLock from '../../hooks/useScrollLock';
 import '../../styles/ui/Modal.css';
 
 export default function Modal({
@@ -12,6 +13,9 @@ export default function Modal({
   const modalRef = useRef(null);
   const previousFocus = useRef(null);
   const hasAutoFocused = useRef(false);
+
+  /* ─── Lock background scroll (works on iOS Safari) ─── */
+  useScrollLock(isOpen);
 
   const handleKeyDown = useCallback(
     (e) => {
@@ -43,15 +47,13 @@ export default function Modal({
     [onClose]
   );
 
-  /* Focus trap + body lock — stable deps, no focus stealing */
+  /* Focus trap + keyboard ─── */
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
       document.addEventListener('keydown', handleKeyDown);
     }
 
     return () => {
-      document.body.style.overflow = '';
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, handleKeyDown]);

@@ -83,31 +83,13 @@ export default function FAQ() {
     return () => clearPageMeta();
   }, []);
 
-  // Scroll reveal
-  useEffect(() => {
-    const elements = document.querySelectorAll('.faq-reveal');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('faq-reveal--visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
-    );
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
   /* ─── Flatten FAQ data for JSON-LD ─── */
   const allFaqs = FAQ_CATEGORIES.flatMap((cat) =>
     cat.items.map((item) => ({ question: item.question, answer: item.answer }))
   );
 
   return (
-    <article className="faq">
+    <article className="faq page-enter">
 
       {/* ─── Structured Data (JSON-LD) ─── */}
       <JsonLd data={buildFAQSchema(allFaqs)} />
@@ -127,7 +109,7 @@ export default function FAQ() {
       {FAQ_CATEGORIES.map((category, catIndex) => (
         <section
           key={category.label}
-          className="faq-category faq-reveal"
+          className="faq-category"
         >
           <div className="faq-category-inner">
             <div className="faq-category-header">
@@ -152,7 +134,7 @@ export default function FAQ() {
       ))}
 
       {/* ═══ CLOSING CTA ═══ */}
-      <section className="faq-closing faq-reveal">
+      <section className="faq-closing">
         <div className="faq-closing-inner">
           <div className="faq-closing-line" />
           <p className="faq-closing-text">

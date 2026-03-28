@@ -3,14 +3,14 @@
    Cinematic hero. Meta bar. Premium product grid.
    ═══════════════════════════════════════════════════════════ */
 
-.collection-detail { overflow-x: hidden; }
+.collection-detail { overflow-x: clip; }
 
 
 /* ═══ SCROLL REVEAL ═══ */
 
 .cd-reveal {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(12px);
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -244,6 +244,11 @@
   .cd-products { padding: 64px 0 0; }
 
   .cd-closing { padding: 80px 0 120px; }
+
+  /* Desktop can afford a deeper reveal */
+  .cd-reveal {
+    transform: translateY(20px);
+  }
 }
 
 

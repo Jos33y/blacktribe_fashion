@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import useDebounce from '../../hooks/useDebounce';
 import useFocusTrap from '../../hooks/useFocusTrap';
+import useScrollLock from '../../hooks/useScrollLock';
 import { formatPrice } from '../../utils/formatPrice';
 import { trackSearch } from '../../utils/tracker';
 import '../../styles/layout/SearchOverlay.css';
@@ -43,15 +44,15 @@ export default function SearchOverlay({ isOpen, onClose }) {
   /* ─── Focus trap (handles Tab cycling + Escape + focus restore) ─── */
   const trapRef = useFocusTrap(isOpen, onClose);
 
-  /* ─── Body lock + focus input on open ─── */
+  /* ─── Lock background scroll (works on iOS Safari) ─── */
+  useScrollLock(isOpen);
+
+  /* ─── Focus input on open ─── */
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
       setRecentSearches(getRecentSearches());
-      /* Focus the search input specifically (overrides useFocusTrap's generic first-focusable) */
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-    return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
   /* Fetch from API when debounced query changes */

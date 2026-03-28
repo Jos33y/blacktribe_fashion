@@ -96,6 +96,38 @@
 }
 
 
+/* ─── Already Paid: Actions ─── */
+
+.pay-page__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pay-page__btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 var(--space-5);
+  min-width: 200px;
+  background: var(--bt-text);
+  color: var(--bt-text-inverse);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: opacity var(--duration-fast);
+}
+
+.pay-page__btn-primary:hover {
+  opacity: 0.9;
+}
+
+
 /* ─── Items ─── */
 
 .pay-page__items {

@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Legal.css';
 
@@ -52,25 +51,8 @@ export default function Terms() {
     return () => clearPageMeta();
   }, []);
 
-  useEffect(() => {
-    const elements = document.querySelectorAll('.legal-reveal');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('legal-reveal--visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
-    );
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <article className="legal">
+    <article className="legal page-enter">
 
       {/* ═══ HERO ═══ */}
       <section className="page-hero legal-hero">
@@ -82,7 +64,7 @@ export default function Terms() {
       </section>
 
       {/* ═══ INTRO ═══ */}
-      <section className="legal-intro-section legal-reveal">
+      <section className="legal-intro-section">
         <div className="legal-section-inner">
           <p className="legal-intro">
             These terms apply to all purchases made through blacktribefashion.com. By placing an order, you agree to these terms.
@@ -92,7 +74,7 @@ export default function Terms() {
 
       {/* ═══ SECTIONS ═══ */}
       {SECTIONS.map((section, index) => (
-        <section key={section.title} className="legal-section legal-reveal">
+        <section key={section.title} className="legal-section">
           <div className="legal-section-inner legal-split">
             <div className="legal-split-label">
               <span className="legal-label-number">
@@ -108,7 +90,7 @@ export default function Terms() {
       ))}
 
       {/* ═══ CLOSING ═══ */}
-      <section className="legal-closing legal-reveal">
+      <section className="legal-closing">
         <div className="legal-closing-inner">
           <div className="legal-closing-line" />
           <p className="legal-closing-text">

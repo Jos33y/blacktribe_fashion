@@ -19,6 +19,11 @@ export default function OrderConfirmation() {
   /* ─── Post-checkout account creation ─── */
   const { isAuthenticated } = useAuth();
 
+  /* ─── Scroll to top on mount (covers payment link → confirmation navigation) ─── */
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   /* ─── Fetch order data ─── */
   useEffect(() => {
     if (!id) return;
@@ -92,6 +97,18 @@ export default function OrderConfirmation() {
   const email = order.guest_email || '';
   const shippingName = order.shipping_address?.name || '';
 
+  /*
+   * Build the tracking URL for the "Track Order" link.
+   * Authenticated users → account orders tab.
+   * Guests with a tracking_token → /track page.
+   * Fallback → no track link shown.
+   */
+  const trackUrl = isAuthenticated
+    ? '/account?tab=orders'
+    : order.tracking_token && order.order_number
+      ? `/track?order=${order.order_number}&token=${order.tracking_token}`
+      : null;
+
   return (
     <div className="oc page-enter">
       <div className="oc__inner">
@@ -106,7 +123,9 @@ export default function OrderConfirmation() {
           <h1 className="oc__title">Order confirmed.</h1>
           <p className="oc__order-number">{order.order_number}</p>
           <p className="oc__delivery">
-            You will receive tracking details at {email} within 48 hours.
+            {email
+              ? `You will receive tracking details at ${email} within 48 hours.`
+              : 'You will receive tracking details within 48 hours.'}
           </p>
         </div>
 
@@ -202,6 +221,11 @@ export default function OrderConfirmation() {
 
         {/* ═══ Footer ═══ */}
         <div className="oc__footer">
+          {trackUrl && (
+            <Link to={trackUrl} className="oc__track-btn">
+              Track Order
+            </Link>
+          )}
           <Link to="/shop" className="oc__continue">Continue Shopping</Link>
         </div>
 

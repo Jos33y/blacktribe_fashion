@@ -4,6 +4,7 @@ import { CloseIcon } from '../icons';
 import useAuth from '../../hooks/useAuth';
 import useAuthStore from '../../store/authStore';
 import useFocusTrap from '../../hooks/useFocusTrap';
+import useScrollLock from '../../hooks/useScrollLock';
 import '../../styles/layout/MobileNav.css';
 
 export default function MobileNav({ isOpen, onClose, navLinks }) {
@@ -13,17 +14,13 @@ export default function MobileNav({ isOpen, onClose, navLinks }) {
   /* ─── Focus trap (handles Tab cycling + Escape + focus restore) ─── */
   const trapRef = useFocusTrap(isOpen, onClose);
 
+  /* ─── Lock background scroll (works on iOS Safari) ─── */
+  useScrollLock(isOpen);
+
   const handleSignOut = async () => {
     onClose();
     await signOut();
   };
-
-  /* ─── Lock body scroll ─── */
-  useEffect(() => {
-    if (!isOpen) return;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
 
   return (
     <>

@@ -34,28 +34,11 @@ export default function ShippingReturns() {
     return () => clearPageMeta();
   }, []);
 
-  useEffect(() => {
-    const elements = document.querySelectorAll('.sr-reveal');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('sr-reveal--visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
-    );
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <article className="shipping-returns">
+    <article className="shipping-returns page-enter">
 
       {/* ═══ HERO ═══ */}
-      <section className="page-hero sr-hero"> 
+      <section className="page-hero sr-hero">
         <div className="page-hero__inner">
           <span className="page-eyebrow">Policy</span>
           <h1 className="page-headline sr-headline">Shipping & Returns</h1>
@@ -66,7 +49,7 @@ export default function ShippingReturns() {
       </section>
 
       {/* ═══ SHIPPING ZONES ═══ */}
-      <section className="sr-section sr-reveal">
+      <section className="sr-section">
         <div className="sr-section-inner">
           <div className="sr-split-label">
             <span className="sr-label-number">01</span>
@@ -101,7 +84,7 @@ export default function ShippingReturns() {
       </section>
 
       {/* ═══ RETURNS ═══ */}
-      <section className="sr-section sr-reveal">
+      <section className="sr-section">
         <div className="sr-section-inner">
           <div className="sr-split-label">
             <span className="sr-label-number">02</span>
@@ -133,7 +116,7 @@ export default function ShippingReturns() {
       </section>
 
       {/* ═══ PRE-ORDERS ═══ */}
-      <section className="sr-section sr-reveal">
+      <section className="sr-section">
         <div className="sr-section-inner">
           <div className="sr-split-label">
             <span className="sr-label-number">03</span>
@@ -148,7 +131,7 @@ export default function ShippingReturns() {
       </section>
 
       {/* ═══ CLOSING ═══ */}
-      <section className="sr-closing sr-reveal">
+      <section className="sr-closing">
         <div className="sr-closing-inner">
           <div className="sr-closing-line" />
           <p className="sr-closing-text">Need help with a return or shipment?</p>

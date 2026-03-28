@@ -7,6 +7,7 @@ import WishlistHeart from './WishlistHeart';
 import { useToast } from '../ui/Toast';
 import useCartStore from '../../store/cartStore';
 import useUIStore from '../../store/uiStore';
+import useScrollLock from '../../hooks/useScrollLock';
 import { formatPrice } from '../../utils/formatPrice';
 import '../../styles/product/QuickView.css';
 import '../../styles/product/WishlistHeart.css';
@@ -23,6 +24,9 @@ export default function QuickView({ product, isOpen, onClose }) {
   const addItem = useCartStore((s) => s.addItem);
   const openCartDrawer = useUIStore((s) => s.openCartDrawer);
 
+  /* ─── Lock background scroll (works on iOS Safari) ─── */
+  useScrollLock(isOpen);
+
   useEffect(() => {
     if (product) {
       setActiveImage(0);
@@ -32,13 +36,12 @@ export default function QuickView({ product, isOpen, onClose }) {
     }
   }, [product?.id]);
 
+  /* ─── Keyboard: Escape to close ─── */
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
       const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
       document.addEventListener('keydown', handleKey);
       return () => {
-        document.body.style.overflow = '';
         document.removeEventListener('keydown', handleKey);
       };
     }

@@ -7,14 +7,15 @@
    This file: unique headline size + all section styles.
    ═══════════════════════════════════════════════════════════ */
 
-.lookbook { overflow-x: hidden; } 
+.lookbook { overflow-x: clip; }
 
-/* ═══ SCROLL REVEAL (Lookbook uses slower 1s + deeper 32px) ═══ */
+
+/* ═══ SCROLL REVEAL (mobile: subtle 16px, desktop: deeper 28px) ═══ */
 .lb-reveal {
   opacity: 0;
-  transform: translateY(32px);
-  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(16px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .lb-reveal--visible { opacity: 1; transform: translateY(0); }
@@ -219,6 +220,12 @@
   .lb-image-name { font-size: 15px; }
   .lb-editorial { padding: 96px var(--content-padding); }
   .lb-closing { padding: 80px var(--content-padding) 120px; }
+
+  /* Desktop can afford deeper reveal */
+  .lb-reveal {
+    transform: translateY(28px);
+    transition-duration: 1s;
+  }
 }
 
 
