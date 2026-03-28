@@ -3,7 +3,7 @@
    Hero structure: .page-hero + .page-hero__inner (from page-shared.css)
    ═══════════════════════════════════════════════════════════ */
 
-.collections { overflow-x: hidden; }
+.collections { overflow-x: clip; }
 
 .col-reveal {
   opacity: 0;

@@ -248,7 +248,7 @@ export default function WalkInOrder() {
     }
     setSearchQuery('');
     setSearchResults([]);
-if (window.innerWidth >= 768) searchRef.current?.focus();
+    if (window.innerWidth >= 768) searchRef.current?.focus();
     // Flash the order panel on mobile
     if (window.innerWidth < 768) {
       setMobileOrderOpen(true);
@@ -439,6 +439,7 @@ if (window.innerWidth >= 768) searchRef.current?.focus();
         <div className="pos-receipt-wrap">
           <div className="pos-receipt" id="walkin-receipt">
             <div className="pos-receipt__header">
+              <img src="/logo_white.png" alt="" className="pos-receipt__logo" />
               <span className="pos-receipt__brand">BLACKTRIBE</span>
               <span className="pos-receipt__sub">FASHION</span>
             </div>
@@ -488,8 +489,9 @@ if (window.innerWidth >= 768) searchRef.current?.focus();
               </div>
               <div className="pos-receipt__row">
                 <span>Payment</span>
-                <span style={{ textTransform: 'capitalize' }}>
-                  {completedOrder.payment_method?.replace('_', ' ')}
+
+                <span>
+                  {{ cash: 'Cash', pos_terminal: 'POS Terminal', bank_transfer: 'Bank Transfer', paystack: 'Paystack' }[completedOrder.payment_method] || completedOrder.payment_method}
                 </span>
               </div>
             </div>
@@ -530,7 +532,7 @@ if (window.innerWidth >= 768) searchRef.current?.focus();
       {/* Offline indicator */}
       {!isOnline && (
         <div className="pos-offline-bar">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55"/><path d="M5 12.55a10.94 10.94 0 015.17-2.39"/><path d="M10.71 5.05A16 16 0 0122.56 9"/><path d="M1.42 9a15.91 15.91 0 014.7-2.88"/><path d="M8.53 16.11a6 6 0 016.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="1" y1="1" x2="23" y2="23" /><path d="M16.72 11.06A10.94 10.94 0 0119 12.55" /><path d="M5 12.55a10.94 10.94 0 015.17-2.39" /><path d="M10.71 5.05A16 16 0 0122.56 9" /><path d="M1.42 9a15.91 15.91 0 014.7-2.88" /><path d="M8.53 16.11a6 6 0 016.95 0" /><line x1="12" y1="20" x2="12.01" y2="20" /></svg>
           <span>You are offline. Orders will be queued and synced when connection returns.</span>
         </div>
       )}

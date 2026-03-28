@@ -1132,6 +1132,13 @@
   margin-bottom: 4px;
 }
 
+.pos-receipt__logo {
+  width: 32px;
+  height: auto;
+  margin-bottom: 12px;
+  filter: brightness(1.2);
+}
+
 .pos-receipt__brand {
   font-family: var(--font-display);
   font-weight: var(--weight-extrabold);
@@ -1498,15 +1505,15 @@
 }
 
 .walkin-share__btn--primary {
-  background: #25D366;
-  border-color: #25D366;
-  color: #fff;
+  background: var(--bt-text);
+  border-color: var(--bt-text);
+  color: var(--bt-text-inverse);
 }
 
 .walkin-share__btn--primary:hover {
-  background: #20bd5a;
-  border-color: #20bd5a;
-  color: #fff;
+  background: var(--bt-interactive-hover);
+  border-color: var(--bt-interactive-hover);
+  color: var(--bt-text-inverse);
 }
 
 @media (max-width: 399px) {

@@ -20,6 +20,20 @@ export async function createOrder({
   const orderNumber = generateOrderNumber();
   const trackingToken = generateTrackingToken();
 
+  /* If no userId from auth header, try to match by email */
+  if (!userId && email) {
+    try {
+      const { data: { users } } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+      const match = (users || []).find((u) => u.email?.toLowerCase() === email.trim().toLowerCase());
+      if (match) {
+        userId = match.id;
+        console.log(`[order] Linked order to user ${match.id} via email match`);
+      }
+    } catch (err) {
+      console.warn('[order] Email-based user lookup failed:', err.message);
+    }
+  }
+
   const { data: order, error: orderError } = await supabaseAdmin
     .from('orders')
     .insert({
@@ -94,7 +108,7 @@ export async function retryOrder({
   // Verify order exists and is still pending
   const { data: existing, error: fetchError } = await supabaseAdmin
     .from('orders')
-    .select('id, status, payment_status')
+    .select('id, status, payment_status, user_id')
     .eq('id', orderId)
     .single();
 
@@ -106,11 +120,25 @@ export async function retryOrder({
     throw new Error('This order has already been paid.');
   }
 
+  /* Try to link user by email if not already linked */
+  if (email && !existing.user_id) {
+    try {
+      const { data: { users } } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+      const match = (users || []).find((u) => u.email?.toLowerCase() === email.trim().toLowerCase());
+      if (match) {
+        console.log(`[order] Linked retry order to user ${match.id} via email match`);
+        // Include user_id in the update below
+        existing._linkedUserId = match.id;
+      }
+    } catch { /* silent */ }
+  }
+
   // Update the order with fresh data + new payment reference
   const { data: order, error: updateError } = await supabaseAdmin
     .from('orders')
     .update({
-      guest_email: email,
+      user_id: existing._linkedUserId || existing.user_id || null,
+      guest_email: existing._linkedUserId ? null : email,
       status: 'pending',
       subtotal,
       shipping_cost: shippingCost,
