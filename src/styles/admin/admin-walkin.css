@@ -48,7 +48,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 20px 16px;
-  padding-bottom: 100px; /* space for mobile order bar */
+  padding-bottom: 100px;
+  /* space for mobile order bar */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -508,9 +509,18 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.pos-ticket__items::-webkit-scrollbar { width: 3px; }
-.pos-ticket__items::-webkit-scrollbar-track { background: transparent; }
-.pos-ticket__items::-webkit-scrollbar-thumb { background: var(--bt-border); border-radius: 2px; }
+.pos-ticket__items::-webkit-scrollbar {
+  width: 3px;
+}
+
+.pos-ticket__items::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pos-ticket__items::-webkit-scrollbar-thumb {
+  background: var(--bt-border);
+  border-radius: 2px;
+}
 
 /* Empty state */
 .pos-ticket__empty {
@@ -614,7 +624,8 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 8px;
-  padding-left: 50px; /* align with item info (40px img + 10px gap) */
+  padding-left: 50px;
+  /* align with item info (40px img + 10px gap) */
 }
 
 .pos-ticket__item-qty {
@@ -1073,7 +1084,7 @@
 
 .pos-mobile-panel {
   position: fixed;
-  bottom: 0;
+  bottom: calc(var(--tabs-h, 60px) + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
   max-height: 85vh;
@@ -1129,7 +1140,7 @@
 /* Footer (totals + complete button) stays pinned at bottom */
 .pos-mobile-panel .pos-ticket__footer {
   flex-shrink: 0;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: 16px;
 }
 
 /* Header stays pinned at top */
@@ -1290,6 +1301,7 @@
 /* ═══ SMALL SCREEN HARDENING (375px) ═══ */
 
 @media (max-width: 399px) {
+
   /* Tighter catalog padding */
   .pos-catalog {
     padding: 16px 12px;
@@ -1555,6 +1567,7 @@
 /* ═══ PRINT ═══ */
 
 @media print {
+
   .admin-sidebar,
   .admin-topbar,
   .admin-tabs,
@@ -1567,11 +1580,28 @@
     display: none !important;
   }
 
-  .admin { display: block !important; height: auto !important; }
-  .admin-main { display: block !important; }
-  .admin-content { overflow: visible !important; padding: 0 !important; }
-  .admin-page.pos { padding: 0 !important; height: auto !important; }
-  .pos-receipt-wrap { padding: 0 !important; }
+  .admin {
+    display: block !important;
+    height: auto !important;
+  }
+
+  .admin-main {
+    display: block !important;
+  }
+
+  .admin-content {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .admin-page.pos {
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  .pos-receipt-wrap {
+    padding: 0 !important;
+  }
 
   .pos-receipt {
     max-width: none;
@@ -1590,6 +1620,11 @@
     border-color: #ccc !important;
   }
 
-  .pos-receipt__brand { font-size: 14px; }
-  .pos-receipt__hr { border-top: 1px dashed #999; }
+  .pos-receipt__brand {
+    font-size: 14px;
+  }
+
+  .pos-receipt__hr {
+    border-top: 1px dashed #999;
+  }
 }
