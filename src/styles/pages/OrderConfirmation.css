@@ -421,14 +421,45 @@
 
 
 /* ═══════════════════════════════════════════════════════════
-   ORDER TRACKING — Premium Status Timeline
-   
-   Monochrome design (no green — stays on-brand).
-   Completed = solid white dot + checkmark.
-   Current = white dot + subtle pulse ring.
-   Future = hollow dot, muted.
-   Lines: 2px, white completed, border pending.
+   ORDER TRACKING — Round 2 Premium Timeline
+
+   Warm glow on completed dots (subtle box-shadow, not color).
+   Current dot has breathing pulse ring.
+   Progress bar in header shows overall completion.
+   Back button for navigation.
+   Lines: 2px, gradient-like fill for completed sections.
+   All on-brand. Zero new colors. Warmth comes from glow.
    ═══════════════════════════════════════════════════════════ */
+
+
+/* ─── Back Button ─── */
+
+.ot-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--bt-text-muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-4);
+  padding: 8px 0;
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: color var(--duration-fast);
+}
+
+.ot-back:hover {
+  color: var(--bt-text-secondary);
+}
+
+.ot-back:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
 
 
 /* ─── Tracking Header ─── */
@@ -466,8 +497,40 @@
   font-weight: 300;
   color: var(--bt-text-secondary);
   line-height: 1.5;
-  margin: 0 0 var(--space-3);
+  margin: 0 0 var(--space-4);
 }
+
+
+/* ─── Progress Bar (header accent) ─── */
+
+.ot-progress-bar {
+  width: 100%;
+  height: 2px;
+  background: var(--bt-border);
+  margin-bottom: var(--space-4);
+  overflow: hidden;
+}
+
+.ot-progress-bar__fill {
+  height: 100%;
+  background: var(--bt-text);
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+/* Subtle warm glow on the leading edge of the bar */
+.ot-progress-bar__fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -2px;
+  width: 40px;
+  height: 6px;
+  background: radial-gradient(ellipse at right, rgba(237, 235, 232, 0.2), transparent);
+}
+
+
+/* ─── Badge ─── */
 
 .ot-badge-wrap {
   display: flex;
@@ -531,38 +594,46 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  
+  transition: box-shadow 0.4s ease;
+
   /* Future (default): hollow */
   background: transparent;
   border: 1.5px solid var(--bt-border-hover);
 }
 
-/* Completed: solid white with checkmark */
+/* Completed: solid with warm glow */
 .ot-step--complete .ot-step__dot {
   background: var(--bt-text);
   border-color: var(--bt-text);
+  box-shadow: 0 0 6px rgba(237, 235, 232, 0.25), 0 0 12px rgba(237, 235, 232, 0.08);
 }
 
-/* Current: white dot with ring */
+/* Current: solid with ring + glow */
 .ot-step--current .ot-step__dot {
   background: var(--bt-text);
   border-color: var(--bt-text);
-  box-shadow: 0 0 0 3px var(--bt-bg), 0 0 0 5px var(--bt-border-active);
+  box-shadow:
+    0 0 0 3px var(--bt-bg),
+    0 0 0 5px var(--bt-border-active),
+    0 0 10px rgba(237, 235, 232, 0.15);
 }
 
-/* Pulse animation on current dot */
+
+/* ─── Pulse animation (current step) ─── */
+
 .ot-step__pulse {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  border: 1px solid var(--bt-text);
+  border: 1px solid rgba(237, 235, 232, 0.4);
   opacity: 0;
-  animation: ot-pulse 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation: ot-pulse 2.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
 @keyframes ot-pulse {
-  0% { transform: scale(0.7); opacity: 0.6; }
-  100% { transform: scale(1.2); opacity: 0; }
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(1.15); opacity: 0; }
 }
 
 
@@ -573,13 +644,15 @@
   flex: 1;
   min-height: 28px;
   border-radius: 1px;
-  
+
   /* Default: pending */
   background: var(--bt-border);
 }
 
+/* Completed: solid white with subtle glow */
 .ot-step--complete .ot-step__line {
   background: var(--bt-text);
+  box-shadow: 0 0 4px rgba(237, 235, 232, 0.1);
 }
 
 
@@ -594,7 +667,6 @@
   justify-content: center;
 }
 
-/* Last step: no bottom padding */
 .ot-step:last-child .ot-step__content {
   padding-bottom: var(--space-2);
 }
@@ -694,6 +766,75 @@
 }
 
 
+/* ─── Delivery Info (Nigerian delivery tracking) ─── */
+
+.ot-delivery {
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.ot-delivery__card {
+  background: var(--bt-surface);
+  border: 1px solid var(--bt-border);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ot-delivery__method {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bt-text);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.ot-delivery__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ot-delivery__key {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+}
+
+.ot-delivery__value {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--bt-text);
+}
+
+.ot-delivery__phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bt-text);
+  text-decoration: none;
+  padding: 6px 12px;
+  background: var(--bt-surface-hover);
+  border: 1px solid var(--bt-border-hover);
+  transition: border-color var(--duration-fast), background var(--duration-fast);
+}
+
+.ot-delivery__phone:hover {
+  border-color: var(--bt-text);
+  background: var(--bt-raised);
+}
+
+
 /* ─── Help Section ─── */
 
 .ot-help {
@@ -722,13 +863,13 @@
 }
 
 
-/* ─── Desktop ─── */
+/* ─── Tracking Desktop ─── */
 
 @media (min-width: 768px) {
   .ot-order-id {
     font-size: 24px;
   }
-  
+
   .ot-summary {
     font-size: 15px;
   }
@@ -750,5 +891,9 @@
   .ot-step__pulse {
     animation: none;
     display: none;
+  }
+
+  .ot-progress-bar__fill {
+    transition: none;
   }
 }

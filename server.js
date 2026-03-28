@@ -19,6 +19,7 @@ import webhooksRouter from './server/routes/webhooks.js';
 import authRouter from './server/routes/auth.js';
 import wishlistRouter from './server/routes/wishlist.js';
 import eventsRouter from './server/routes/events.js';
+import homepageRouter from './server/routes/homepage.js';
 
 // Route imports — admin
 import adminRouter from './server/routes/admin/index.js';
@@ -59,6 +60,7 @@ app.use('/api/collections', collectionsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/newsletter', newsletterRouter);
 app.use('/api/contact', contactRouter);
+app.use('/api/homepage', homepageRouter);
 
 // API Routes — authenticated
 app.use('/api/cart', cartRouter);

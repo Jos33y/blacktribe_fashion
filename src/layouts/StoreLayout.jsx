@@ -5,6 +5,7 @@ import Footer from '../components/layout/Footer';
 import MobileNav from '../components/layout/MobileNav';
 import SearchOverlay from '../components/layout/SearchOverlay';
 import CartDrawer from '../components/cart/CartDrawer';
+import RouteProgressBar from '../components/ui/RouteProgressBar';
 import InstallPrompt from '../components/ui/InstallPrompt';
 import useUIStore from '../store/uiStore';
 import useCartStore from '../store/cartStore';
@@ -90,6 +91,8 @@ export default function StoreLayout() {
         onBagClick={handleBagClick}
         bagCount={bagCount}
       />
+
+      <RouteProgressBar />
 
       <MobileNav
         isOpen={mobileNavOpen}

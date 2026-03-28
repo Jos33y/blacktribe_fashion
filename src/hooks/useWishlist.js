@@ -1,24 +1,106 @@
 /*
- * BLACKTRIBE FASHION — useWishlist Hook
- * Add, remove, toggle, and check wishlist items.
- * Requires authenticated user. Gracefully returns false when logged out.
+ * BLACKTRIBE FASHION — useWishlist Hook v2
+ *
+ * v2: Works for EVERYONE.
+ *   - Authenticated: API-backed (Supabase wishlist table)
+ *   - Guest: localStorage-backed (bt-wishlist key)
+ *   - On sign in: localStorage wishlist merges to server, then clears
+ *
+ * No login redirect. No friction. Heart works instantly.
  *
  * Usage:
  *   const { isWishlisted, toggle, loading } = useWishlist(productId);
  *   <button onClick={toggle}>{isWishlisted ? 'Saved' : 'Save'}</button>
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../utils/api';
 import useAuthStore from '../store/authStore';
 
-/* ─── Shared cache so multiple components stay in sync ─── */
+/* ═══ SHARED CACHE (in-memory, synced with localStorage or API) ═══ */
+
 const wishlistCache = new Map();
 const listeners = new Set();
+let cacheLoaded = false;
 
 function notifyListeners() {
   listeners.forEach((fn) => fn());
 }
+
+
+/* ═══ LOCALSTORAGE HELPERS ═══ */
+
+const STORAGE_KEY = 'bt-wishlist';
+
+function getLocalWishlist() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalWishlist(ids) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+  } catch { /* storage full or unavailable */ }
+}
+
+function addToLocal(productId) {
+  const ids = getLocalWishlist();
+  if (!ids.includes(productId)) {
+    ids.push(productId);
+    saveLocalWishlist(ids);
+  }
+}
+
+function removeFromLocal(productId) {
+  const ids = getLocalWishlist().filter((id) => id !== productId);
+  saveLocalWishlist(ids);
+}
+
+function clearLocalWishlist() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch { /* silent */ }
+}
+
+
+/* ═══ MERGE: localStorage → server on sign in ═══ */
+
+let mergeInProgress = false;
+
+async function mergeLocalToServer() {
+  if (mergeInProgress) return;
+
+  const localIds = getLocalWishlist();
+  if (localIds.length === 0) return;
+
+  mergeInProgress = true;
+
+  try {
+    /* Add each local item to server (API deduplicates) */
+    const promises = localIds.map((productId) =>
+      api('/api/wishlist', {
+        method: 'POST',
+        body: { product_id: productId },
+      }).catch(() => { /* silent — individual failures are fine */ })
+    );
+
+    await Promise.allSettled(promises);
+
+    /* Clear localStorage after successful merge */
+    clearLocalWishlist();
+  } catch {
+    /* If merge fails entirely, local items are preserved for next attempt */
+  } finally {
+    mergeInProgress = false;
+  }
+}
+
+
+/* ═══ HOOK ═══ */
 
 export default function useWishlist(productId) {
   const session = useAuthStore((s) => s.session);
@@ -26,6 +108,7 @@ export default function useWishlist(productId) {
 
   const [loading, setLoading] = useState(false);
   const [, forceUpdate] = useState(0);
+  const prevAuth = useRef(isAuthenticated);
 
   /* ─── Subscribe to cache changes ─── */
   useEffect(() => {
@@ -34,84 +117,103 @@ export default function useWishlist(productId) {
     return () => listeners.delete(listener);
   }, []);
 
-  /* ─── Load wishlist on first authenticated mount ─── */
+  /* ─── Load wishlist: API for auth, localStorage for guest ─── */
   useEffect(() => {
-    if (!isAuthenticated) return;
-    if (wishlistCache.size > 0) return; // Already loaded
-
-    const load = async () => {
-      try {
-        const result = await api('/api/wishlist');
-        if (result.success && result.data) {
-          wishlistCache.clear();
-          result.data.forEach((item) => {
-            wishlistCache.set(item.product_id, true);
-          });
-          notifyListeners();
+    if (isAuthenticated) {
+      /* Load from API */
+      const load = async () => {
+        try {
+          const result = await api('/api/wishlist');
+          if (result.success && result.data) {
+            wishlistCache.clear();
+            result.data.forEach((item) => {
+              wishlistCache.set(item.product_id, true);
+            });
+            cacheLoaded = true;
+            notifyListeners();
+          }
+        } catch {
+          /* Silently fail — wishlist is non-critical */
         }
-      } catch (err) {
-        // Silently fail — wishlist is non-critical
-        console.error('[wishlist] Failed to load:', err);
-      }
-    };
+      };
 
-    load();
+      /* On sign in transition: merge local → server first, then reload */
+      if (prevAuth.current === false) {
+        mergeLocalToServer().then(load);
+      } else if (!cacheLoaded) {
+        load();
+      }
+    } else {
+      /* Guest: load from localStorage */
+      wishlistCache.clear();
+      const localIds = getLocalWishlist();
+      localIds.forEach((id) => wishlistCache.set(id, true));
+      cacheLoaded = true;
+      notifyListeners();
+    }
+
+    prevAuth.current = isAuthenticated;
   }, [isAuthenticated]);
 
   /* ─── Check if this product is wishlisted ─── */
   const isWishlisted = wishlistCache.has(productId);
 
-  /* ─── Add to wishlist ─── */
+  /* ─── Add ─── */
   const add = useCallback(async () => {
-    if (!isAuthenticated || !productId) return false;
+    if (!productId) return false;
 
-    // Optimistic update
+    /* Optimistic update */
     wishlistCache.set(productId, true);
     notifyListeners();
 
-    try {
-      await api('/api/wishlist', {
-        method: 'POST',
-        body: { product_id: productId },
-      });
+    if (isAuthenticated) {
+      try {
+        await api('/api/wishlist', {
+          method: 'POST',
+          body: { product_id: productId },
+        });
+        return true;
+      } catch {
+        wishlistCache.delete(productId);
+        notifyListeners();
+        return false;
+      }
+    } else {
+      addToLocal(productId);
       return true;
-    } catch (err) {
-      // Revert on failure
-      wishlistCache.delete(productId);
-      notifyListeners();
-      console.error('[wishlist] Failed to add:', err);
-      return false;
     }
   }, [productId, isAuthenticated]);
 
-  /* ─── Remove from wishlist ─── */
+  /* ─── Remove ─── */
   const remove = useCallback(async () => {
-    if (!isAuthenticated || !productId) return false;
+    if (!productId) return false;
 
-    // Optimistic update
+    /* Optimistic update */
     wishlistCache.delete(productId);
     notifyListeners();
 
-    try {
-      await api(`/api/wishlist/${productId}`, { method: 'DELETE' });
+    if (isAuthenticated) {
+      try {
+        await api(`/api/wishlist/${productId}`, { method: 'DELETE' });
+        return true;
+      } catch {
+        wishlistCache.set(productId, true);
+        notifyListeners();
+        return false;
+      }
+    } else {
+      removeFromLocal(productId);
       return true;
-    } catch (err) {
-      // Revert on failure
-      wishlistCache.set(productId, true);
-      notifyListeners();
-      console.error('[wishlist] Failed to remove:', err);
-      return false;
     }
   }, [productId, isAuthenticated]);
 
-  /* ─── Toggle (add or remove) ─── */
+  /* ─── Toggle ─── */
   const toggle = useCallback(async () => {
-    if (!isAuthenticated) return false;
     setLoading(true);
     const result = isWishlisted ? await remove() : await add();
     setLoading(false);
     return result;
-  }, [isAuthenticated, isWishlisted, add, remove]);
+  }, [isWishlisted, add, remove]);
 
   return {
     isWishlisted,
@@ -128,5 +230,6 @@ export default function useWishlist(productId) {
  */
 export function clearWishlistCache() {
   wishlistCache.clear();
+  cacheLoaded = false;
   notifyListeners();
 }

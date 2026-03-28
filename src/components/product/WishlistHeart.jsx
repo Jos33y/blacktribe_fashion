@@ -1,30 +1,23 @@
-import { useNavigate } from 'react-router';
 import useWishlist from '../../hooks/useWishlist';
 import { useToast } from '../ui/Toast';
 
 /**
  * WishlistHeart — Toggle wishlist for a product.
  * Shows outline heart when not saved, filled when saved.
- * If not authenticated, navigates to /auth.
+ * Works for everyone: guests use localStorage, auth uses API.
+ * No login redirect.
  *
  * Props:
  *   productId — the product ID to wishlist
  *   className — optional additional class
  */
 export default function WishlistHeart({ productId, className = '' }) {
-  const { isWishlisted, toggle, loading, isAuthenticated } = useWishlist(productId);
-  const navigate = useNavigate();
+  const { isWishlisted, toggle, loading } = useWishlist(productId);
   const { addToast } = useToast();
 
   const handleClick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!isAuthenticated) {
-      addToast('Sign in to save items.', 'info');
-      navigate('/auth?returnTo=' + encodeURIComponent(window.location.pathname));
-      return;
-    }
 
     const success = await toggle();
     if (success) {

@@ -1080,7 +1080,9 @@
   background: var(--bt-surface);
   z-index: calc(var(--z-drawer) + 1);
   border-radius: 12px 12px 0 0;
-  overflow: hidden;
+ overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   animation: slideInUp 300ms var(--ease-out);
@@ -1097,7 +1099,13 @@
 
 /* Inside mobile panel, ticket items should scroll */
 .pos-mobile-panel .pos-ticket__items {
-  max-height: 40vh;
+  max-height: none;
+  flex: 1;
+  min-height: 0;
+}
+
+.pos-mobile-panel .pos-ticket__footer {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
 

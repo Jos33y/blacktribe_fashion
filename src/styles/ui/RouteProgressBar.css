@@ -1,0 +1,65 @@
+/* ═══════════════════════════════════════════════════════════
+   ROUTE PROGRESS BAR
+   2px line directly below the navbar.
+   Masks lazy-load latency between route transitions.
+   ═══════════════════════════════════════════════════════════ */
+
+.route-progress {
+  position: fixed;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: calc(var(--z-sticky) + 1);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.route-progress--visible {
+  opacity: 1;
+}
+
+.route-progress--hiding {
+  opacity: 0;
+}
+
+.route-progress__bar {
+  height: 100%;
+  background: var(--bt-text);
+  transition: width 0.2s ease;
+  position: relative;
+}
+
+/* Subtle glow on the leading edge */
+.route-progress__bar::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: -1px;
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(to right, transparent, rgba(237, 235, 232, 0.3));
+  border-radius: 0 2px 2px 0;
+}
+
+
+/* ─── Admin: fixed below topbar, full width (out of grid flow) ─── */
+
+.admin .route-progress {
+  position: fixed;
+  top: calc(var(--topbar-h) + env(safe-area-inset-top, 0px));
+}
+
+
+/* ─── Reduced motion ─── */
+
+@media (prefers-reduced-motion: reduce) {
+  .route-progress__bar {
+    transition: none;
+  }
+
+  .route-progress {
+    transition: none;
+  }
+}

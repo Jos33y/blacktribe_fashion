@@ -1,9 +1,8 @@
 /*
  * BLACKTRIBE FASHION — COLLECTION PREVIEW (HOMEPAGE)
  *
- * Fetches the first active collection from /api/collections,
- * then fetches its products (excluding any already shown in FeaturedGrid).
- * Shows up to 3 collection products.
+ * Accepts collection prop (with embedded products) from parent batch fetch.
+ * Falls back to own sequential fetch if no prop provided (standalone usage).
  */
 
 import { useState, useEffect } from 'react';
@@ -11,43 +10,49 @@ import { Link } from 'react-router';
 import { formatPrice } from '../../utils/formatPrice';
 import Skeleton from '../ui/Skeleton';
 
-export default function CollectionPreview() {
-  const [collection, setCollection] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function CollectionPreview({ collection: propCollection, loading: propLoading }) {
+  const [ownCollection, setOwnCollection] = useState(null);
+  const [ownProducts, setOwnProducts] = useState([]);
+  const [ownLoading, setOwnLoading] = useState(!propCollection);
 
+  /* Only fetch if no collection passed from parent */
   useEffect(() => {
-    fetchCollection();
-  }, []);
+    if (propCollection !== undefined) return;
 
-  async function fetchCollection() {
-    try {
-      /* Get all collections, pick the first one */
-      const colRes = await fetch('/api/collections');
-      const colJson = await colRes.json();
+    async function fetchCollection() {
+      try {
+        const colRes = await fetch('/api/collections');
+        const colJson = await colRes.json();
 
-      if (!colJson.success || !colJson.data?.length) {
-        setLoading(false);
-        return;
+        if (!colJson.success || !colJson.data?.length) {
+          setOwnLoading(false);
+          return;
+        }
+
+        const col = colJson.data[0];
+        setOwnCollection(col);
+
+        const prodRes = await fetch(`/api/products?collection=${col.slug}&limit=6`);
+        const prodJson = await prodRes.json();
+
+        if (prodJson.success && prodJson.data?.length > 0) {
+          setOwnProducts(prodJson.data.slice(0, 3));
+        }
+      } catch (err) {
+        console.error('[CollectionPreview] fetch error:', err);
+      } finally {
+        setOwnLoading(false);
       }
-
-      const col = colJson.data[0];
-      setCollection(col);
-
-      /* Fetch products for this collection */
-      const prodRes = await fetch(`/api/products?collection=${col.slug}&limit=6`);
-      const prodJson = await prodRes.json();
-
-      if (prodJson.success && prodJson.data?.length > 0) {
-        /* Take up to 3 products for the preview */
-        setProducts(prodJson.data.slice(0, 3));
-      }
-    } catch (err) {
-      console.error('[CollectionPreview] fetch error:', err);
-    } finally {
-      setLoading(false);
     }
-  }
+
+    fetchCollection();
+  }, [propCollection]);
+
+  const collection = propCollection !== undefined ? propCollection : ownCollection;
+  const products = propCollection !== undefined
+    ? (propCollection?.products || [])
+    : ownProducts;
+  const loading = propCollection !== undefined ? propLoading : ownLoading;
 
   if (loading) {
     return (

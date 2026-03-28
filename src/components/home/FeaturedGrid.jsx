@@ -1,9 +1,8 @@
 /*
  * BLACKTRIBE FASHION — FEATURED GRID (HOMEPAGE)
  *
- * Fetches featured products from /api/products.
- * Tries featured first (is_featured=true), falls back to newest.
- * Shows skeleton while loading. Max 6 products.
+ * Accepts products + loading from parent (batch fetch).
+ * Falls back to own fetch if no props provided (standalone usage).
  */
 
 import { useState, useEffect } from 'react';
@@ -11,31 +10,35 @@ import { Link } from 'react-router';
 import ProductCard from '../product/ProductCard';
 import Skeleton from '../ui/Skeleton';
 
-export default function FeaturedGrid() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function FeaturedGrid({ products: propProducts, loading: propLoading }) {
+  const [ownProducts, setOwnProducts] = useState([]);
+  const [ownLoading, setOwnLoading] = useState(!propProducts);
 
+  /* Only fetch if no products passed from parent */
   useEffect(() => {
-    fetchFeatured();
-  }, []);
+    if (propProducts !== undefined) return;
 
-  async function fetchFeatured() {
-    try {
-      const res = await fetch('/api/products?sort=newest&limit=6');
-      const json = await res.json();
-      if (json.success && json.data?.length > 0) {
-        /* Prioritize featured products, fill with newest */
-        const featured = json.data.filter((p) => p.is_featured);
-        const nonFeatured = json.data.filter((p) => !p.is_featured);
-        const combined = [...featured, ...nonFeatured].slice(0, 6);
-        setProducts(combined);
+    async function fetchFeatured() {
+      try {
+        const res = await fetch('/api/products?sort=newest&limit=6');
+        const json = await res.json();
+        if (json.success && json.data?.length > 0) {
+          const featured = json.data.filter((p) => p.is_featured);
+          const nonFeatured = json.data.filter((p) => !p.is_featured);
+          setOwnProducts([...featured, ...nonFeatured].slice(0, 6));
+        }
+      } catch (err) {
+        console.error('[FeaturedGrid] fetch error:', err);
+      } finally {
+        setOwnLoading(false);
       }
-    } catch (err) {
-      console.error('[FeaturedGrid] fetch error:', err);
-    } finally {
-      setLoading(false);
     }
-  }
+
+    fetchFeatured();
+  }, [propProducts]);
+
+  const products = propProducts || ownProducts;
+  const loading = propProducts !== undefined ? propLoading : ownLoading;
 
   if (loading) {
     return (
@@ -61,7 +64,7 @@ export default function FeaturedGrid() {
     );
   }
 
-  if (products.length === 0) return null;
+  if (!products || products.length === 0) return null;
 
   return (
     <section className="home-featured">

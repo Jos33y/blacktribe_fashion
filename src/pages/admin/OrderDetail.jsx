@@ -5,6 +5,7 @@
  *   - View all order info (customer, items, totals, payment)
  *   - Update order status (dropdown)
  *   - Add tracking number (when shipped)
+ *   - Add delivery info: rider name, phone, method (when shipped)
  *   - Write admin notes
  *
  * Fetches from GET /api/admin/orders/:id
@@ -21,6 +22,16 @@ import { useToast } from '../../components/ui/Toast';
 import '../../styles/admin/admin-orders.css';
 
 const STATUS_FLOW = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
+
+const DELIVERY_METHODS = [
+  { value: '', label: 'Select method' },
+  { value: 'bolt', label: 'Bolt' },
+  { value: 'uber', label: 'Uber' },
+  { value: 'indrive', label: 'InDrive' },
+  { value: 'logistics', label: 'Logistics Partner' },
+  { value: 'internal', label: 'Internal Dispatch' },
+  { value: 'other', label: 'Other' },
+];
 
 function formatPrice(kobo) {
   if (!kobo && kobo !== 0) return '₦0';
@@ -59,6 +70,11 @@ export default function AdminOrderDetail() {
   const [showRefundConfirm, setShowRefundConfirm] = useState(false);
   const [refundReason, setRefundReason] = useState('');
 
+  /* Delivery info (Nigerian delivery tracking) */
+  const [riderName, setRiderName] = useState('');
+  const [riderPhone, setRiderPhone] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState('');
+
   useEffect(() => {
     document.title = 'Order Detail. BlackTribe Admin.';
     fetchOrder();
@@ -80,6 +96,13 @@ export default function AdminOrderDetail() {
         setStatus(json.data.status || '');
         setTracking(json.data.tracking_number || '');
         setNotes(json.data.notes || '');
+        /* Load delivery info */
+        const di = json.data.delivery_info;
+        if (di) {
+          setRiderName(di.rider_name || '');
+          setRiderPhone(di.rider_phone || '');
+          setDeliveryMethod(di.delivery_method || '');
+        }
       } else {
         addToast('Order not found.', 'error');
       }
@@ -92,6 +115,17 @@ export default function AdminOrderDetail() {
 
   async function handleSave() {
     setSaving(true);
+
+    /* Build delivery_info object (only include if any field has data) */
+    const hasDeliveryInfo = riderName.trim() || riderPhone.trim() || deliveryMethod;
+    const deliveryInfo = hasDeliveryInfo
+      ? {
+          rider_name: riderName.trim() || null,
+          rider_phone: riderPhone.trim() || null,
+          delivery_method: deliveryMethod || null,
+        }
+      : null;
+
     try {
       const token = await getToken();
       const res = await fetch(`/api/admin/orders/${id}`, {
@@ -104,6 +138,7 @@ export default function AdminOrderDetail() {
           status,
           tracking_number: tracking.trim() || null,
           notes: notes.trim() || null,
+          delivery_info: deliveryInfo,
         }),
       });
       const json = await res.json();
@@ -152,7 +187,10 @@ export default function AdminOrderDetail() {
   const hasChanges = order && (
     status !== order.status ||
     tracking !== (order.tracking_number || '') ||
-    notes !== (order.notes || '')
+    notes !== (order.notes || '') ||
+    riderName !== (order.delivery_info?.rider_name || '') ||
+    riderPhone !== (order.delivery_info?.rider_phone || '') ||
+    deliveryMethod !== (order.delivery_info?.delivery_method || '')
   );
 
   if (loading) {
@@ -179,6 +217,7 @@ export default function AdminOrderDetail() {
 
   const items = order.items || [];
   const addr = order.shipping_address;
+  const showDelivery = status === 'shipped' || status === 'delivered';
 
   return (
     <div className="admin-page order-detail">
@@ -287,7 +326,7 @@ export default function AdminOrderDetail() {
           )}
         </div>
 
-        {/* ─── Right: totals, status update, tracking, notes ─── */}
+        {/* ─── Right: totals, status update, tracking, delivery, notes ─── */}
         <div className="order-detail__side">
 
           {/* Totals */}
@@ -410,8 +449,8 @@ export default function AdminOrderDetail() {
               placeholder={null}
             />
 
-            {/* Tracking number: visible when shipped */}
-            {(status === 'shipped' || status === 'delivered') && (
+            {/* Tracking number: visible when shipped/delivered */}
+            {showDelivery && (
               <div style={{ marginTop: 12 }}>
                 <Input
                   label="Tracking Number"
@@ -422,6 +461,35 @@ export default function AdminOrderDetail() {
               </div>
             )}
           </div>
+
+          {/* Delivery Info (Nigerian delivery tracking) */}
+          {showDelivery && order.order_type !== 'walk_in' && (
+            <div className="admin-card">
+              <h3 className="admin-form-section__title">Delivery</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <Select
+                  label="Delivery Method"
+                  options={DELIVERY_METHODS}
+                  value={deliveryMethod}
+                  onChange={(e) => setDeliveryMethod(e.target.value)}
+                  placeholder={null}
+                />
+                <Input
+                  label="Rider Name"
+                  value={riderName}
+                  onChange={(e) => setRiderName(e.target.value)}
+                  placeholder="e.g. Chidi"
+                />
+                <Input
+                  label="Rider Phone"
+                  type="tel"
+                  value={riderPhone}
+                  onChange={(e) => setRiderPhone(e.target.value)}
+                  placeholder="+234 812 345 6789"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Admin Notes */}
           <div className="admin-card">

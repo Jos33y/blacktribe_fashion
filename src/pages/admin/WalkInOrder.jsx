@@ -141,7 +141,7 @@ export default function WalkInOrder() {
 
   useEffect(() => {
     document.title = 'New Walk-in Order. BlackTribe Admin.';
-    searchRef.current?.focus();
+    if (window.innerWidth >= 768) searchRef.current?.focus();
     loadCatalog();
 
     /* Listen for online/offline changes */
@@ -248,7 +248,7 @@ export default function WalkInOrder() {
     }
     setSearchQuery('');
     setSearchResults([]);
-    searchRef.current?.focus();
+if (window.innerWidth >= 768) searchRef.current?.focus();
     // Flash the order panel on mobile
     if (window.innerWidth < 768) {
       setMobileOrderOpen(true);
@@ -423,7 +423,7 @@ export default function WalkInOrder() {
     setCustomerEmail('');
     setCompletedOrder(null);
     setStep('pos');
-    searchRef.current?.focus();
+    if (window.innerWidth >= 768) searchRef.current?.focus();
   }
 
   function handlePrint() {

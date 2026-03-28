@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { setPageMeta, clearPageMeta } from '../utils/pageMeta';
 import JsonLd, { buildOrganizationSchema } from '../components/seo/JsonLd';
 import useScrollReveal from '../hooks/useScrollReveal';
@@ -11,6 +11,9 @@ import NewsletterForm from '../components/home/NewsletterForm';
 import '../styles/pages/Home.css';
 
 export default function Home() {
+  const [homeData, setHomeData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     setPageMeta({
       title: 'BlackTribe Fashion. Redefining Luxury.',
@@ -20,8 +23,26 @@ export default function Home() {
     return () => clearPageMeta();
   }, []);
 
+  /* Single batch fetch for all homepage data */
+  useEffect(() => {
+    async function fetchHomepage() {
+      try {
+        const res = await fetch('/api/homepage');
+        const json = await res.json();
+        if (json.success && json.data) {
+          setHomeData(json.data);
+        }
+      } catch (err) {
+        console.error('[Home] batch fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchHomepage();
+  }, []);
+
   // Scroll reveal — immediately shows above-fold elements, observes the rest
-  useScrollReveal('.home-reveal', 'home-reveal--visible');
+  useScrollReveal('.home-reveal', 'home-reveal--visible', [loading]);
 
   // Navbar transparency: add class while hero is in viewport
   useEffect(() => {
@@ -58,13 +79,13 @@ export default function Home() {
       <ProductHero />
       <Marquee />
       <div className="home-reveal">
-        <FeaturedGrid />
+        <FeaturedGrid products={homeData?.featured} loading={loading} />
       </div>
       <div className="home-reveal">
         <BrandVideo />
       </div>
       <div className="home-reveal">
-        <CollectionPreview />
+        <CollectionPreview collection={homeData?.collection} loading={loading} />
       </div>
       <div className="home-reveal">
         <NewsletterForm />

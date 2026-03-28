@@ -1,18 +1,25 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router';
+import { useSearchParams, Link, useNavigate } from 'react-router';
 import Skeleton from '../../components/ui/Skeleton';
-import Badge from '../../components/ui/Badge';
+import useAuth from '../../hooks/useAuth';
 import { formatPrice } from '../../utils/formatPrice';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/OrderConfirmation.css';
 
 /**
- * OrderTracking — Guest + authenticated order tracking.
+ * OrderTracking — Round 2.
+ *
  * URL: /track?order=BT-XXXXXXXX&token=abc123
  * No login required. Token validates access.
  *
- * Premium redesign: monochrome tracker (no green — stays on-brand),
- * checkmarks on completed steps, status summary, timestamps, help section.
+ * Round 2 upgrades:
+ *   - Back button (auth → Account Orders, guest → browser back)
+ *   - All 5 steps show timestamps (confirmed_at, processing_at added to DB)
+ *   - Warm glow on completed dots
+ *   - Current step pulse ring
+ *   - Progress accent bar in header
+ *   - Full totals breakdown (subtotal, shipping, discount)
+ *   - Delivery info card (rider name, phone, method)
  */
 
 const STATUS_STEPS = [
@@ -25,7 +32,6 @@ const STATUS_STEPS = [
 
 const STATUS_ORDER = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
 
-/* Status summary — one confident sentence per the brand voice */
 const STATUS_SUMMARY = {
   pending: 'Your order has been received.',
   confirmed: 'Your order is confirmed and being prepared.',
@@ -35,7 +41,15 @@ const STATUS_SUMMARY = {
   cancelled: 'This order has been cancelled.',
 };
 
-/* Checkmark SVG for completed steps */
+const DELIVERY_METHOD_LABELS = {
+  bolt: 'Bolt',
+  uber: 'Uber',
+  indrive: 'InDrive',
+  logistics: 'Logistics Partner',
+  internal: 'BlackTribe Dispatch',
+  other: 'Dispatch',
+};
+
 function CheckIcon() {
   return (
     <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -50,7 +64,6 @@ function CheckIcon() {
   );
 }
 
-/* Format date to "15 Mar 2026, 2:30 PM" */
 function formatDate(dateStr) {
   if (!dateStr) return null;
   try {
@@ -69,10 +82,11 @@ function formatDate(dateStr) {
   }
 }
 
-/* Map known timestamps from order data to steps */
 function getStepTimestamp(stepKey, order) {
   switch (stepKey) {
     case 'pending': return formatDate(order.created_at);
+    case 'confirmed': return formatDate(order.confirmed_at);
+    case 'processing': return formatDate(order.processing_at);
     case 'shipped': return formatDate(order.shipped_at);
     case 'delivered': return formatDate(order.delivered_at);
     default: return null;
@@ -84,6 +98,8 @@ export default function OrderTracking() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const orderNumber = searchParams.get('order');
   const token = searchParams.get('token');
@@ -124,6 +140,14 @@ export default function OrderTracking() {
 
     fetchOrder();
   }, [orderNumber, token]);
+
+  const handleBack = () => {
+    if (isAuthenticated) {
+      navigate('/account?tab=orders');
+    } else {
+      navigate(-1);
+    }
+  };
 
   /* ═══ LOADING ═══ */
   if (loading) {
@@ -167,22 +191,42 @@ export default function OrderTracking() {
   const currentIndex = STATUS_ORDER.indexOf(order.status);
   const isCancelled = order.status === 'cancelled';
   const summary = STATUS_SUMMARY[order.status] || '';
+  const delivery = order.delivery_info;
+  const hasDelivery = delivery && (delivery.rider_name || delivery.rider_phone || delivery.delivery_method);
+  const progressPercent = isCancelled ? 0 : Math.round(((currentIndex + 1) / STATUS_STEPS.length) * 100);
 
   return (
     <div className="oc page-enter">
       <div className="oc__inner">
+
+        {/* ═══ BACK BUTTON ═══ */}
+        <button className="ot-back" onClick={handleBack} type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          <span>{isAuthenticated ? 'Your Orders' : 'Back'}</span>
+        </button>
 
         {/* ═══ HEADER ═══ */}
         <div className="ot-header">
           <span className="ot-eyebrow">Order Status</span>
           <p className="ot-order-id">{order.order_number}</p>
           <p className="ot-summary">{summary}</p>
+
           {!isCancelled && (
-            <div className="ot-badge-wrap">
-              <span className={`ot-badge ot-badge--${order.status}`}>
-                {order.status === 'delivered' ? 'Delivered' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-              </span>
-            </div>
+            <>
+              <div className="ot-progress-bar">
+                <div
+                  className="ot-progress-bar__fill"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+              <div className="ot-badge-wrap">
+                <span className={`ot-badge ot-badge--${order.status}`}>
+                  {order.status === 'delivered' ? 'Delivered' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                </span>
+              </div>
+            </>
           )}
         </div>
 
@@ -226,6 +270,7 @@ export default function OrderTracking() {
                   <div className="ot-step__indicator">
                     <div className="ot-step__dot">
                       {isComplete && <CheckIcon />}
+                      {isCurrent && <span className="ot-step__pulse" />}
                     </div>
                     {!isLast && <div className="ot-step__line" />}
                   </div>
@@ -248,6 +293,37 @@ export default function OrderTracking() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* ═══ DELIVERY INFO ═══ */}
+        {hasDelivery && (order.status === 'shipped' || order.status === 'delivered') && (
+          <div className="ot-delivery">
+            <h2 className="oc__section-label">Delivery</h2>
+            <div className="ot-delivery__card">
+              {delivery.delivery_method && (
+                <span className="ot-delivery__method">
+                  {DELIVERY_METHOD_LABELS[delivery.delivery_method] || delivery.delivery_method}
+                </span>
+              )}
+              {delivery.rider_name && (
+                <div className="ot-delivery__row">
+                  <span className="ot-delivery__key">Rider</span>
+                  <span className="ot-delivery__value">{delivery.rider_name}</span>
+                </div>
+              )}
+              {delivery.rider_phone && (
+                <div className="ot-delivery__row">
+                  <span className="ot-delivery__key">Phone</span>
+                  <a href={`tel:${delivery.rider_phone}`} className="ot-delivery__phone">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+                      <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                    </svg>
+                    {delivery.rider_phone}
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -275,6 +351,20 @@ export default function OrderTracking() {
           </div>
 
           <div className="oc__totals">
+            <div className="oc__row">
+              <span>Subtotal</span>
+              <span>{formatPrice(order.subtotal)}</span>
+            </div>
+            <div className="oc__row">
+              <span>Shipping</span>
+              <span>{order.shipping_cost === 0 ? 'Free' : formatPrice(order.shipping_cost)}</span>
+            </div>
+            {order.discount_amount > 0 && (
+              <div className="oc__row oc__row--discount">
+                <span>Discount</span>
+                <span>-{formatPrice(order.discount_amount)}</span>
+              </div>
+            )}
             <div className="oc__row oc__row--total">
               <span>Total</span>
               <span>{formatPrice(order.total)}</span>

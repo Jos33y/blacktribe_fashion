@@ -170,13 +170,16 @@ router.get('/orders/:id', requirePermission('orders'), async (req, res, next) =>
 
 router.patch('/orders/:id', requirePermission('orders'), async (req, res, next) => {
   try {
-    const { status, tracking_number, notes } = req.body;
+    const { status, tracking_number, notes, delivery_info } = req.body;
     const updates = { updated_at: new Date().toISOString() };
 
     if (status) updates.status = status;
     if (tracking_number !== undefined) updates.tracking_number = tracking_number;
     if (notes !== undefined) updates.notes = notes;
+    if (delivery_info !== undefined) updates.delivery_info = delivery_info;
 
+    if (status === 'confirmed') updates.confirmed_at = new Date().toISOString();
+    if (status === 'processing') updates.processing_at = new Date().toISOString();
     if (status === 'shipped') updates.shipped_at = new Date().toISOString();
     if (status === 'delivered') updates.delivered_at = new Date().toISOString();
 

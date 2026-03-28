@@ -125,7 +125,7 @@ export default function AdminDashboard() {
           </div>
           <span className="dash-ov__chevron">{I.chevron}</span>
         </Link>
-        <Link to="/admin/orders?status=pending" className={`dash-ov ${pendingCount > 0 ? 'dash-ov--highlight' : ''}`}>
+        <Link to="/admin/orders?status=pending,processing" className={`dash-ov ${(pendingCount + processingCount) > 0 ? 'dash-ov--highlight' : ''}`}>
           <span className="dash-ov__icon">{I.alert}</span>
           <div className="dash-ov__content">
             <span className="dash-ov__value">{pendingCount + processingCount}</span>
