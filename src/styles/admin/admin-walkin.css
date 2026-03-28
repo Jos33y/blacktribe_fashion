@@ -1095,14 +1095,26 @@
   flex-shrink: 0;
 }
 
+
 /* Override ticket inner for mobile: proper flex column, no clip */
 .pos-mobile-panel .pos-ticket__inner {
   flex: 1;
   min-height: 0;
   height: auto;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
+}
+
+.pos-mobile-panel .pos-ticket__items::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  display: block;
+  height: 24px;
+  background: linear-gradient(transparent, var(--bt-surface));
+  pointer-events: none;
+  flex-shrink: 0;
 }
 
 /* Items area is the ONLY thing that scrolls */

@@ -137,9 +137,16 @@ export default function WalkInOrder() {
   const [mobileOrderOpen, setMobileOrderOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(offlineQueue.isOnline());
   const [pendingCount, setPendingCount] = useState(offlineQueue.getPendingOrders().length);
-/* Lock background scroll when mobile order panel is open */
+  /* Lock background scroll when mobile order panel is open */
   useScrollLock(mobileOrderOpen);
-  
+
+  /* Auto-close mobile panel when all items removed */
+  useEffect(() => {
+    if (items.length === 0 && mobileOrderOpen) {
+      setMobileOrderOpen(false);
+    }
+  }, [items.length]);
+
   useEffect(() => {
     document.title = 'New Walk-in Order. BlackTribe Admin.';
     if (window.innerWidth >= 768) searchRef.current?.focus();
@@ -250,11 +257,6 @@ export default function WalkInOrder() {
     setSearchQuery('');
     setSearchResults([]);
     if (window.innerWidth >= 768) searchRef.current?.focus();
-    // Flash the order panel on mobile
-    if (window.innerWidth < 768) {
-      setMobileOrderOpen(true);
-      setTimeout(() => setMobileOrderOpen(false), 1500);
-    }
   }
 
   function removeItem(index) {
@@ -357,6 +359,7 @@ export default function WalkInOrder() {
           items: payload.items,
           _offline: true,
         });
+        setMobileOrderOpen(false);
         setStep('receipt');
         addToast('Order queued. Will sync when online.', 'info');
       } else {
@@ -382,6 +385,7 @@ export default function WalkInOrder() {
       const json = await res.json();
       if (json.success) {
         setCompletedOrder(json.data);
+        setMobileOrderOpen(false);
         setStep('receipt');
         addToast('Order completed.', 'success');
       } else {
@@ -402,6 +406,7 @@ export default function WalkInOrder() {
           items: payload.items,
           _offline: true,
         });
+        setMobileOrderOpen(false);
         setStep('receipt');
         addToast('Connection lost. Order queued for sync.', 'info');
       } else {
@@ -424,6 +429,7 @@ export default function WalkInOrder() {
     setCustomerEmail('');
     setCompletedOrder(null);
     setStep('pos');
+    setMobileOrderOpen(false);
     if (window.innerWidth >= 768) searchRef.current?.focus();
   }
 
