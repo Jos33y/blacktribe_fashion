@@ -87,7 +87,14 @@ router.get('/pay/:orderNumber', async (req, res, next) => {
       .select('*')
       .eq('order_id', order.id);
 
-    res.json({ success: true, data: { ...order, items: items || [] } });
+    // Resolve email: guest_email or look up from auth user
+    let email = order.guest_email || '';
+    if (!email && order.user_id) {
+      const { data: userData } = await supabaseAdmin.auth.admin.getUserById(order.user_id);
+      if (userData?.user?.email) email = userData.user.email;
+    }
+
+    res.json({ success: true, data: { ...order, email, items: items || [] } });
   } catch (err) {
     next(err);
   }

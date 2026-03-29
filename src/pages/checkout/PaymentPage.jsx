@@ -97,7 +97,7 @@ export default function PaymentPage() {
       return;
     }
 
-    const email = order.guest_email || '';
+    const email = order.email || order.guest_email || '';
     const reference = `bt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
     const paystackInstance = new PaystackPop();
