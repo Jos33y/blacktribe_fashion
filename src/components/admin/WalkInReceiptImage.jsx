@@ -1,8 +1,12 @@
 /*
- * BLACKTRIBE FASHION — WALK-IN RECEIPT IMAGE v3
+ * BLACKTRIBE FASHION — WALK-IN RECEIPT IMAGE v4
  *
  * Canvas API generates a branded receipt image.
  * Staff can share via Web Share API or save.
+ *
+ * v4 fixes:
+ *   - Import admin-walkin.css so share button styles load in OrderDetail context
+ *   - Increased logo-to-wordmark vertical spacing (24px → 40px)
  *
  * v3 fixes:
  *   - Tribal mask logo above wordmark
@@ -15,6 +19,7 @@
  */
 
 import { useRef, useEffect, useState } from 'react';
+import '../../styles/admin/admin-walkin.css';
 
 const LOGO_URL = '/logo_white.png';
 
@@ -83,7 +88,7 @@ export default function WalkInReceiptImage({ order, items = [], onReady }) {
     /* ─── Calculate dynamic height ─── */
     let h = 0;
     h += 100;  /* top padding */
-    if (logoImg) h += 80; /* logo + gap */
+    if (logoImg) h += 96; /* logo + gap */
     h += 80;   /* wordmark + FASHION */
     h += 60;   /* gap to divider */
     h += 40 + (36 * 3) + 50; /* meta rows + gap */
@@ -120,7 +125,7 @@ export default function WalkInReceiptImage({ order, items = [], onReady }) {
       const logoW = 52;
       const logoH = (logoImg.height / logoImg.width) * logoW;
       ctx.drawImage(logoImg, (W - logoW) / 2, y, logoW, logoH);
-      y += logoH + 24;
+      y += logoH + 40;
     }
 
     /* ─── BLACKTRIBE wordmark ─── */

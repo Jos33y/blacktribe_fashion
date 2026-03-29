@@ -1,0 +1,383 @@
+Folder PATH listing
+Volume serial number is 5037-8652
+C:.
+|   .dockerignore
+|   .env
+|   .env.example
+|   .gitignore
+|   Dockerfile
+|   index.html
+|   package-lock.json
+|   package.json
+|   public_structure.txt
+|   README.md
+|   server.js
+|   vite.config.js
+|   
++---database
+|   |   016_create_contact_messages.sql
+|   |   018_add_order_timestamps.sql
+|   |   blacktribe-admin-roles.sql
+|   |   blacktribe-schema.sql
+|   |   blacktribe-shipping-zones.sql
+|   |   
+|   \---migrations
+|           012_add_walkin_columns.sql
+|           013_seed_categories_collections.sql
+|           014_create_activity_log.sql
+|           016_create_contact_messages.sql
+|           017_add_delivery_info.sql
+|           
++---public
+|   |   apple-touch-icon.png
+|   |   favicon-16x16.png
+|   |   favicon-32x32.png
+|   |   favicon.ico
+|   |   logo192.png
+|   |   logo512.png
+|   |   logo_white.png
+|   |   manifest.json
+|   |   og-image.png
+|   |   og-image.svg
+|   |   robots.txt
+|   |   sw.js
+|   |   
+|   +---dark
+|   |       apple-touch-icon.png
+|   |       favicon-16x16.png
+|   |       favicon-32x32.png
+|   |       favicon.ico
+|   |       logo192.png
+|   |       logo512.png
+|   |       
+|   +---images
+|   |       crystal-velvet-trucker-back.PNG
+|   |       
+|   \---video
+|           black_tribe_hero_vid.mp4
+|           
++---server
+|   +---config
+|   |       database.js
+|   |       env.js
+|   |       paystack.js
+|   |       
+|   +---middleware
+|   |       auth.js
+|   |       errorHandler.js
+|   |       
+|   +---routes
+|   |   |   auth.js
+|   |   |   cart.js
+|   |   |   categories.js
+|   |   |   collections.js
+|   |   |   contact.js
+|   |   |   events.js
+|   |   |   homepage.js
+|   |   |   newsletter.js
+|   |   |   orders.js
+|   |   |   products.js
+|   |   |   sitemap.js
+|   |   |   webhooks.js
+|   |   |   wishlist.js
+|   |   |   
+|   |   \---admin
+|   |           analytics.js
+|   |           behavioral.js
+|   |           catalog.js
+|   |           content.js
+|   |           customers.js
+|   |           discounts.js
+|   |           index.js
+|   |           orders.js
+|   |           payments.js
+|   |           products.js
+|   |           search.js
+|   |           staff.js
+|   |           stats.js
+|   |           
+|   +---services
+|   |       emailService.js
+|   |       orderService.js
+|   |       paymentService.js
+|   |       
+|   +---templates
+|   |       adminOrderNotification.js
+|   |       deliveryConfirmation.js
+|   |       orderConfirmation.js
+|   |       orderStatusUpdate.js
+|   |       paymentLink.js
+|   |       paymentReminder.js
+|   |       shippingNotification.js
+|   |       walkInReceipt.js
+|   |       
+|   \---utils
+|           activityLog.js
+|           orderNumber.js
+|           
+\---src
+    |   main.jsx
+    |   
+    +---app
+    |       App.jsx
+    |       routes.jsx
+    |       
+    +---assets
+    |   \---fonts
+    |           CormorantGaramond-Light.woff2
+    |           CormorantGaramond-LightItalic.woff2
+    |           CormorantGaramond-Medium.woff2
+    |           CormorantGaramond-Regular.woff2
+    |           DMMono-Medium.woff2
+    |           DMMono-Regular.woff2
+    |           Outfit-Variable.woff2
+    |           Syne-Variable.woff2
+    |           
+    +---components
+    |   +---account
+    |   |       AccountSettings.jsx
+    |   |       AddressBook.jsx
+    |   |       CollectionGallery.jsx
+    |   |       OrderList.jsx
+    |   |       WishlistGrid.jsx
+    |   |       
+    |   +---admin
+    |   |       AdminNotifications.jsx
+    |   |       AdminSearch.jsx
+    |   |       BehavioralAnalytics.jsx
+    |   |       ImageUploader.jsx
+    |   |       WalkInReceiptImage.jsx
+    |   |       
+    |   +---auth
+    |   |       CodeInput.jsx
+    |   |       ForgotPasswordForm.jsx
+    |   |       LoginForm.jsx
+    |   |       PasswordlessForm.jsx
+    |   |       RegisterForm.jsx
+    |   |       
+    |   +---cart
+    |   |       CartDrawer.jsx
+    |   |       CartItem.jsx
+    |   |       CartSummary.jsx
+    |   |       
+    |   +---checkout
+    |   |       AddressForm.jsx
+    |   |       DiscountInput.jsx
+    |   |       OrderSummary.jsx
+    |   |       
+    |   +---confirmation
+    |   |       ShareableImage.jsx
+    |   |       ShareButtons.jsx
+    |   |       
+    |   +---home
+    |   |       BrandVideo.jsx
+    |   |       CollectionPreview.jsx
+    |   |       FeaturedGrid.jsx
+    |   |       Marquee.jsx
+    |   |       NewsletterForm.jsx
+    |   |       ProductHero.jsx
+    |   |       
+    |   +---icons
+    |   |       index.jsx
+    |   |       
+    |   +---layout
+    |   |       Footer.jsx
+    |   |       MobileNav.jsx
+    |   |       Navbar.jsx
+    |   |       SearchOverlay.jsx
+    |   |       
+    |   +---product
+    |   |       ColorSelector.jsx
+    |   |       ImageGallery.jsx
+    |   |       Lightbox.jsx
+    |   |       ProductCard.jsx
+    |   |       ProductGrid.jsx
+    |   |       QuantitySelector.jsx
+    |   |       QuickView.jsx
+    |   |       ScarcityIndicator.jsx
+    |   |       SizeSelector.jsx
+    |   |       VideoPlayer.jsx
+    |   |       WishlistHeart.jsx
+    |   |       
+    |   +---seo
+    |   |       JsonLd.jsx
+    |   |       
+    |   +---shop
+    |   |       FilterDrawer.jsx
+    |   |       SortDropdown.jsx
+    |   |       
+    |   \---ui
+    |           Badge.jsx
+    |           Breadcrumbs.jsx
+    |           Button.jsx
+    |           ExpandableSection.jsx
+    |           Input.jsx
+    |           InstallPrompt.jsx
+    |           Modal.jsx
+    |           RouteProgressBar.jsx
+    |           Select.jsx
+    |           Skeleton.jsx
+    |           Toast.jsx
+    |           
+    +---hooks
+    |       useAuth.js
+    |       useDebounce.js
+    |       useFocusTrap.js
+    |       useScrollLock.js
+    |       useScrollReveal.js
+    |       useWishlist.js
+    |       
+    +---layouts
+    |       AdminLayout.jsx
+    |       StoreLayout.jsx
+    |       
+    +---pages
+    |   |   Home.jsx
+    |   |   NotFound.jsx
+    |   |   
+    |   +---admin
+    |   |       ActivityLog.jsx
+    |   |       AdminCategories.jsx
+    |   |       AdminCollections.jsx
+    |   |       Analytics.jsx
+    |   |       CustomerDetail.jsx
+    |   |       Customers.jsx
+    |   |       Dashboard.jsx
+    |   |       Discounts.jsx
+    |   |       Messages.jsx
+    |   |       Newsletter.jsx
+    |   |       OrderDetail.jsx
+    |   |       Orders.jsx
+    |   |       Payments.jsx
+    |   |       ProductForm.jsx
+    |   |       Products.jsx
+    |   |       Settings.jsx
+    |   |       Shipping.jsx
+    |   |       StaffManagement.jsx
+    |   |       WalkInOrder.jsx
+    |   |       
+    |   +---auth
+    |   |       Account.jsx
+    |   |       Auth.jsx
+    |   |       
+    |   +---brand
+    |   |       About.jsx
+    |   |       Contact.jsx
+    |   |       FAQ.jsx
+    |   |       Lookbook.jsx
+    |   |       
+    |   +---checkout
+    |   |       Checkout.jsx
+    |   |       OrderConfirmation.jsx
+    |   |       OrderTracking.jsx
+    |   |       PaymentPage.jsx
+    |   |       
+    |   +---legal
+    |   |       Privacy.jsx
+    |   |       RefundPolicy.jsx
+    |   |       ShippingReturns.jsx
+    |   |       Terms.jsx
+    |   |       
+    |   \---shop
+    |           CollectionDetail.jsx
+    |           Collections.jsx
+    |           ProductDetail.jsx
+    |           Shop.jsx
+    |           
+    +---store
+    |       authStore.js
+    |       cartStore.js
+    |       uiStore.js
+    |       
+    +---styles
+    |   |   a11y.css
+    |   |   animations.css
+    |   |   base.css
+    |   |   page-shared.css
+    |   |   reset.css
+    |   |   variables.css
+    |   |   
+    |   +---admin
+    |   |       admin-analytics.css
+    |   |       admin-behavioral.css
+    |   |       admin-customers.css
+    |   |       admin-dashboard.css
+    |   |       admin-forms.css
+    |   |       admin-layout.css
+    |   |       admin-more.css
+    |   |       admin-notifications.css
+    |   |       admin-orders.css
+    |   |       admin-payments.css
+    |   |       admin-products.css
+    |   |       admin-search.css
+    |   |       admin-settings.css
+    |   |       admin-shared.css
+    |   |       admin-tables.css
+    |   |       admin-tabs.css
+    |   |       admin-walkin.css
+    |   |       
+    |   +---layout
+    |   |       Footer.css
+    |   |       MobileNav.css
+    |   |       Navbar.css
+    |   |       SearchOverlay.css
+    |   |       
+    |   +---pages
+    |   |       About.css
+    |   |       Account.css
+    |   |       Auth.css
+    |   |       Brand.css
+    |   |       Checkout.css
+    |   |       CollectionDetail.css
+    |   |       Collections.css
+    |   |       Contact.css
+    |   |       FAQ.css
+    |   |       Home.css
+    |   |       Legal.css
+    |   |       Lookbook.css
+    |   |       NotFound.css
+    |   |       OrderConfirmation.css
+    |   |       PaymentPage.css
+    |   |       ProductDetail.css
+    |   |       RefundPolicy.css
+    |   |       ShippingReturns.css
+    |   |       Shop.css
+    |   |       
+    |   +---product
+    |   |       ColorSelector.css
+    |   |       ImageGallery.css
+    |   |       Lightbox.css
+    |   |       ProductCard.css
+    |   |       ProductGrid.css
+    |   |       QuantitySelector.css
+    |   |       QuickView.css
+    |   |       ScarcityIndicator.css
+    |   |       SizeSelector.css
+    |   |       VideoPlayer.css
+    |   |       WishlistHeart.css
+    |   |       
+    |   \---ui
+    |           Badge.css
+    |           Breadcrumbs.css
+    |           Button.css
+    |           CartDrawer.css
+    |           ExpandableSection.css
+    |           Input.css
+    |           InstallPrompt.css
+    |           Modal.css
+    |           RouteProgressBar.css
+    |           Select.css
+    |           Skeleton.css
+    |           Toast.css
+    |           
+    \---utils
+            announcer.js
+            api.js
+            formatPrice.js
+            loadPaystack.js
+            nigerianStates.js
+            offlineQueue.js
+            pageMeta.js
+            supabase.js
+            tracker.js
+            
