@@ -21,14 +21,27 @@
 
 /* ─── Brand ─── */
 
+.footer__brand a {
+  display: inline-flex;
+  flex-direction: column;
+  text-decoration: none;
+  margin-bottom: var(--space-2);
+}
+
+.footer__mask {
+  display: block;
+  width: 28px;
+  height: auto;
+  margin-bottom: var(--space-2);
+  opacity: 0.85;
+}
+
 .footer__logo {
   font-family: var(--font-display);
   font-weight: var(--weight-extrabold);
   font-size: 16px;
   letter-spacing: 0.12em;
   color: var(--bt-text);
-  display: inline-block;
-  margin-bottom: var(--space-2);
 }
 
 .footer__tagline {

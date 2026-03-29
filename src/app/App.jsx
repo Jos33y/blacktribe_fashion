@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
 import { Suspense, useEffect } from 'react';
 import { ToastProvider } from '../components/ui/Toast';
 import StoreLayout from '../layouts/StoreLayout';
@@ -16,6 +16,14 @@ import {
   AdminCollections, Newsletter, AdminShipping, Settings,
   StaffManagement, ActivityLog, Payments, CustomerDetail, Messages,
 } from './routes';
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 function PageLoader() {
   return (
@@ -36,6 +44,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <ToastProvider>
         <Suspense fallback={<PageLoader />}>
           <Routes>

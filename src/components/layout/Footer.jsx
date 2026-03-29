@@ -26,8 +26,16 @@ export default function Footer() {
       <div className="footer__inner container">
         {/* Brand Column */}
         <div className="footer__brand">
-          <Link to="/" className="footer__logo" aria-label="BlackTribe Fashion home">
-            BLACKTRIBE
+          <Link to="/" aria-label="BlackTribe Fashion home">
+            <img
+              src="/logo_white.png"
+              alt=""
+              className="footer__mask"
+              width="28"
+              aria-hidden="true"
+              loading="lazy"
+            />
+            <span className="footer__logo">BLACKTRIBE</span>
           </Link>
           <p className="footer__tagline">Redefining Luxury</p>
         </div>

@@ -79,7 +79,7 @@ export function orderConfirmationEmail({ order, items }) {
           <!-- Logo + Wordmark -->
           <tr>
             <td align="center" style="padding-bottom: 40px;">
-              <img src="${LOGO_URL}" alt="BlackTribe" width="32" height="40" style="display: block; margin: 0 auto 12px; filter: brightness(1.2);" />
+              <img src="${LOGO_URL}" alt="BlackTribe" width="28" height="56" style="display: block; margin: 0 auto 12px; filter: brightness(1.2);" />
               <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 4px; color: #EDEBE8;">BLACKTRIBE</div>
             </td>
           </tr>

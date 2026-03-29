@@ -209,7 +209,10 @@ export default function PaymentPage() {
   }
 
   /* ─── Payment page ─── */
-  const shippingName = order.shipping_address?.name || '';
+  const addr = order.shipping_address || {};
+  const shippingName = addr.name || addr.full_name || '';
+  const addressParts = [addr.street, addr.city, addr.state].filter(Boolean);
+  const addressLine = addressParts.join(', ');
   const itemCount = order.items?.reduce((sum, i) => sum + i.quantity, 0) || 0;
 
   return (
@@ -218,6 +221,13 @@ export default function PaymentPage() {
 
         {/* Header */}
         <div className="pay-page__header">
+          <img
+            src="/logo_white.png"
+            alt=""
+            className="pay-page__logo"
+            width="36"
+            aria-hidden="true"
+          />
           <div className="pay-page__wordmark">BLACKTRIBE</div>
           <h1 className="pay-page__title">Complete Your Order</h1>
           <p className="pay-page__order-num">{orderNumber}</p>
@@ -278,6 +288,9 @@ export default function PaymentPage() {
           <div className="pay-page__shipping">
             <p className="pay-page__shipping-label">Shipping to</p>
             <p className="pay-page__shipping-name">{shippingName}</p>
+            {addressLine && (
+              <p className="pay-page__shipping-address">{addressLine}</p>
+            )}
           </div>
         )}
 

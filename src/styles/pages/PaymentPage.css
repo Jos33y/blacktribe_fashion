@@ -34,6 +34,14 @@
   border-bottom: 1px solid var(--bt-border);
 }
 
+.pay-page__logo {
+  display: block;
+  width: 36px;
+  height: auto;
+  margin: 0 auto var(--space-3);
+  opacity: 0.9;
+}
+
 .pay-page__wordmark {
   font-family: var(--font-display);
   font-size: 14px;
@@ -272,6 +280,15 @@
   font-weight: 400;
   color: var(--bt-text);
   margin: 0;
+}
+
+.pay-page__shipping-address {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--bt-text-secondary);
+  margin: var(--space-1) 0 0;
+  line-height: 1.5;
 }
 
 
