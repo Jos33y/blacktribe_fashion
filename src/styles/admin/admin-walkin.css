@@ -1173,9 +1173,10 @@
 }
 
 .pos-receipt__logo {
+  display: block;
   width: 32px;
   height: auto;
-  margin-bottom: 12px;
+  margin: 0 auto 16px;
   filter: brightness(1.2);
 }
 
@@ -1287,13 +1288,19 @@
 .pos-receipt__actions {
   display: flex;
   gap: 12px;
-  justify-content: center;
-  margin-top: 24px;
+  width: 100%;
+  max-width: 320px;
+  margin: 24px auto;
 }
 
 .pos-receipt__actions .btn {
-  display: flex;
+  flex: 1;
+}
+
+.pos-receipt__actions .btn > span {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 

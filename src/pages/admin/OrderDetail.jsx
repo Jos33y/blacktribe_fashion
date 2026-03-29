@@ -19,6 +19,7 @@ import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import Skeleton from '../../components/ui/Skeleton';
 import { useToast } from '../../components/ui/Toast';
+import WalkInReceiptImage from '../../components/admin/WalkInReceiptImage';
 import '../../styles/admin/admin-orders.css';
 
 const STATUS_FLOW = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -120,10 +121,10 @@ export default function AdminOrderDetail() {
     const hasDeliveryInfo = riderName.trim() || riderPhone.trim() || deliveryMethod;
     const deliveryInfo = hasDeliveryInfo
       ? {
-          rider_name: riderName.trim() || null,
-          rider_phone: riderPhone.trim() || null,
-          delivery_method: deliveryMethod || null,
-        }
+        rider_name: riderName.trim() || null,
+        rider_phone: riderPhone.trim() || null,
+        delivery_method: deliveryMethod || null,
+      }
       : null;
 
     try {
@@ -432,7 +433,7 @@ export default function AdminOrderDetail() {
           {order.payment_status === 'refunded' && (
             <div className="admin-card" style={{ borderColor: 'rgba(248, 113, 113, 0.15)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--bt-error)', fontSize: 13, fontWeight: 500 }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
                 Order refunded
               </div>
             </div>
@@ -512,6 +513,14 @@ export default function AdminOrderDetail() {
               {order.delivered_at && <TimelineRow label="Delivered" date={order.delivered_at} />}
             </div>
           </div>
+
+          {/* Walk-in Receipt (regenerate anytime from order detail) */}
+          {order.order_type === 'walk_in' && items.length > 0 && (
+            <div className="admin-card">
+              <h3 className="admin-form-section__title">Receipt</h3>
+              <WalkInReceiptImage order={order} items={items} />
+            </div>
+          )}
 
           {/* Save bar (mobile) */}
           {hasChanges && (
