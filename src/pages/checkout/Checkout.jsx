@@ -118,6 +118,27 @@ export default function Checkout() {
   const [mobileExpanded, setMobileExpanded] = useState(false);
   const [showRecovery, setShowRecovery] = useState(!!pendingOrder.current);
 
+  /* ─── Verify pending order is still unpaid (may have been paid on another device) ─── */
+  useEffect(() => {
+    if (!pendingOrder.current) return;
+    const { orderId } = pendingOrder.current;
+    if (!orderId) return;
+
+    fetch(`/api/orders/${orderId}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data?.payment_status === 'paid') {
+          clearPendingOrder();
+          clearFormState();
+          pendingOrder.current = null;
+          paymentComplete.current = true;
+          clearCart();
+          navigate(`/order-confirmation/${orderId}`, { replace: true });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     saveFormState({ contact, address, discount: appliedDiscount });
   }, [contact, address, appliedDiscount]);
