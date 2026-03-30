@@ -160,24 +160,23 @@ export default function Checkout() {
       setContact((prev) => ({ ...prev, phone: profile.phone }));
     }
 
-    // Fetch default saved address if address fields are empty
-    if (!address.street) {
-      api('/api/auth/addresses')
-        .then((result) => {
-          if (result.success && result.data?.length > 0) {
-            const defaultAddr = result.data.find((a) => a.is_default) || result.data[0];
-            setAddress((prev) => ({
-              fullName: prev.fullName || defaultAddr.full_name || '',
-              street: defaultAddr.street || '',
-              city: defaultAddr.city || '',
-              state: defaultAddr.state || '',
-              lga: defaultAddr.lga || '',
-              phone: prev.phone || defaultAddr.phone || '',
-            }));
-          }
-        })
-        .catch(() => { });
-    }
+    // Fetch default saved address for authenticated users
+    // Always fetch (not just when empty) so default address changes in Settings are picked up
+    api('/api/auth/addresses')
+      .then((result) => {
+        if (result.success && result.data?.length > 0) {
+          const defaultAddr = result.data.find((a) => a.is_default) || result.data[0];
+          setAddress({
+            fullName: defaultAddr.full_name || profile?.full_name || '',
+            street: defaultAddr.street || '',
+            city: defaultAddr.city || '',
+            state: defaultAddr.state || '',
+            lga: defaultAddr.lga || '',
+            phone: defaultAddr.phone || profile?.phone || '',
+          });
+        }
+      })
+      .catch(() => { });
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [isAuthenticated]);
 
