@@ -17,6 +17,7 @@ const STATUS_LABELS = {
   shipped: 'Shipped',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
+  verifying: 'Confirming',
 };
 
 const STATUS_CLASS = {
@@ -26,6 +27,7 @@ const STATUS_CLASS = {
   shipped: 'account-status--shipped',
   delivered: 'account-status--delivered',
   cancelled: 'account-status--cancelled',
+  verifying: 'account-status--processing',
 };
 
 function formatDate(dateStr) {
@@ -86,20 +88,49 @@ export default function OrderList() {
     );
   }
 
+  /**
+   * Check if an order was just paid on this device.
+   * Covers the 1-10 min gap before Paystack webhook fires.
+   * Flag expires after 10 minutes (webhook should have fired by then).
+   */
+  function isJustPaid(orderId) {
+    try {
+      const ts = localStorage.getItem(`bt-paid-${orderId}`);
+      if (!ts) return false;
+      const elapsed = Date.now() - parseInt(ts, 10);
+      if (elapsed > 600000) {
+        // Expired, clean up
+        localStorage.removeItem(`bt-paid-${orderId}`);
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   return (
     <div className="order-list">
       {orders.map((order) => {
         const firstItem = order.items?.[0];
         const itemCount = order.items?.length || 0;
         const isExpanded = expandedId === order.id;
-        const isPending = order.status === 'pending' || order.payment_status === 'pending';
         const isCancelled = order.status === 'cancelled';
         const address = order.shipping_address;
+
+        // Determine display status: if payment_status is still pending but we just paid,
+        // show "verifying" instead of the raw pending state
+        const justPaid = isJustPaid(order.id);
+        const isPending = (order.status === 'pending' || order.payment_status === 'pending') && !justPaid;
+        const isVerifying = (order.status === 'pending' || order.payment_status === 'pending') && justPaid;
+
+        // Use verifying status for badge display
+        const displayStatus = isVerifying ? 'verifying' : order.status;
 
         return (
           <div
             key={order.id}
-            className={`order-list__card ${isExpanded ? 'order-list__card--expanded' : ''} ${isPending ? 'order-list__card--pending' : ''}`}
+            className={`order-list__card ${isExpanded ? 'order-list__card--expanded' : ''} ${isPending ? 'order-list__card--pending' : ''} ${isVerifying ? 'order-list__card--verifying' : ''}`}
           >
             {/* ─── Header (always visible) ─── */}
             <div
@@ -114,8 +145,8 @@ export default function OrderList() {
                 <span className="order-list__number">{order.order_number}</span>
                 <span className="order-list__date">{formatDate(order.created_at)}</span>
               </div>
-              <span className={`order-list__status ${STATUS_CLASS[order.status] || ''}`}>
-                {STATUS_LABELS[order.status] || order.status}
+              <span className={`order-list__status ${STATUS_CLASS[displayStatus] || ''}`}>
+                {STATUS_LABELS[displayStatus] || displayStatus}
               </span>
             </div>
 
@@ -140,7 +171,7 @@ export default function OrderList() {
 
               <div className="order-list__meta">
                 <span className="order-list__total">{formatPrice(order.total)}</span>
-                {!isPending && !isCancelled && (
+                {!isPending && !isVerifying && !isCancelled && (
                   <button
                     className="order-list__detail-toggle"
                     onClick={(e) => { e.stopPropagation(); toggleExpand(order.id); }}
@@ -150,6 +181,27 @@ export default function OrderList() {
                 )}
               </div>
             </div>
+
+            {/* ─── Verifying: Payment confirming ─── */}
+            {isVerifying && !isCancelled && (
+              <div className="order-list__pending-actions">
+                <span className="order-list__verifying-msg" style={{
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  color: 'var(--bt-text-secondary)',
+                  letterSpacing: '0.02em',
+                }}>
+                  Confirming payment...
+                </span>
+                <button
+                  className="order-list__detail-toggle"
+                  onClick={(e) => { e.stopPropagation(); toggleExpand(order.id); }}
+                >
+                  {isExpanded ? 'Hide Details' : 'View Details'}
+                </button>
+              </div>
+            )}
 
             {/* ─── Pending: Complete Payment CTA ─── */}
             {isPending && !isCancelled && (

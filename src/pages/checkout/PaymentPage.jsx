@@ -136,6 +136,9 @@ export default function PaymentPage() {
         // Clean up any pending-order localStorage from checkout
         try { localStorage.removeItem('bt-pending-order-v1'); } catch {}
 
+        // Flag this order as just-paid so OrderList shows "Confirming" instead of "Complete Payment"
+        try { localStorage.setItem(`bt-paid-${order.id}`, String(Date.now())); } catch {}
+
         setPaying(false);
 
         // Navigate to full confirmation page — identical experience to checkout flow

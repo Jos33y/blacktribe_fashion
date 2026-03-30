@@ -356,6 +356,8 @@ export default function Checkout() {
           clearPendingOrder();
           setSubmitting(false);
           trackPaymentSuccess(orderId, amount);
+          // Flag this order as just-paid so OrderList shows "Confirming" instead of "Complete Payment"
+          try { localStorage.setItem(`bt-paid-${orderId}`, String(Date.now())); } catch {}
           navigate(`/order-confirmation/${orderId}`);
         },
 
