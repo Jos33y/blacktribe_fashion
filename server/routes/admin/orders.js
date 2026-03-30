@@ -159,7 +159,10 @@ router.get('/orders/:id', requirePermission('orders'), async (req, res, next) =>
       customer = profile;
     }
 
-    res.json({ success: true, data: { ...order, items: items || [], customer } });
+    /* Resolve email (guest_email or auth user email) */
+    const customer_email = await resolveCustomerEmail(order);
+
+    res.json({ success: true, data: { ...order, items: items || [], customer, customer_email } });
   } catch (err) {
     next(err);
   }

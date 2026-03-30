@@ -296,18 +296,18 @@ export default function AdminOrderDetail() {
             <div className="order-detail__fields">
               <div className="admin-field">
                 <span className="admin-field__label">Email</span>
-                <span className="admin-field__value">{order.guest_email || order.customer?.full_name || '—'}</span>
+                <span className="admin-field__value">{order.guest_email || order.customer_email || '—'}</span>
               </div>
-              {order.customer && (
+              {(order.customer?.full_name || order.shipping_address?.name) && (
                 <div className="admin-field">
                   <span className="admin-field__label">Name</span>
-                  <span className="admin-field__value">{order.customer.full_name || '—'}</span>
+                  <span className="admin-field__value">{order.customer?.full_name || order.shipping_address?.name || '—'}</span>
                 </div>
               )}
-              {order.customer?.phone && (
+              {(order.customer?.phone || order.shipping_address?.phone) && (
                 <div className="admin-field">
                   <span className="admin-field__label">Phone</span>
-                  <span className="admin-field__value">{order.customer.phone}</span>
+                  <span className="admin-field__value">{order.customer?.phone || order.shipping_address?.phone}</span>
                 </div>
               )}
             </div>

@@ -134,6 +134,18 @@ router.get('/', requireAuth, async (req, res, next) => {
       throw createError(500, 'Could not fetch orders.');
     }
 
+    /* Auto-link: claim any guest orders matching this user's email (fire-and-forget) */
+    supabaseAdmin
+      .from('orders')
+      .update({ user_id: userId, guest_email: null, updated_at: new Date().toISOString() })
+      .is('user_id', null)
+      .ilike('guest_email', userEmail)
+      .then(({ error: linkErr }) => {
+        if (linkErr) console.warn('[orders] Auto-link failed:', linkErr.message);
+        else console.log(`[orders] Auto-linked guest orders for ${userEmail}`);
+      })
+      .catch(() => {});
+
     /* Format: flatten order_items into items */
     const orders = (data || []).map((order) => ({
       ...order,
