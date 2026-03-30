@@ -41,10 +41,26 @@ router.get('/search', async (req, res, next) => {
     /* Search orders by order_number or guest_email */
     const { data: orders } = await supabaseAdmin
       .from('orders')
-      .select('id, order_number, status, total, payment_status, order_type, guest_email, created_at')
+      .select('id, order_number, status, total, payment_status, order_type, guest_email, user_id, created_at')
       .or(`order_number.ilike.%${query}%,guest_email.ilike.%${query}%`)
       .order('created_at', { ascending: false })
       .limit(6);
+
+    /* Resolve emails for registered-user orders */
+    const orderNeedsEmail = (orders || []).filter((o) => !o.guest_email && o.user_id);
+    const orderUserIds = [...new Set(orderNeedsEmail.map((o) => o.user_id))];
+    const orderEmailMap = {};
+    if (orderUserIds.length > 0) {
+      const emailResults = await Promise.all(
+        orderUserIds.map(async (uid) => {
+          try {
+            const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(uid);
+            return { uid, email: user?.email || null };
+          } catch { return { uid, email: null }; }
+        })
+      );
+      emailResults.forEach(({ uid, email }) => { if (email) orderEmailMap[uid] = email; });
+    }
 
     results.orders = (orders || []).map((o) => ({
       id: o.id,
@@ -53,7 +69,7 @@ router.get('/search', async (req, res, next) => {
       total: o.total,
       payment_status: o.payment_status,
       order_type: o.order_type,
-      email: o.guest_email,
+      email: o.guest_email || orderEmailMap[o.user_id] || null,
       created_at: o.created_at,
     }));
 

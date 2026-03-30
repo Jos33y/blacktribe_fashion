@@ -219,6 +219,7 @@ export async function confirmOrderPayment(paymentRef) {
     .update({
       status: 'confirmed',
       payment_status: 'paid',
+      confirmed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
     .eq('payment_reference', paymentRef)

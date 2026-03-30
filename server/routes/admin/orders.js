@@ -416,7 +416,7 @@ router.post('/orders/walk-in', requirePermission('orders'), async (req, res, nex
       quantity: item.quantity,
       size: item.size,
       color: item.color || null,
-      image_url: item.image_url || null,
+      image_url: item.image_url || '',
     }));
 
     const { error: itemsErr } = await supabaseAdmin

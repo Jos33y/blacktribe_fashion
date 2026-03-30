@@ -10,7 +10,7 @@
  */
 
 import express from 'express';
-import { supabase, supabaseAdmin } from '../config/database.js';
+import { supabaseAdmin } from '../config/database.js';
 
 const router = express.Router();
 

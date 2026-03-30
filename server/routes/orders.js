@@ -144,7 +144,7 @@ router.get('/', requireAuth, async (req, res, next) => {
         if (linkErr) console.warn('[orders] Auto-link failed:', linkErr.message);
         else console.log(`[orders] Auto-linked guest orders for ${userEmail}`);
       })
-      .catch(() => {});
+      .catch(() => { });
 
     /* Format: flatten order_items into items */
     const orders = (data || []).map((order) => ({
@@ -193,7 +193,14 @@ router.post('/:id/remind', async (req, res, next) => {
       return res.json({ success: true, message: 'Reminder already sent.' });
     }
 
-    const email = order.guest_email || req.body.email;
+    let email = order.guest_email || '';
+    if (!email && order.user_id) {
+      try {
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(order.user_id);
+        if (userData?.user?.email) email = userData.user.email;
+      } catch { /* silent */ }
+    }
+    if (!email) email = req.body.email || '';
     if (!email) throw createError(400, 'No email address available.');
 
     const paymentUrl = `${env.siteUrl}/pay/${order.order_number}?token=${order.tracking_token}`;
