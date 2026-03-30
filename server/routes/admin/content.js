@@ -58,10 +58,10 @@ router.get('/shipping', requirePermission('shipping'), async (req, res, next) =>
 
 router.put('/shipping/:id', requirePermission('shipping'), async (req, res, next) => {
   try {
-    const { rate, free_above } = req.body;
+    const { rate, free_shipping_min } = req.body;
     const updates = {};
     if (rate !== undefined) updates.rate = rate;
-    if (free_above !== undefined) updates.free_above = free_above;
+    if (free_shipping_min !== undefined) updates.free_shipping_min = free_shipping_min;
 
     const { data, error } = await supabaseAdmin
       .from('shipping_zones')

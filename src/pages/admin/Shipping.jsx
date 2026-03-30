@@ -209,7 +209,7 @@ export default function AdminShipping() {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rate: nairaToKobo(form.rate),
-          free_above: nairaToKobo(form.free_above),
+          free_shipping_min: nairaToKobo(form.free_above),
         }),
       });
       const json = await res.json();
@@ -250,7 +250,7 @@ export default function AdminShipping() {
       const token = await getToken();
       const body = {};
       if (form.rate !== '') body.rate = nairaToKobo(form.rate);
-      if (form.free_above !== '') body.free_above = nairaToKobo(form.free_above);
+      if (form.free_above !== '') body.free_shipping_min = nairaToKobo(form.free_above);
 
       if (Object.keys(body).length === 0) {
         addToast('Enter a rate or free shipping threshold.', 'error');
