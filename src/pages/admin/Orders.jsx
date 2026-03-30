@@ -250,7 +250,7 @@ export default function AdminOrders() {
                             {o.order_number}
                           </Link>
                         </td>
-                        <td>{o.guest_email || '—'}</td>
+                        <td>{o.customer_email || o.guest_email || '—'}</td>
                         <td>
                           <span className={`admin-status admin-status--${o.status}`}>
                             {getStatusLabel(o.status)}
@@ -290,7 +290,7 @@ export default function AdminOrders() {
                       <span className="admin-card-list__title">{o.order_number}</span>
                       <span className="admin-card-list__price">{formatPrice(o.total)}</span>
                     </div>
-                    <div className="orders-card__email">{o.guest_email || '—'}</div>
+                    <div className="orders-card__email">{o.customer_email || o.guest_email || '—'}</div>
                     <div className="admin-card-list__meta">
                       <span className={`admin-status admin-status--${o.status}`}>
                         {getStatusLabel(o.status)}

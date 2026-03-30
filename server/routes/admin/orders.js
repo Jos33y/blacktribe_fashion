@@ -64,7 +64,32 @@ router.get('/orders', requirePermission('orders'), async (req, res, next) => {
     const { data, count, error } = await query;
     if (error) throw error;
 
-    res.json({ success: true, data, total: count, page: parseInt(page), limit: parseInt(limit) });
+    /* Batch-resolve emails for orders with user_id but no guest_email */
+    const needsEmail = (data || []).filter((o) => !o.guest_email && o.user_id);
+    const uniqueUserIds = [...new Set(needsEmail.map((o) => o.user_id))];
+
+    const emailMap = {};
+    if (uniqueUserIds.length > 0) {
+      const results = await Promise.all(
+        uniqueUserIds.map(async (uid) => {
+          try {
+            const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(uid);
+            return { uid, email: user?.email || null };
+          } catch {
+            return { uid, email: null };
+          }
+        })
+      );
+      results.forEach(({ uid, email }) => { if (email) emailMap[uid] = email; });
+    }
+
+    /* Attach customer_email to each order */
+    const enriched = (data || []).map((o) => ({
+      ...o,
+      customer_email: o.guest_email || emailMap[o.user_id] || null,
+    }));
+
+    res.json({ success: true, data: enriched, total: count, page: parseInt(page), limit: parseInt(limit) });
   } catch (err) {
     next(err);
   }
@@ -79,7 +104,7 @@ router.get('/orders/export/csv', requirePermission('orders'), async (req, res, n
 
     let query = supabaseAdmin
       .from('orders')
-      .select('order_number, guest_email, status, order_type, payment_method, payment_status, subtotal, shipping_cost, discount_amount, total, created_at')
+      .select('order_number, guest_email, user_id, status, order_type, payment_method, payment_status, subtotal, shipping_cost, discount_amount, total, created_at')
       .order('created_at', { ascending: false });
 
     if (status && status !== 'all') query = query.eq('status', status);
@@ -95,12 +120,32 @@ router.get('/orders/export/csv', requirePermission('orders'), async (req, res, n
       return res.status(404).json({ success: false, error: 'No orders to export.' });
     }
 
+    /* Batch-resolve emails for orders with user_id but no guest_email */
+    const uniqueUserIds = [...new Set(
+      orders.filter((o) => !o.guest_email && o.user_id).map((o) => o.user_id)
+    )];
+
+    const emailMap = {};
+    if (uniqueUserIds.length > 0) {
+      const results = await Promise.all(
+        uniqueUserIds.map(async (uid) => {
+          try {
+            const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(uid);
+            return { uid, email: user?.email || null };
+          } catch {
+            return { uid, email: null };
+          }
+        })
+      );
+      results.forEach(({ uid, email }) => { if (email) emailMap[uid] = email; });
+    }
+
     /* Use ASCII-safe headers — avoids encoding issues in Excel */
     const headers = ['Order Number', 'Email', 'Status', 'Type', 'Payment Method', 'Payment Status', 'Subtotal (NGN)', 'Shipping (NGN)', 'Discount (NGN)', 'Total (NGN)', 'Date'];
 
     const rows = orders.map((o) => [
       o.order_number,
-      o.guest_email || '',
+      o.guest_email || emailMap[o.user_id] || '',
       o.status,
       o.order_type || 'online',
       o.payment_method || 'paystack',
