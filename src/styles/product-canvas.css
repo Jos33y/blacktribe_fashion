@@ -1,0 +1,77 @@
+/* ═══════════════════════════════════════════════════════════
+   PRODUCT CANVAS — soft grey instead of bright white
+   Every product photo is shot on white (the knits are re-cut
+   to white too). On the dark frame, pure white is harsh, so
+   product canvases use a soft warm grey and the photo is
+   multiplied onto it: the white in the photo takes the canvas
+   colour, the garment itself is untouched.
+
+   Change the tone in one place: --bt-canvas-product.
+   QR codes and other true-white surfaces keep --bt-canvas.
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  --bt-canvas-product: #EAE8E5;
+}
+
+/* Containers: point their existing var(--bt-canvas) at the soft tone */
+.product-card__canvas,
+.gallery-mobile-canvas,
+.gallery-stack-canvas,
+.qv-image-main,
+.qv-thumb,
+.home-collection__image-wrap,
+.lb-image-container,
+.ed-piece__canvas,
+.checkout-summary__item-image {
+  --bt-canvas: var(--bt-canvas-product);
+}
+
+/* Keep the blend inside the canvas (gallery-stack-canvas already
+   isolates through its transform, and isolating it would flatten the tilt) */
+.product-card__canvas,
+.gallery-mobile-canvas,
+.qv-image-main,
+.qv-thumb,
+.home-collection__image-wrap,
+.lb-image-container,
+.ed-piece__canvas,
+.checkout-summary__item-image {
+  isolation: isolate;
+}
+
+.product-card__canvas img,
+.gallery-mobile-canvas img,
+.gallery-stack-canvas img,
+.qv-image-main img,
+.qv-thumb img,
+.home-collection__image-wrap img,
+.lb-image-container img,
+.ed-piece__canvas img {
+  mix-blend-mode: multiply;
+}
+
+/* Checkout thumbnail paints the canvas on the img itself; move it to the wrapper */
+.checkout-summary__item-image {
+  background: var(--bt-canvas);
+}
+
+.checkout-summary__item-image img {
+  background: transparent;
+  mix-blend-mode: multiply;
+}
+
+/* Desktop zoom lens is a background-image, so blend it the same way */
+.gallery-lens {
+  background-color: var(--bt-canvas-product);
+  background-blend-mode: multiply;
+}
+
+/* Print: browsers sometimes drop blend modes in PDF output,
+   so make sure the print engine keeps the canvas colour */
+@media print {
+  .ed-piece__canvas {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

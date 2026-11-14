@@ -5,6 +5,7 @@ import App from './app/App';
 // CSS import order matters: reset → variables → base → animations
 import './styles/reset.css';
 import './styles/variables.css';
+import './styles/product-canvas.css';
 import './styles/base.css';
 import './styles/animations.css';
 import './styles/page-shared.css';
