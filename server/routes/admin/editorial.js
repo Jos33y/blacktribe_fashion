@@ -21,7 +21,7 @@ import { logActivity, getRequestIp } from '../../utils/activityLog.js';
 
 const router = express.Router();
 
-const TEMPLATES = ['brand', 'cover', 'image', 'split', 'products', 'statement', 'story'];
+const TEMPLATES = ['brand', 'cover', 'image', 'split', 'products', 'statement', 'story', 'world', 'opener'];
 const TONES = ['dark', 'light'];
 const MAX_PAGES = 24;
 const MAX_PRODUCTS = 4;
@@ -36,6 +36,18 @@ const FIELD_LIMITS = {
   caption: 300,
   credit: 120,
   side: 10,
+  fit: 10,
+  art: 10,
+  border: 12,
+  cutout: 1000,
+  places: 600,
+  mast: 10,
+  lines: 300,
+  treatment: 12,
+  focus: 10,
+  headline: 120,
+  marks: 10,
+  ink: 10,
   heading: 120,
   intro: 600,
   body: 6000,
@@ -74,7 +86,16 @@ function cleanPages(input) {
       }
 
       if (fields.image && !/^https:\/\//i.test(fields.image)) delete fields.image;
+      if (fields.cutout && !/^https:\/\//i.test(fields.cutout)) delete fields.cutout;
+      if (fields.art && fields.art !== 'mask') delete fields.art;
+      if (fields.border && fields.border !== 'triangles') delete fields.border;
+      if (fields.mast && !['upper', 'middle'].includes(fields.mast)) delete fields.mast;
+      if (fields.treatment && !['mono', 'night', 'grain', 'mono-grain'].includes(fields.treatment)) delete fields.treatment;
+      if (fields.focus && !['left', 'right', 'top'].includes(fields.focus)) delete fields.focus;
+      if (fields.marks && fields.marks !== 'marks') delete fields.marks;
+      if (fields.ink && fields.ink !== 'dark') delete fields.ink;
       if (fields.side && !['left', 'right'].includes(fields.side)) fields.side = 'left';
+      if (fields.fit && !['fill', 'canvas'].includes(fields.fit)) fields.fit = 'fill';
 
       if (Array.isArray(src.products)) {
         fields.products = src.products

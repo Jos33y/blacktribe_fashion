@@ -36,6 +36,7 @@ desktop.ini
 # ═══ Database (SQL kept local, not in git) ═══
 database/
 scripts/
+docs/
 
 # ═══ Working files ═══
 # Product photo folders uploaded via scripts/upload-images.js

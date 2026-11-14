@@ -23,6 +23,7 @@
 import { useRef, useLayoutEffect } from 'react';
 import Accent from './Accent';
 import QRCode from './QRCode';
+import { MaskArt, MaskBand, MaskEnd, Flag, ProofMarks, Grain } from './Art';
 import { CONTACT, formatNaira, paragraphs, plainText, lines } from './templates';
 import '../../styles/editorial/EditorialPage.css';
 
@@ -57,12 +58,31 @@ function ContactStrip() {
   );
 }
 
-function Body({ text }) {
-  return paragraphs(text).map((p, i) => <p key={i}>{p}</p>);
+/* end: close the story with the small mask, the way magazines end an article */
+function Body({ text, end = false }) {
+  const list = paragraphs(text);
+  return list.map((p, i) => (
+    <p key={i}>
+      {p}
+      {end && i === list.length - 1 && <>{' '}<MaskEnd /></>}
+    </p>
+  ));
 }
 
-function Img({ src, alt = '', className = '' }) {
+/*
+ * fit="canvas": a product shot (shot on white). It sits centred on the soft
+ * grey canvas, multiplied so its white becomes the canvas, never cropped.
+ * fit="fill" (default): a campaign photo that covers its box.
+ */
+function Img({ src, alt = '', className = '', fit = 'fill' }) {
   if (!src) return <div className={`ed-img ed-img--empty ${className}`} aria-hidden="true" />;
+  if (fit === 'canvas') {
+    return (
+      <div className={`ed-plate ${className}`}>
+        <img src={src} alt={alt} className="ed-plate__img" loading="eager" decoding="async" />
+      </div>
+    );
+  }
   return <img src={src} alt={alt} className={`ed-img ${className}`} loading="eager" decoding="async" />;
 }
 
@@ -84,7 +104,7 @@ function Brand({ f, fitRef }) {
       </header>
 
       <div className="ed-brand__media">
-        <Img src={f.image} alt="BlackTribe Fashion" />
+        <Img src={f.image} alt="BlackTribe Fashion" fit={f.fit} />
       </div>
 
       <div className="ed-brand__grid">
@@ -110,16 +130,26 @@ function Brand({ f, fitRef }) {
 }
 
 function Cover({ f, feature, showContact }) {
+  const studio = f.fit === 'canvas';
   return (
     <>
-      <Img src={f.image} alt={plainText(f.title || feature?.title)} className="ed-img--bleed" />
-      <div className="ed-cover__shade" aria-hidden="true" />
-      <div className="ed-cover__content">
+      {studio
+        ? <Img src={f.image} alt={plainText(f.title || feature?.title)} className="ed-cover__plate" fit="canvas" />
+        : <Img src={f.image} alt={plainText(f.title || feature?.title)} className="ed-img--bleed" />}
+      {!studio && <div className="ed-cover__shade" aria-hidden="true" />}
+      <div className={`ed-cover__content ${f.mast ? `ed-cover__content--mast-${f.mast}` : ''}`}>
         <div className="ed-cover__mast">BLACKTRIBE</div>
+        {/* Cut-out of the subject over the masthead: the head sits in front of the name */}
+        {f.cutout && !studio && <img src={f.cutout} alt="" className="ed-cover__cutout" aria-hidden="true" loading="eager" decoding="async" />}
         <div className="ed-cover__bottom">
           {f.kicker && <span className="ed-kicker">{f.kicker}</span>}
           {f.title && <h2 className="ed-cover__title"><Accent text={f.title} /></h2>}
           {f.dek && <p className="ed-cover__dek">{f.dek}</p>}
+          {lines(f.lines, 4).length > 0 && (
+            <ul className="ed-cover__lines">
+              {lines(f.lines, 4).map((l, i) => <li key={i}>{l}</li>)}
+            </ul>
+          )}
           {!showContact && <span className="ed-cover__site">{CONTACT.site}</span>}
         </div>
       </div>
@@ -127,10 +157,16 @@ function Cover({ f, feature, showContact }) {
   );
 }
 
-function FullImage({ f }) {
+function FullImage({ f, number }) {
   return (
     <>
-      <Img src={f.image} alt={f.caption || ''} className="ed-img--bleed" />
+      {f.fit === 'canvas'
+        ? <Img src={f.image} alt={f.caption || ''} className="ed-image__plate" fit="canvas" />
+        : <Img src={f.image} alt={f.caption || ''} className="ed-img--bleed" />}
+      {/* Light text on a photo gets a soft shade top and bottom so it always reads */}
+      {f.fit !== 'canvas' && f.ink !== 'dark' && (f.headline || f.caption) && <div className="ed-image__shade" aria-hidden="true" />}
+      {f.headline && <h2 className="ed-image__headline"><Accent text={f.headline} /></h2>}
+      {f.marks === 'marks' && <ProofMarks number={number} />}
       {(f.caption || f.credit) && (
         <div className="ed-image__caption">
           {f.caption && <p>{f.caption}</p>}
@@ -145,12 +181,12 @@ function Split({ f, fitRef }) {
   return (
     <div className={`ed-split ${f.side === 'right' ? 'ed-split--right' : ''}`}>
       <div className="ed-split__media">
-        <Img src={f.image} alt={plainText(f.heading)} />
+        <Img src={f.image} alt={plainText(f.heading)} fit={f.fit} />
       </div>
       <div className="ed-split__text">
         {f.kicker && <span className="ed-kicker">{f.kicker}</span>}
         {f.heading && <h2 className="ed-heading"><Accent text={f.heading} /></h2>}
-        <div className="ed-body ed-fit" ref={fitRef}><Body text={f.body} /></div>
+        <div className="ed-body ed-fit" ref={fitRef}><Body text={f.body} end /></div>
       </div>
     </div>
   );
@@ -201,7 +237,8 @@ function Products({ f, products = {}, interactive, fitRef }) {
 
 function Statement({ f }) {
   return (
-    <div className="ed-statement">
+    <div className={`ed-statement ${f.art === 'mask' ? 'ed-statement--art' : ''}`}>
+      {f.art === 'mask' && <MaskArt variant="line" className="ed-statement__art" />}
       {f.quote && <blockquote className="ed-statement__quote"><p>{f.quote}</p></blockquote>}
       {f.attribution && <span className="ed-statement__attr">{f.attribution}</span>}
     </div>
@@ -210,15 +247,67 @@ function Statement({ f }) {
 
 function Story({ f, fitRef }) {
   return (
-    <div className="ed-story">
+    <div className={`ed-story ${f.border === 'triangles' ? 'ed-story--band' : ''}`}>
+      {f.border === 'triangles' && <MaskBand className="ed-band--top" />}
       <header className="ed-story__head">
         {f.kicker && <span className="ed-kicker">{f.kicker}</span>}
         {f.heading && <h2 className="ed-heading ed-heading--large"><Accent text={f.heading} /></h2>}
       </header>
       {f.image && (
-        <div className="ed-story__media"><Img src={f.image} alt={plainText(f.heading)} /></div>
+        <div className="ed-story__media"><Img src={f.image} alt={plainText(f.heading)} fit={f.fit} /></div>
       )}
-      <div className="ed-body ed-story__body ed-fit" ref={fitRef}><Body text={f.body} /></div>
+      <div className="ed-body ed-story__body ed-fit" ref={fitRef}><Body text={f.body} end /></div>
+    </div>
+  );
+}
+
+/* One place per line: "Lagos | NG". The code picks the flag. */
+function places(text) {
+  return lines(text, 8).map((l, i) => {
+    const [name, code] = l.split('|').map((x) => x.trim());
+    return { name, code: (code || '').toUpperCase(), n: i };
+  });
+}
+
+function World({ f, fitRef }) {
+  const list = places(f.places);
+  return (
+    <div className="ed-world">
+      <div className="ed-world__media"><Img src={f.image} alt={plainText(f.heading)} fit={f.fit} /></div>
+      <div className="ed-world__text">
+        {f.kicker && <span className="ed-kicker">{f.kicker}</span>}
+        {f.heading && <h2 className="ed-heading"><Accent text={f.heading} /></h2>}
+        {f.intro && <p className="ed-world__intro ed-fit" ref={fitRef}>{f.intro}</p>}
+        {list.length > 0 && (
+          <div className="ed-board" role="table" aria-label="Where the tribe is">
+            <div className="ed-board__row ed-board__row--head" role="row">
+              <span role="columnheader">Flight</span>
+              <span role="columnheader">Destination</span>
+              <span role="columnheader">Status</span>
+            </div>
+            {list.map((pl) => (
+              <div className="ed-board__row" role="row" key={pl.n}>
+                <span role="cell" className="ed-board__code">BT {String(pl.n === 0 ? 17 : 100 + pl.n).padStart(3, '0')}</span>
+                <span role="cell" className="ed-board__dest"><Flag code={pl.code} />{pl.name}</span>
+                <span role="cell" className="ed-board__status">{pl.n === 0 ? 'Home' : 'Tribe here'}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Opener({ f }) {
+  return (
+    <div className="ed-opener">
+      <MaskArt className="ed-opener__art" />
+      <div className="ed-opener__text">
+        {f.kicker && <span className="ed-kicker">{f.kicker}</span>}
+        {f.title && <h2 className="ed-opener__title"><Accent text={f.title} /></h2>}
+        {f.dek && <p className="ed-opener__dek">{f.dek}</p>}
+      </div>
     </div>
   );
 }
@@ -231,6 +320,8 @@ const RENDERERS = {
   products: Products,
   statement: Statement,
   story: Story,
+  world: World,
+  opener: Opener,
 };
 
 /* Templates that carry the running folio (cover and brand page don't) */
@@ -263,14 +354,23 @@ export default function EditorialPage({ page, number = 1, feature, products, int
 
   if (!Renderer) return null;
 
-  const tone = page.template === 'cover' || page.template === 'image' ? 'dark' : page.tone || 'dark';
+  /* Cover and full image follow their photo: a product shot on the canvas
+     reads as a light "studio" page, a campaign photo stays dark */
+  const fullPage = page.template === 'cover' || page.template === 'image';
+  const tone = fullPage
+    ? (page.fields?.fit === 'canvas' ? 'studio' : 'dark')
+    : page.tone || 'dark';
   const showContact = page.template === 'brand' || !!page.contact;
+  const fields = page.fields || {};
+  const treat = fields.treatment || '';
+  const grain = treat === 'grain' || treat === 'mono-grain';
+  const finish = treat === 'mono-grain' ? 'mono' : treat === 'grain' ? '' : treat;
 
   return (
     <div className="ed-frame">
       <div className="ed-sheet">
         <article
-          className={`ed-page ed-page--${page.template} ed-tone--${tone} ${showContact ? 'ed-page--contact' : ''}`}
+          className={`ed-page ed-page--${page.template} ed-tone--${tone} ${showContact ? 'ed-page--contact' : ''} ${finish ? `ed-finish--${finish}` : ''} ${fields.focus ? `ed-focus--${fields.focus}` : ''} ${fields.ink === 'dark' ? 'ed-ink--dark' : ''}`}
           aria-label={`Page ${number}`}
         >
           <Renderer
@@ -280,7 +380,9 @@ export default function EditorialPage({ page, number = 1, feature, products, int
             interactive={interactive}
             showContact={showContact}
             fitRef={fitRef}
+            number={number}
           />
+          {grain && <Grain />}
           {showContact && <ContactStrip />}
           {!NO_FOLIO.includes(page.template) && <Folio number={number} feature={feature} />}
         </article>

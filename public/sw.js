@@ -7,10 +7,12 @@
  *   Page navigations (HTML)                  → Network-first, offline fallback
  *   Product images (Supabase storage)        → Cache-first, network fallback
  *
+ * Supabase auth/database calls  → never intercepted (always live)
+ *
  * Cache versioning: bump CACHE_VERSION to force full refresh.
  */
 
-const CACHE_VERSION = 'bt-v4';
+const CACHE_VERSION = 'bt-v5';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
@@ -41,7 +43,17 @@ function isStaticAsset(url) {
 
 function isImageRequest(url) {
   return /\.(png|jpg|jpeg|webp|gif|avif|PNG|JPG|JPEG|WEBP)(\?.*)?$/.test(url.pathname)
-    || url.hostname.includes('supabase');
+    || isSupabaseStorage(url);
+}
+
+/* Only Supabase *storage* files are images. Supabase auth and database
+   calls must never be cached, or a signed-in user could see stale data. */
+function isSupabaseStorage(url) {
+  return url.hostname.includes('supabase') && url.pathname.startsWith('/storage/v1/object/');
+}
+
+function isSupabaseApi(url) {
+  return url.hostname.includes('supabase') && !isSupabaseStorage(url);
 }
 
 function isAnalytics(url) {
@@ -175,6 +187,9 @@ self.addEventListener('fetch', (event) => {
 
   /* Skip chrome-extension and other non-http */
   if (!url.protocol.startsWith('http')) return;
+
+  /* Supabase auth and database calls go straight to the network */
+  if (isSupabaseApi(url)) return;
 
   /* API requests: network-first */
   if (isApiRequest(url)) {

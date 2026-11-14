@@ -39,14 +39,14 @@
   --mm: calc(100cqw / 216);
 
   /* Type, in mm (3.5mm ≈ 10pt) */
-  --t-body: calc(var(--mm) * 3.5);
-  --t-small: calc(var(--mm) * 2.8);
+  --t-body: calc(var(--mm) * 3.7);
+  --t-small: calc(var(--mm) * 3.1);
   --t-label: calc(var(--mm) * 2.3);
   --t-heading: calc(var(--mm) * 10);
   --t-heading-lg: calc(var(--mm) * 13);
-  --t-cover: calc(var(--mm) * 15);
-  --t-mast: calc(var(--mm) * 18);
-  --t-quote: calc(var(--mm) * 11);
+  --t-cover: calc(var(--mm) * 19);
+  --t-mast: calc(var(--mm) * 16.5);
+  --t-quote: calc(var(--mm) * 15);
   --t-dek: calc(var(--mm) * 5.5);
 
   /* Space */
@@ -79,8 +79,17 @@
 .ed-tone--light {
   --ed-bg: var(--bt-canvas-alt);
   --ed-ink: var(--bt-text-inverse);
-  --ed-ink-2: color-mix(in srgb, var(--bt-text-inverse) 68%, transparent);
+  --ed-ink-2: color-mix(in srgb, var(--bt-text-inverse) 80%, transparent);
   --ed-rule: color-mix(in srgb, var(--bt-text-inverse) 18%, transparent);
+}
+
+/* Studio: cover and full-image pages built around a product shot.
+   The whole page is the soft grey product canvas, ink is dark. */
+.ed-tone--studio {
+  --ed-bg: var(--bt-canvas-product, #EAE8E5);
+  --ed-ink: var(--bt-text-inverse);
+  --ed-ink-2: color-mix(in srgb, var(--bt-text-inverse) 78%, transparent);
+  --ed-rule: color-mix(in srgb, var(--bt-text-inverse) 20%, transparent);
 }
 
 
@@ -104,6 +113,27 @@
 .ed-img--bleed {
   position: absolute;
   inset: 0;
+}
+
+/* Product shot on the soft grey canvas: centred, never cropped,
+   its white multiplied into the canvas so plate and page agree */
+.ed-plate {
+  position: absolute;
+  inset: 0;
+  background: var(--bt-canvas-product, #EAE8E5);
+  isolation: isolate;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.ed-plate__img {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: calc(var(--mm) * 7);
+  mix-blend-mode: multiply;
 }
 
 .ed-kicker {
@@ -261,7 +291,14 @@
   border-top-color: rgba(237, 235, 232, 0.35);
 }
 
-.ed-page--image.ed-page--contact::after {
+.ed-tone--studio.ed-page--cover .ed-contact,
+.ed-tone--studio.ed-page--image .ed-contact {
+  --ed-ink: var(--bt-text-inverse);
+  --ed-ink-2: color-mix(in srgb, var(--bt-text-inverse) 78%, transparent);
+  border-top-color: var(--ed-rule);
+}
+
+.ed-tone--dark.ed-page--image.ed-page--contact::after {
   content: '';
   position: absolute;
   inset: auto 0 0 0;
@@ -412,7 +449,9 @@
   inset: 0;
   background:
     linear-gradient(to bottom, rgba(12, 12, 12, 0.45) 0%, rgba(12, 12, 12, 0) 22%),
-    linear-gradient(to top, rgba(12, 12, 12, 0.85) 0%, rgba(12, 12, 12, 0) 48%);
+    linear-gradient(to top, rgba(12, 12, 12, 0.85) 0%, rgba(12, 12, 12, 0) 48%),
+    /* the cover lines sit on the left: keep that side quieter */
+    linear-gradient(to right, rgba(12, 12, 12, 0.55) 0%, rgba(12, 12, 12, 0) 62%);
 }
 
 .ed-cover__content {
@@ -442,6 +481,7 @@
 }
 
 .ed-cover__title {
+  text-shadow: 0 0 calc(var(--mm) * 8) rgba(12, 12, 12, 0.35);
   font-family: var(--font-display);
   font-weight: var(--weight-extrabold);
   font-size: var(--t-cover);
@@ -470,6 +510,22 @@
 }
 
 
+/* ═══ COVER: STUDIO (product shot on canvas) ═══ */
+
+.ed-cover__plate {
+  top: calc(var(--mm) * 40);
+  bottom: calc(var(--mm) * 84);
+  background: transparent;              /* the page is already the canvas, */
+  isolation: auto;                      /* so blend straight into the page */
+}
+
+.ed-cover__plate .ed-plate__img { padding: 0 calc(var(--mm) * 18); }
+
+.ed-tone--studio .ed-cover__content { color: var(--bt-text-inverse); }
+.ed-tone--studio .ed-cover__bottom .ed-kicker { color: var(--ed-ink-2); opacity: 1; }
+.ed-tone--studio .ed-cover__site { color: var(--ed-ink-2); opacity: 1; }
+
+
 /* ═══ FULL-BLEED IMAGE ═══ */
 
 .ed-page--image .ed-folio {
@@ -481,7 +537,7 @@
   position: absolute;
   left: var(--pad);
   bottom: calc(var(--mm) * 20);
-  max-width: 62%;
+  max-width: 48%;
   font-family: var(--font-serif);
   font-style: italic;
   font-size: var(--t-dek);
@@ -493,7 +549,32 @@
 .ed-image__caption p { margin: 0; }
 
 
+/* Studio: the shot sits centred, caption in dark ink below it */
+.ed-image__plate {
+  top: var(--pad);
+  bottom: calc(var(--mm) * 58);
+  background: transparent;
+  isolation: auto;
+}
+
+.ed-tone--studio .ed-image__caption {
+  bottom: calc(var(--mm) * 24);
+  max-width: 70%;
+  color: var(--ed-ink);
+  text-shadow: none;
+}
+
+.ed-tone--studio.ed-page--image .ed-folio {
+  color: var(--ed-ink-2);
+  text-shadow: none;
+}
+
+.ed-page--contact .ed-image__plate { bottom: calc(var(--mm) * 80); }
+
+
 /* ═══ SPLIT ═══ */
+
+.ed-split__media .ed-plate__img { padding: calc(var(--mm) * 10) calc(var(--mm) * 6); }
 
 .ed-split {
   position: absolute;
@@ -569,7 +650,20 @@
 
 .ed-products__grid--1 { grid-template-columns: 1fr; }
 .ed-products__grid--2 { grid-template-columns: 1fr 1fr; }
-.ed-products__grid--3 { grid-template-columns: 1fr 1fr 1fr; }
+/* Three: one hero piece, two stacked beside it */
+.ed-products__grid--3 {
+  grid-template-columns: 1.25fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.ed-products__grid--3 .ed-piece:first-child { grid-row: span 2; }
+
+/* Two: portrait plates, staggered so the page has movement */
+.ed-products__grid--2 .ed-piece__canvas {
+  flex: none;
+  aspect-ratio: 3 / 4;
+}
+.ed-products__grid--2 .ed-piece:first-child { align-self: start; }
+.ed-products__grid--2 .ed-piece:last-child { align-self: end; }
 .ed-products__grid--4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
 
 .ed-products__empty {
@@ -606,7 +700,10 @@ a.ed-piece__link:focus-visible {
   position: relative;
   flex: 1;
   min-height: 0;
-  background: var(--bt-canvas);
+  background: var(--bt-canvas-product, var(--bt-canvas));
+  isolation: isolate;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -617,7 +714,8 @@ a.ed-piece__link:focus-visible {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: calc(var(--mm) * 4);
+  padding: calc(var(--mm) * 5);
+  mix-blend-mode: multiply;
 }
 
 .ed-piece__info {
@@ -646,6 +744,7 @@ a.ed-piece__link:focus-visible {
   font-family: var(--font-body);
   font-weight: var(--weight-medium);
   font-size: var(--t-small);
+  letter-spacing: 0.01em;
   color: var(--ed-ink);
 }
 
@@ -670,12 +769,14 @@ a.ed-piece__link:focus-visible {
   inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: var(--pad) calc(var(--mm) * 22) var(--pad-bottom);
+  justify-content: flex-end;
+  padding: var(--pad) calc(var(--mm) * 24) calc(var(--mm) * 48) var(--pad);
 }
 
 .ed-statement__quote {
-  margin: 0 0 calc(var(--mm) * 10);
+  margin: 0 0 calc(var(--mm) * 9);
+  padding-top: calc(var(--mm) * 6);
+  border-top: 1px solid var(--ed-rule);
 }
 
 .ed-statement__quote p {
@@ -683,7 +784,8 @@ a.ed-piece__link:focus-visible {
   font-style: italic;
   font-weight: var(--weight-light);
   font-size: var(--t-quote);
-  line-height: 1.12;
+  line-height: 1.04;
+  letter-spacing: -0.01em;
   margin: 0;
   color: var(--ed-ink);
 }
@@ -726,6 +828,343 @@ a.ed-piece__link:focus-visible {
 
 
 /* ═══════════════════════════════════════════════════════════
+   ART — built from the mask (see components/editorial/Art.jsx)
+   ═══════════════════════════════════════════════════════════ */
+
+.ed-mask { display: block; color: var(--ed-ink); }
+
+/* Small mask that closes a story */
+.ed-end {
+  display: inline-block;
+  height: 1.05em;
+  width: 0.55em;
+  vertical-align: -0.16em;
+  color: var(--ed-ink);
+}
+
+/* Mask pattern band */
+.ed-band {
+  display: block;
+  width: 100%;
+  height: calc(var(--mm) * 11);
+  color: var(--ed-ink);
+}
+
+.ed-band--top {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(var(--mm) * 13);
+}
+
+.ed-story--band { padding-top: calc(var(--pad) + var(--mm) * 9); }
+
+/* Statement with the line-drawn mask above the quote */
+.ed-statement__art {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--mm) * 26);
+  width: calc(var(--mm) * 64);
+  height: calc(var(--mm) * 122);
+  transform: translateX(-50%);
+  color: var(--ed-ink);
+}
+
+.ed-statement--art { justify-content: flex-end; }
+
+
+/* ═══ COVER: subject in front of the masthead ═══ */
+
+.ed-cover__mast { position: relative; z-index: 1; }
+
+.ed-cover__cutout {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  /* only the head and shoulders come forward, fading out so no edge shows;
+     the rest stays behind the shade */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 46%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 46%);
+}
+
+.ed-cover__bottom { position: relative; z-index: 3; }
+
+/* Masthead position: drop it to where the head sits so a cut-out overlaps it */
+.ed-cover__content--mast-upper .ed-cover__mast { margin-top: calc(var(--mm) * 13); }
+.ed-cover__content--mast-middle .ed-cover__mast { margin-top: calc(var(--mm) * 44); }
+
+
+/* ═══ WORLD: photo, intro, departures board with flags ═══ */
+
+.ed-world {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 52% 1fr;
+}
+
+.ed-world__media {
+  position: relative;
+  overflow: hidden;
+}
+
+.ed-world__media .ed-img {
+  position: absolute;
+  inset: 0;
+}
+
+.ed-world__text {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: calc(var(--mm) * 9) var(--pad) var(--pad-bottom);
+}
+
+.ed-world__text .ed-heading { margin-bottom: calc(var(--mm) * 3); }
+
+.ed-world__intro {
+  margin: 0 0 calc(var(--mm) * 6);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--t-dek);
+  line-height: 1.25;
+  color: var(--ed-ink-2);
+  max-width: 80%;
+  max-height: calc(var(--mm) * 22);
+}
+
+.ed-board {
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ed-board__row {
+  display: grid;
+  grid-template-columns: calc(var(--mm) * 24) 1fr auto;
+  align-items: center;
+  gap: calc(var(--mm) * 4);
+  padding: calc(var(--mm) * 1.9) 0;
+  border-top: 1px solid var(--ed-rule);
+  color: var(--ed-ink);
+}
+
+.ed-board__row:last-child { border-bottom: 1px solid var(--ed-rule); }
+
+.ed-board__row--head {
+  font-size: var(--t-label);
+  letter-spacing: 0.18em;
+  color: var(--ed-ink-2);
+  border-top: none;
+}
+
+.ed-board__code,
+.ed-board__status { color: var(--ed-ink-2); white-space: nowrap; }
+
+.ed-board__dest {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--mm) * 3);
+}
+
+.ed-flag {
+  flex: none;
+  width: calc(var(--mm) * 7.5);
+  height: calc(var(--mm) * 5);
+  box-shadow: 0 0 0 0.5px var(--ed-rule);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.ed-flag--none { display: inline-block; }
+
+
+/* ═══ SECTION OPENER: the mask, huge and cropped ═══ */
+
+.ed-opener {
+  position: absolute;
+  inset: 0;
+}
+
+.ed-opener__art {
+  position: absolute;
+  right: calc(var(--mm) * -86);
+  top: calc(var(--mm) * 14);
+  height: calc(var(--mm) * 270);
+  width: calc(var(--mm) * 200);
+  color: var(--ed-ink);
+}
+
+.ed-opener__text {
+  position: absolute;
+  left: var(--pad);
+  bottom: calc(var(--mm) * 48);
+  width: 52%;
+}
+
+.ed-opener__title {
+  font-family: var(--font-display);
+  font-weight: var(--weight-extrabold);
+  font-size: calc(var(--mm) * 20);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  margin: 0 0 calc(var(--mm) * 5);
+}
+
+.ed-opener__dek {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--t-dek);
+  line-height: 1.25;
+  color: var(--ed-ink-2);
+  margin: 0;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   PHOTO FINISH — one grade per page, so photos look chosen
+   ═══════════════════════════════════════════════════════════ */
+
+.ed-finish--mono .ed-img,
+.ed-finish--mono .ed-cover__cutout {
+  filter: grayscale(1) contrast(1.16) brightness(1.03);
+}
+
+.ed-finish--night .ed-img,
+.ed-finish--night .ed-cover__cutout {
+  filter: contrast(1.2) saturate(1.25) brightness(0.93);
+}
+
+/* Keep in frame: the cut-out follows the photo so they stay aligned */
+.ed-focus--left .ed-img,
+.ed-focus--left .ed-cover__cutout { object-position: 22% 50%; }
+.ed-focus--right .ed-img,
+.ed-focus--right .ed-cover__cutout { object-position: 78% 50%; }
+.ed-focus--top .ed-img,
+.ed-focus--top .ed-cover__cutout { object-position: 50% 12%; }
+
+/* Film grain: SVG noise, printed as part of the page */
+.ed-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1.4 -0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: calc(var(--mm) * 40);
+  mix-blend-mode: overlay;
+  opacity: 0.55;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+
+/* ═══ IMAGE PAGE: headline over the photo, proof marks ═══ */
+
+.ed-image__headline {
+  position: absolute;
+  z-index: 2;
+  left: var(--pad);
+  right: var(--pad);
+  top: calc(var(--pad) + var(--mm) * 6);
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-extrabold);
+  font-size: calc(var(--mm) * 17);
+  line-height: 0.9;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  color: var(--bt-text);
+  text-shadow: 0 0 calc(var(--mm) * 6) rgba(12, 12, 12, 0.45);
+}
+
+.ed-image__headline .ed-accent { display: block; font-size: 1.1em; }
+
+.ed-tone--studio .ed-image__headline { color: var(--ed-ink); text-shadow: none; }
+
+.ed-image__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(12, 12, 12, 0.62) 0%, rgba(12, 12, 12, 0) 34%),
+    linear-gradient(to top, rgba(12, 12, 12, 0.7) 0%, rgba(12, 12, 12, 0) 30%);
+}
+
+/* Dark text for light photos (a white studio wall) */
+.ed-ink--dark .ed-image__headline,
+.ed-ink--dark .ed-image__caption,
+.ed-ink--dark.ed-page--image .ed-folio,
+.ed-ink--dark .ed-proof {
+  color: var(--bt-text-inverse);
+  text-shadow: none;
+}
+
+.ed-proof {
+  position: absolute;
+  inset: calc(var(--mm) * 8);
+  z-index: 2;
+  pointer-events: none;
+  color: var(--bt-text);
+}
+
+.ed-proof__marks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.6px;
+  vector-effect: non-scaling-stroke;
+  overflow: visible;
+}
+
+.ed-proof__marks path { vector-effect: non-scaling-stroke; }
+
+.ed-proof__fig {
+  position: absolute;
+  right: calc(var(--mm) * 9);
+  top: calc(var(--mm) * 3);
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.ed-tone--studio .ed-proof { color: var(--ed-ink); }
+
+
+/* ═══ COVER LINES: what's inside ═══ */
+
+.ed-cover__lines {
+  list-style: none;
+  margin: 0 0 calc(var(--mm) * 6);
+  padding: calc(var(--mm) * 3) 0 0;
+  border-top: 1px solid rgba(237, 235, 232, 0.35);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--mm) * 1.6) var(--gutter);
+  max-width: 82%;
+  font-family: var(--font-mono);
+  font-size: var(--t-label);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ed-tone--studio .ed-cover__lines { border-top-color: var(--ed-rule); }
+
+.ed-flag--globe { box-shadow: none; color: var(--ed-ink); }
+
+
+/* ═══════════════════════════════════════════════════════════
    READER — reflow under 768px so text stays readable on phones.
    Same templates, same content, responsive layout.
    ═══════════════════════════════════════════════════════════ */
@@ -751,7 +1190,7 @@ a.ed-piece__link:focus-visible {
     --t-heading: 28px;
     --t-heading-lg: 34px;
     --t-cover: 40px;
-    --t-mast: clamp(36px, 11vw, 56px);
+    --t-mast: clamp(24px, 7.4vw, 48px);
     --t-quote: 30px;
     --t-dek: 18px;
     --pad: 24px;
@@ -771,7 +1210,7 @@ a.ed-piece__link:focus-visible {
   }
 
   /* Cover keeps a portrait box */
-  .ed-reader .ed-page--cover { min-height: calc(100vw * 4 / 3); }
+  .ed-reader .ed-page--cover { min-height: calc(100vw * 1.414); }  /* A4 shape, so the cover reads like print */
 
   /* Full-bleed image: natural height, caption below */
   .ed-reader .ed-page--image .ed-img--bleed {
@@ -785,6 +1224,12 @@ a.ed-piece__link:focus-visible {
     text-shadow: none;
   }
   .ed-reader .ed-page--image .ed-folio { text-shadow: none; }
+  .ed-reader .ed-page--image .ed-image__plate {
+    position: relative;
+    inset: auto;
+    aspect-ratio: 3 / 4;
+  }
+  .ed-reader .ed-statement { justify-content: center; }
 
   /* Split stacks, image first */
   .ed-reader .ed-split {
@@ -812,6 +1257,11 @@ a.ed-piece__link:focus-visible {
     grid-template-rows: none;
   }
   .ed-reader .ed-piece__canvas { flex: none; aspect-ratio: 3 / 4; }
+  .ed-reader .ed-products__grid--3 .ed-piece:first-child {
+    grid-row: auto;
+    grid-column: 1 / -1;                /* hero piece runs full width */
+  }
+  .ed-reader .ed-products__grid--3 .ed-piece:first-child .ed-piece__canvas { aspect-ratio: 4 / 5; }
 
   /* Statement */
   .ed-reader .ed-statement {
@@ -825,6 +1275,32 @@ a.ed-piece__link:focus-visible {
     padding: 40px var(--pad) 16px;
   }
   .ed-reader .ed-story__body { columns: 1; }
+
+  .ed-reader .ed-image__headline { font-size: 40px; top: 32px; }
+  .ed-reader .ed-page--image .ed-image__headline { position: absolute; }
+  .ed-reader .ed-proof { display: none; }
+  .ed-reader .ed-cover__lines { max-width: none; font-size: 9px; }
+
+  /* World: photo on top, board below */
+  .ed-reader .ed-world { position: static; display: block; }
+  .ed-reader .ed-world__media { aspect-ratio: 4 / 5; }
+  .ed-reader .ed-world__text { padding: 32px var(--pad) 16px; }
+  .ed-reader .ed-world__intro { max-width: none; max-height: none; }
+  .ed-reader .ed-flag { width: 22px; height: 15px; }
+  .ed-reader .ed-board__row { grid-template-columns: 58px 1fr auto; gap: 10px; }
+
+  /* Opener: keeps a tall box so the mask has room */
+  .ed-reader .ed-page--opener { min-height: calc(100vw * 1.25); overflow: hidden; }
+  .ed-reader .ed-opener__text { width: 60%; bottom: 40px; }
+  .ed-reader .ed-opener__title { font-size: 44px; }
+
+  /* Statement art */
+  .ed-reader .ed-statement--art { padding-top: 260px; }
+  .ed-reader .ed-statement__art { top: 40px; width: 120px; height: 200px; }
+
+  /* Story band */
+  .ed-reader .ed-story--band { padding-top: 64px; }
+  .ed-reader .ed-band--top { height: 34px; }
 
   /* QR codes are for paper; on a phone you're already on the site */
   .ed-reader .ed-qr { display: none; }

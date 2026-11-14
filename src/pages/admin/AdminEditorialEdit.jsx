@@ -37,6 +37,10 @@ function slugify(str) {
 
 const TEMPLATE_OPTIONS = TEMPLATE_KEYS.map((k) => ({ value: k, label: TEMPLATES[k].label }));
 const SIDE_OPTIONS = [{ value: 'left', label: 'Left' }, { value: 'right', label: 'Right' }];
+const FIT_OPTIONS = [
+  { value: 'canvas', label: 'Product shot: piece on the soft grey canvas' },
+  { value: 'fill', label: 'Campaign photo: fills the frame' },
+];
 
 
 /* ═══ FIELD ═══ */
@@ -99,6 +103,32 @@ function Field({ field, value, onChange, featureId, productOptions }) {
             label={field.label}
             options={SIDE_OPTIONS}
             value={value || 'left'}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={null}
+          />
+        </div>
+      );
+
+    case 'choice':
+      return (
+        <div className="admin-form-row">
+          <Select
+            label={field.label}
+            options={field.options}
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={null}
+          />
+        </div>
+      );
+
+    case 'fit':
+      return (
+        <div className="admin-form-row">
+          <Select
+            label={field.label}
+            options={FIT_OPTIONS}
+            value={value || 'fill'}
             onChange={(e) => onChange(e.target.value)}
             placeholder={null}
           />
