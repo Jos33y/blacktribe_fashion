@@ -1,10 +1,17 @@
-export default function Marquee() {
+/*
+ * BLACKTRIBE FASHION — MARQUEE
+ *
+ * The current collection's name comes from /api/homepage, so the strip
+ * follows the drop without code changes. Falls back to brand lines when
+ * there is no active collection yet.
+ */
+
+export default function Marquee({ collectionName }) {
   const items = [
-    'New Season',
+    collectionName || 'New season',
     'Pre-order available',
     'Worldwide delivery',
-    'Shadow Collection SS26',
-    'Limited pieces',
+    'Redefining Luxury',
   ];
 
   // Duplicate for seamless loop

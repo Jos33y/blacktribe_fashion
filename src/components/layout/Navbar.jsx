@@ -5,10 +5,12 @@ import useAuth from '../../hooks/useAuth';
 import useAuthStore from '../../store/authStore';
 import '../../styles/layout/Navbar.css';
 
-const navLinks = [
+/* Exported so the mobile menu (StoreLayout → MobileNav) can share one list */
+export const navLinks = [
   { to: '/shop', label: 'Shop' },
   { to: '/collections', label: 'Collections' },
   { to: '/lookbook', label: 'Lookbook' },
+  { to: '/editorial', label: 'Editorial' },
   { to: '/about', label: 'About' },
 ];
 

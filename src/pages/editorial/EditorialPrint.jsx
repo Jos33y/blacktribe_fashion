@@ -13,6 +13,11 @@
  *
  * Drafts: admins with the 'collections' permission can print drafts
  * (the API checks the token sent by api()).
+ *
+ * PDF filename: browsers name the saved PDF after document.title, so the
+ * title is swapped just before printing (button or Ctrl+P) to
+ *   BlackTribe_Issue-01_born-in-lagos_2026-11-14_1430
+ * and restored afterwards.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -28,6 +33,7 @@ export default function EditorialPrint() {
   const [status, setStatus] = useState('loading'); /* loading | ready | missing */
   const [imagesReady, setImagesReady] = useState(false);
   const pagesRef = useRef(null);
+  const screenTitle = useRef('');
 
   useEffect(() => {
     let cancelled = false;
@@ -62,6 +68,35 @@ export default function EditorialPrint() {
 
     return () => { cancelled = true; };
   }, [status, feature]);
+
+  /* Filename-friendly title while the print dialog is open */
+  useEffect(() => {
+    if (!feature) return;
+
+    const pad = (n) => String(n).padStart(2, '0');
+    const fileTitle = () => {
+      const d = new Date();
+      const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+      const issue = (feature.issue_label || '').trim().replace(/[^\w]+/g, '-').replace(/^-+|-+$/g, '');
+      const draft = feature.status !== 'published' ? '_DRAFT' : '';
+      return ['BlackTribe', issue, feature.slug, stamp].filter(Boolean).join('_') + draft;
+    };
+
+    const before = () => {
+      screenTitle.current = document.title;
+      document.title = fileTitle();
+    };
+    const after = () => {
+      if (screenTitle.current) document.title = screenTitle.current;
+    };
+
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => {
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+    };
+  }, [feature]);
 
   const handlePrint = useCallback(() => window.print(), []);
 

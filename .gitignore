@@ -1,8 +1,48 @@
-node_modules
-dist
+# ═══ Dependencies ═══
+node_modules/
+
+# ═══ Build output ═══
+dist/
+.vite/
+coverage/
+
+# ═══ Environment / secrets ═══
+# Every .env variant is ignored; only the template is committed
 .env
-.env.local
-.DS_Store
+.env.*
+.env.example
+*.pem
+*.key
+
+# ═══ Logs ═══
 *.log
-database
-structure_blacktribe_v12.txt
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ═══ Editors ═══
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+
+# ═══ OS ═══
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ═══ Database (SQL kept local, not in git) ═══
+database/
+scripts/
+
+# ═══ Working files ═══
+# Product photo folders uploaded via scripts/upload-images.js
+drop-*/
+product-export-*/
+# Folder listings and file bundles sent for review
+structure_*.txt
+public_structure.txt
+*-inputs.zip
+*.zip

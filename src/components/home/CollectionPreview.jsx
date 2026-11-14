@@ -3,6 +3,9 @@
  *
  * Accepts collection prop (with embedded products) from parent batch fetch.
  * Falls back to own sequential fetch if no prop provided (standalone usage).
+ *
+ * Eyebrow: "SS26 Collection" when the collection has a season, otherwise
+ * the live piece count ("19 pieces"). Never prints an empty season.
  */
 
 import { useState, useEffect } from 'react';
@@ -81,7 +84,13 @@ export default function CollectionPreview({ collection: propCollection, loading:
     <section className="home-collection">
       <div className="home-collection__inner container">
         <div className="home-collection__header">
-          <span className="home-collection__eyebrow">{collection.season} Collection</span>
+          <span className="home-collection__eyebrow">
+            {collection.season
+              ? `${collection.season} Collection`
+              : collection.product_count
+                ? `The collection. ${collection.product_count} pieces`
+                : 'The collection'}
+          </span>
           <h2 className="home-collection__title">{collection.name}</h2>
           <p className="home-collection__description">{collection.description}</p>
         </div>
