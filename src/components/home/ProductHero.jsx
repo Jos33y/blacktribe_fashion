@@ -1,78 +1,70 @@
 /*
  * BLACKTRIBE FASHION — HOMEPAGE HERO
  *
- * Driven by the current collection (newest active collection, from
- * /api/homepage). Name, description, link and image all come from data,
- * so a new drop takes over the hero the moment its collection is created.
+ * Full-bleed obsidian hero: one dark, atmospheric image of the lead piece,
+ * darkened under a bottom-weighted gradient, headline over it.
  *
- * Layout: product on a white canvas inside the obsidian frame (the brand's
- * "products on white canvas, dark frame" rule). Product photography is shot
- * on white, so it is shown as-is rather than darkened behind text.
- *   Mobile:  canvas on top, text below
- *   Desktop: text left, canvas right
+ * Text and link come from the current collection (newest active collection,
+ * from /api/homepage), so a new drop takes over the hero when its collection
+ * is created.
  *
- * The canvas starts below the navbar, so the transparent navbar always sits
- * on obsidian and stays legible.
+ * Hero image convention: /images/hero/<collection-slug>.jpg in public/.
+ * It must be the piece on obsidian (not the white-background shop photo),
+ * landscape, ~2400×1350. If the file is missing, the previous hero image
+ * is used so the hero never shows a broken image.
  */
 
+import { useState } from 'react';
 import { Link } from 'react-router';
-import Skeleton from '../ui/Skeleton';
 
-export default function ProductHero({ collection, loading }) {
-  const ready = !loading && collection;
+const FALLBACK_IMAGE = '/images/crystal-velvet-trucker-back.PNG';
 
-  const eyebrow = collection?.season ? `New collection. ${collection.season}` : 'New collection';
-  const count = collection?.product_count;
+export default function ProductHero({ collection }) {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  const slug = collection?.slug;
+  const heroSrc = slug && !imgFailed ? `/images/hero/${slug}.jpg` : FALLBACK_IMAGE;
+
+  const eyebrow = collection?.season ? `New Season. ${collection.season}` : 'New Collection';
 
   return (
-    <section className="home-hero" id="home-hero" aria-label={ready ? collection.name : 'Current collection'}>
-      <div className="home-hero__canvas">
-        {ready && collection.hero_image ? (
-          <img
-            src={collection.hero_image}
-            alt={collection.name}
-            className="home-hero__canvas-img"
-            fetchPriority="high"
-            draggable="false"
-          />
-        ) : (
-          <div className="home-hero__canvas-empty" aria-hidden="true" />
-        )}
+    <section className="home-hero" id="home-hero">
+      <div className="home-hero__bg">
+        <img
+          key={heroSrc}
+          src={heroSrc}
+          alt=""
+          className="home-hero__bg-img"
+          aria-hidden="true"
+          draggable="false"
+          fetchPriority="high"
+          onError={() => setImgFailed(true)}
+        />
       </div>
 
+      <div className="home-hero__overlay" />
+
       <div className="home-hero__content container">
-        {ready ? (
-          <>
-            <span className="home-hero__eyebrow">
-              {eyebrow}{count ? `. ${count} pieces` : ''}
-            </span>
-            <h1 className="home-hero__headline">{collection.name}</h1>
-            {collection.description && <p className="home-hero__sub">{collection.description}</p>}
-            <div className="home-hero__actions">
-              <Link to={`/collections/${collection.slug}`} className="home-hero__cta home-hero__cta--primary">
-                Shop the Drop
-              </Link>
-              <Link to="/shop" className="home-hero__cta home-hero__cta--secondary">
-                Browse All
-              </Link>
-            </div>
-          </>
-        ) : loading ? (
-          <>
-            <Skeleton type="text" style={{ width: 140, height: 10, marginBottom: 14 }} />
-            <Skeleton type="text" style={{ width: '70%', height: 56, marginBottom: 16 }} />
-            <Skeleton type="text" style={{ width: '85%', height: 14, marginBottom: 28 }} />
-          </>
-        ) : (
-          /* No active collection: keep the hero useful */
-          <>
-            <span className="home-hero__eyebrow">BlackTribe Fashion</span>
-            <h1 className="home-hero__headline">Redefining Luxury</h1>
-            <div className="home-hero__actions">
-              <Link to="/shop" className="home-hero__cta home-hero__cta--primary">Shop All</Link>
-            </div>
-          </>
-        )}
+        <span className="home-hero__eyebrow">{collection ? eyebrow : 'BlackTribe Fashion'}</span>
+        <h1 className="home-hero__headline">{collection?.name || 'Redefining Luxury'}</h1>
+        {collection?.description && <p className="home-hero__sub">{collection.description}</p>}
+        <div className="home-hero__actions">
+          <Link
+            to={collection ? `/collections/${collection.slug}` : '/shop'}
+            className="home-hero__cta home-hero__cta--primary"
+          >
+            Shop the Drop
+          </Link>
+          <Link to="/shop" className="home-hero__cta home-hero__cta--secondary">
+            Browse All
+          </Link>
+        </div>
+      </div>
+
+      <div className="home-hero__scroll" aria-hidden="true">
+        <svg width="16" height="24" viewBox="0 0 16 24" fill="none" stroke="currentColor" strokeWidth="1">
+          <path d="M8 4v12M3 12l5 5 5-5" opacity="0.6" />
+        </svg>
       </div>
     </section>
   );

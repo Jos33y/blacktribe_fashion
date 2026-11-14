@@ -76,7 +76,7 @@ export default function Home() {
   return (
     <div className="home">
       <JsonLd data={buildOrganizationSchema()} />
-      <ProductHero collection={homeData?.collection} loading={loading} />
+      <ProductHero collection={homeData?.collection} />
       <Marquee collectionName={homeData?.collection?.name} />
       <div className="home-reveal">
         <FeaturedGrid products={homeData?.featured} loading={loading} />
