@@ -30,9 +30,6 @@ export default defineConfig({
           state: ['zustand'],
           /* Supabase client — ~40KB, separate from vendor for cache efficiency */
           supabase: ['@supabase/supabase-js'],
-          /* Charts (admin Dashboard/Analytics only) — named so it's easy to
-             spot in the build output and confirm the store never loads it */
-          charts: ['recharts'],
         },
       },
     },
