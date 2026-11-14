@@ -20,6 +20,7 @@ import authRouter from './server/routes/auth.js';
 import wishlistRouter from './server/routes/wishlist.js';
 import eventsRouter from './server/routes/events.js';
 import homepageRouter from './server/routes/homepage.js';
+import editorialRouter from './server/routes/editorial.js';
 
 // Route imports — admin
 import adminRouter from './server/routes/admin/index.js';
@@ -61,6 +62,7 @@ app.use('/api/categories', categoriesRouter);
 app.use('/api/newsletter', newsletterRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/homepage', homepageRouter);
+app.use('/api/editorial', editorialRouter);
 
 // API Routes — authenticated
 app.use('/api/cart', cartRouter);

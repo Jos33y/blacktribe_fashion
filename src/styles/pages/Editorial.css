@@ -1,0 +1,331 @@
+/* ═══════════════════════════════════════════════════════════
+   EDITORIAL — index, feature reader, print view
+
+   Hero structure: .page-hero + .page-hero__inner (page-shared.css)
+   Page renderer styles live in styles/editorial/EditorialPage.css
+   ═══════════════════════════════════════════════════════════ */
+
+
+/* ═══ INDEX ═══ */
+
+.editorial { overflow-x: clip; }
+
+.ed-index-headline {
+  font-size: clamp(36px, 8vw, 80px);
+}
+
+.ed-index {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--content-padding) var(--space-8);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6) var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .ed-index { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 1024px) {
+  .ed-index { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+.ed-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ed-card__cover {
+  aspect-ratio: 210 / 297;
+  background: var(--bt-surface);
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+}
+
+.ed-card__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--duration-slow) var(--ease-out);
+}
+
+.ed-card:hover .ed-card__cover img { transform: scale(1.02); }
+
+.ed-card:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.ed-card__issue {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bt-text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.ed-card__title {
+  font-family: var(--font-display);
+  font-weight: var(--weight-extrabold);
+  font-size: var(--text-h2);
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--bt-text);
+  margin: 0 0 var(--space-2);
+}
+
+.ed-card__dek {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.35;
+  color: var(--bt-text-secondary);
+  margin: 0;
+}
+
+.ed-empty {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--content-padding) var(--space-8);
+  text-align: center;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--bt-text-secondary);
+}
+
+
+/* ═══ FEATURE READER ═══ */
+
+.ed-feature-headline {
+  font-size: clamp(32px, 7vw, 64px);
+}
+
+.ed-reader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+@media (min-width: 768px) {
+  .ed-reader {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 var(--content-padding);
+    gap: var(--space-5);
+  }
+
+  .ed-reader .ed-frame { box-shadow: var(--shadow-lg); }
+}
+
+.ed-feature-actions {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--content-padding) var(--space-8);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.ed-feature-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--bt-border-hover);
+  color: var(--bt-text);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: border-color var(--duration-fast) ease;
+}
+
+.ed-feature-actions a:hover { border-color: var(--bt-text); }
+.ed-feature-actions a:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+.ed-feature-actions__note {
+  flex-basis: 100%;
+  text-align: center;
+  font-size: var(--text-small);
+  color: var(--bt-text-secondary);
+  margin: 0;
+}
+
+.ed-skeleton-page {
+  aspect-ratio: 210 / 297;
+  background: var(--bt-surface);
+}
+
+
+/* ═══ PRINT VIEW ═══ */
+
+.ed-print {
+  min-height: 100vh;
+  background: var(--bt-surface);
+  color: var(--bt-text);
+}
+
+.ed-print-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--content-padding);
+  padding-top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
+  background: var(--bt-bg);
+  border-bottom: 1px solid var(--bt-border);
+}
+
+.ed-print-toolbar__title {
+  flex: 1;
+  min-width: 160px;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bt-text-secondary);
+}
+
+.ed-print-toolbar__draft {
+  margin-left: var(--space-2);
+  color: var(--bt-text);
+}
+
+.ed-print-toolbar a,
+.ed-print-toolbar button {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: 1px solid var(--bt-border-hover);
+  color: var(--bt-text);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ed-print-toolbar button.ed-print-toolbar__primary {
+  background: var(--bt-interactive);
+  border-color: var(--bt-interactive);
+  color: var(--bt-text-inverse);
+}
+
+.ed-print-toolbar button:disabled { opacity: 0.5; cursor: wait; }
+
+.ed-print-note {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--content-padding) 0;
+  font-size: var(--text-small);
+  line-height: 1.6;
+  color: var(--bt-text-secondary);
+}
+
+.ed-print-note strong { color: var(--bt-text); font-weight: var(--weight-medium); }
+
+.ed-print-pages {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--content-padding) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Print view shows the full sheet, bleed included, with a trim guide */
+.ed-print .ed-frame {
+  aspect-ratio: 216 / 303;
+  box-shadow: var(--shadow-lg);
+}
+
+.ed-print .ed-sheet {
+  width: 100%;
+  margin: 0;
+}
+
+.ed-print .ed-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0.990% 1.389%;               /* 3mm of 303 / 3mm of 216 */
+  outline: 1px dashed var(--bt-text-muted);
+  pointer-events: none;
+}
+
+
+/* ─── Print output: 216×303mm sheets (A4 + 3mm bleed), one per page ─── */
+
+@page editorial {
+  size: 216mm 303mm;
+  margin: 0;
+}
+
+@media print {
+  .ed-print {
+    page: editorial;
+    background: none;
+    min-height: 0;
+  }
+
+  .ed-print,
+  .ed-print * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .ed-print-toolbar,
+  .ed-print-note { display: none !important; }
+
+  .ed-print-pages {
+    max-width: none;
+    padding: 0;
+    gap: 0;
+    display: block;
+  }
+
+  .ed-print .ed-frame {
+    width: 216mm;
+    height: 303mm;
+    aspect-ratio: auto;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .ed-print .ed-frame + .ed-frame { break-before: page; }
+
+  .ed-print .ed-frame::after { display: none; }
+
+  .ed-print .ed-sheet {
+    width: 216mm;
+    height: 303mm;
+  }
+}
+
+
+/* ═══ ACCENT WORDS OUTSIDE PAGES ═══ */
+/* *word* in feature titles, on cards and the hero */
+
+.ed-card__title .ed-accent,
+.ed-feature-headline .ed-accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: var(--weight-medium);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1.12em;
+}

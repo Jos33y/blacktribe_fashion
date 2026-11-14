@@ -23,6 +23,7 @@ import staffRoutes from './staff.js';
 import searchRoutes from './search.js';
 import behavioralRoutes from './behavioral.js';
 import paymentsRoutes from './payments.js';
+import editorialRoutes from './editorial.js';
 
 const router = express.Router();
 
@@ -42,5 +43,6 @@ router.use(staffRoutes);
 router.use(searchRoutes);
 router.use(behavioralRoutes);
 router.use(paymentsRoutes);
+router.use(editorialRoutes);
 
 export default router;

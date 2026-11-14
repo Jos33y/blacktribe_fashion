@@ -7,6 +7,7 @@
  *   - Static pages (homepage, shop, about, etc.)
  *   - Product pages (from Supabase)
  *   - Collection pages (from Supabase)
+ *   - Editorial features (published only, from Supabase)
  *
  * Cached for 1 hour. Regenerated on next request after expiry.
  */
@@ -28,6 +29,7 @@ const STATIC_PAGES = [
   { path: '/shop',              changefreq: 'daily',   priority: '0.9' },
   { path: '/collections',       changefreq: 'weekly',  priority: '0.8' },
   { path: '/lookbook',          changefreq: 'weekly',  priority: '0.6' },
+  { path: '/editorial',         changefreq: 'weekly',  priority: '0.6' },
   { path: '/about',             changefreq: 'monthly', priority: '0.5' },
   { path: '/contact',           changefreq: 'monthly', priority: '0.4' },
   { path: '/faq',               changefreq: 'monthly', priority: '0.4' },
@@ -121,6 +123,28 @@ async function generateSitemap() {
     }
   } catch (err) {
     console.error('[sitemap] Error fetching collections:', err.message);
+  }
+
+  /* Editorial features (published only; print views are not indexed) */
+  try {
+    const { data: features } = await supabaseAdmin
+      .from('editorial_features')
+      .select('slug, updated_at')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
+
+    if (features) {
+      for (const f of features) {
+        urls.push(urlEntry({
+          path: `/editorial/${f.slug}`,
+          lastmod: formatDate(f.updated_at),
+          changefreq: 'monthly',
+          priority: '0.6',
+        }));
+      }
+    }
+  } catch (err) {
+    console.error('[sitemap] Error fetching editorial:', err.message);
   }
 
   /* Categories as shop filter URLs */

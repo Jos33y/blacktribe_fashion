@@ -10,11 +10,13 @@ import {
   Checkout, OrderConfirmation, OrderTracking, PaymentPage,
   Auth, Account,
   About, Contact, Lookbook, FAQ,
+  EditorialIndex, EditorialFeature, EditorialPrint,
   Terms, Privacy, ShippingReturns, RefundPolicy,
   Dashboard, Analytics, Products, ProductForm, AdminCategories,
   Orders, OrderDetail, WalkInOrder, Customers, Discounts,
   AdminCollections, Newsletter, AdminShipping, Settings,
   StaffManagement, ActivityLog, Payments, CustomerDetail, Messages,
+  AdminEditorial, AdminEditorialEdit,
 } from './routes';
 
 function ScrollToTop() {
@@ -48,6 +50,10 @@ export default function App() {
       <ToastProvider>
         <Suspense fallback={<PageLoader />}>
           <Routes>
+            {/* Editorial print view: outside StoreLayout so the navbar
+                and footer never end up in the PDF */}
+            <Route path="editorial/:slug/print" element={<EditorialPrint />} />
+
             {/* Store routes */}
             <Route element={<StoreLayout />}>
               <Route index element={<Home />} />
@@ -57,6 +63,8 @@ export default function App() {
               <Route path="collections" element={<Collections />} />
               <Route path="collections/:slug" element={<CollectionDetail />} />
               <Route path="lookbook" element={<Lookbook />} />
+              <Route path="editorial" element={<EditorialIndex />} />
+              <Route path="editorial/:slug" element={<EditorialFeature />} />
               <Route path="about" element={<About />} />
               <Route path="contact" element={<Contact />} />
               <Route path="faq" element={<FAQ />} />
@@ -95,6 +103,8 @@ export default function App() {
               <Route path="activity" element={<ActivityLog />} />
               <Route path="payments" element={<Payments />} />
               <Route path="messages" element={<Messages />} />
+              <Route path="editorial" element={<AdminEditorial />} />
+              <Route path="editorial/:id" element={<AdminEditorialEdit />} />
             </Route>
           </Routes>
         </Suspense>

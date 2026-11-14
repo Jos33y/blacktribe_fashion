@@ -1,5 +1,9 @@
 /*
- * BLACKTRIBE FASHION — ADMIN LAYOUT v3.5
+ * BLACKTRIBE FASHION — ADMIN LAYOUT v3.6
+ *
+ * v3.6:
+ *   - Editorial nav item (sidebar + More sheet), gated by 'collections'
+ *   - /admin/editorial/:id recognized as nested page
  *
  * v3.5:
  *   - Nested Suspense around Outlet — admin page transitions
@@ -60,6 +64,7 @@ const I = {
   signout: (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>),
   search: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>),
   bell: (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 01-3.46 0" /></svg>),
+  editorial: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 4h7a3 3 0 013 3v14a2 2 0 00-2-2H2z" /><path d="M22 4h-7a3 3 0 00-3 3v14a2 2 0 012-2h8z" /></svg>),
   back: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>),
 };
 
@@ -73,6 +78,7 @@ const allSidebarNav = [
   { to: '/admin/products', icon: I.products, label: 'Products', perm: 'products' },
   { to: '/admin/customers', icon: I.customers, label: 'Customers', perm: 'customers' },
   { to: '/admin/collections', icon: I.collections, label: 'Collections', perm: 'collections' },
+  { to: '/admin/editorial', icon: I.editorial, label: 'Editorial', perm: 'collections' },
   { to: '/admin/discounts', icon: I.discounts, label: 'Discounts', perm: 'discounts' },
   { to: '/admin/newsletter', icon: I.newsletter, label: 'Newsletter', perm: null },
   { to: '/admin/shipping', icon: I.shipping, label: 'Shipping', perm: 'shipping' },
@@ -84,6 +90,7 @@ const allMoreItems = [
   { to: '/admin/payments', icon: I.payments, label: 'Payments', perm: 'orders' },
   { to: '/admin/customers', icon: I.customers, label: 'Customers', perm: 'customers' },
   { to: '/admin/collections', icon: I.collections, label: 'Collections', perm: 'collections' },
+  { to: '/admin/editorial', icon: I.editorial, label: 'Editorial', perm: 'collections' },
   { to: '/admin/discounts', icon: I.discounts, label: 'Discounts', perm: 'discounts' },
   { to: '/admin/newsletter', icon: I.newsletter, label: 'Newsletter', perm: null },
   { to: '/admin/shipping', icon: I.shipping, label: 'Shipping', perm: 'shipping' },
@@ -111,12 +118,14 @@ function getPageInfo(pathname) {
   if (pathname === '/admin/activity') return { title: 'Activity Log', nested: true, parent: '/admin/settings' };
   if (pathname === '/admin/messages') return { title: 'Messages', nested: true, parent: '/admin/settings' };
   if (pathname.match(/^\/admin\/customers\/.+/)) return { title: 'Customer Detail', nested: true, parent: '/admin/customers' };
+  if (pathname.match(/^\/admin\/editorial\/.+/)) return { title: 'Edit Feature', nested: true, parent: '/admin/editorial' };
 
   const map = {
     '/admin': 'Dashboard', '/admin/analytics': 'Analytics', '/admin/orders': 'Orders',
     '/admin/products': 'Products', '/admin/customers': 'Customers', '/admin/collections': 'Collections',
     '/admin/discounts': 'Discounts', '/admin/newsletter': 'Newsletter', '/admin/shipping': 'Shipping',
     '/admin/settings': 'Settings', '/admin/staff': 'Staff', '/admin/payments': 'Payments',
+    '/admin/editorial': 'Editorial',
   };
   return { title: map[pathname] || 'Admin', nested: false };
 }

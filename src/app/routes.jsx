@@ -26,6 +26,11 @@ export const Contact = lazy(() => import('../pages/brand/Contact'));
 export const Lookbook = lazy(() => import('../pages/brand/Lookbook'));
 export const FAQ = lazy(() => import('../pages/brand/FAQ'));
 
+// Editorial pages
+export const EditorialIndex = lazy(() => import('../pages/editorial/EditorialIndex'));
+export const EditorialFeature = lazy(() => import('../pages/editorial/EditorialFeature'));
+export const EditorialPrint = lazy(() => import('../pages/editorial/EditorialPrint'));
+
 // Legal pages
 export const Terms = lazy(() => import('../pages/legal/Terms'));
 export const Privacy = lazy(() => import('../pages/legal/Privacy'));
@@ -52,3 +57,5 @@ export const ActivityLog = lazy(() => import('../pages/admin/ActivityLog'));
 export const Payments = lazy(() => import('../pages/admin/Payments'));
 export const CustomerDetail = lazy(() => import('../pages/admin/CustomerDetail'));
 export const Messages = lazy(() => import('../pages/admin/Messages'));
+export const AdminEditorial = lazy(() => import('../pages/admin/AdminEditorial'));
+export const AdminEditorialEdit = lazy(() => import('../pages/admin/AdminEditorialEdit'));

@@ -1,0 +1,272 @@
+/* ═══════════════════════════════════════════════════════════
+   ADMIN — EDITORIAL
+   List thumbnails, page cards with live previews, add-page bar.
+   Page rendering itself lives in styles/editorial/EditorialPage.css
+   ═══════════════════════════════════════════════════════════ */
+
+
+/* ─── List ─── */
+
+.ed-admin-list__thumb {
+  flex: none;
+  width: 40px;
+  aspect-ratio: 210 / 297;
+  background: var(--bt-raised);
+  overflow: hidden;
+  margin-right: var(--space-3);
+}
+
+.ed-admin-list__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+/* ─── Editor header ─── */
+
+.ed-admin__actions {
+  flex-wrap: wrap;
+}
+
+.ed-admin .admin-page-header__desc .admin-status {
+  margin-right: var(--space-1);
+}
+
+.ed-admin__banner {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--bt-error);
+  background: var(--bt-error-bg);
+  color: var(--bt-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+
+/* ─── Pages ─── */
+
+.ed-admin__pages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.ed-admin-page {
+  padding: 0;
+}
+
+.ed-admin-page__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.ed-admin-page__thumb {
+  flex: none;
+  width: 56px;
+  cursor: pointer;
+  pointer-events: auto;
+  border: 1px solid var(--bt-border);
+}
+
+.ed-admin-page__thumb * { pointer-events: none; }
+
+.ed-admin-page__measure {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 432px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ed-admin-page { position: relative; }
+
+.ed-admin-page__summary {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ed-admin-page__summary:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.ed-admin-page__num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bt-text-secondary);
+}
+
+.ed-admin-page__tpl {
+  font-size: 15px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}
+
+.ed-admin-page__warn {
+  font-size: 12px;
+  color: var(--bt-error);
+}
+
+.ed-admin-page__actions {
+  flex: none;
+  display: flex;
+  gap: var(--space-1);
+}
+
+.ed-admin-icon-btn {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--bt-border);
+  color: var(--bt-text-secondary);
+  font-size: 16px;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease;
+}
+
+.ed-admin-icon-btn:hover:not(:disabled) {
+  border-color: var(--bt-border-hover);
+  color: var(--bt-text);
+}
+
+.ed-admin-icon-btn:disabled { opacity: 0.3; cursor: default; }
+
+.ed-admin-icon-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.ed-admin-icon-btn--confirm {
+  border-color: var(--bt-error);
+  color: var(--bt-error);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ed-admin-page__body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  padding: 0 var(--space-3) var(--space-4);
+  border-top: 1px solid var(--bt-border);
+  padding-top: var(--space-4);
+}
+
+/* Phone: preview first, small and centred, so she sees the page as she edits */
+.ed-admin-page__preview {
+  order: -1;
+  width: min(100%, 300px);
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .ed-admin-page__body {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    align-items: start;
+  }
+
+  .ed-admin-page__preview {
+    order: 0;
+    width: 100%;
+    position: sticky;
+    top: var(--space-4);
+  }
+}
+
+.ed-admin-page__fields .admin-form-section__desc {
+  margin-bottom: var(--space-3);
+}
+
+.ed-admin-page__warn-text {
+  margin: var(--space-2) 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--bt-error);
+}
+
+.ed-admin-products {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+}
+
+@media (min-width: 640px) {
+  .ed-admin-products { grid-template-columns: 1fr 1fr; }
+}
+
+
+/* ─── Add page ─── */
+
+.ed-admin__add {
+  margin-top: var(--space-3);
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.ed-admin__add > :first-child { flex: 1; }
+
+
+/* ─── Delete ─── */
+
+.ed-admin__danger {
+  margin-top: var(--space-6);
+  padding-bottom: var(--space-6);
+  text-align: center;
+}
+
+.ed-admin__delete-link {
+  min-height: 44px;
+  background: none;
+  border: none;
+  color: var(--bt-error);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+
+/* ─── Field hints + contact toggle ─── */
+
+.ed-admin-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--bt-text-secondary);
+}
+
+.ed-admin-page__contact {
+  margin-top: var(--space-2);
+}
+
+.ed-admin-toggle--locked {
+  opacity: 0.6;
+  cursor: default;
+}
