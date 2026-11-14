@@ -45,7 +45,7 @@
   --t-heading: calc(var(--mm) * 10);
   --t-heading-lg: calc(var(--mm) * 13);
   --t-cover: calc(var(--mm) * 15);
-  --t-mast: calc(var(--mm) * 21);
+  --t-mast: calc(var(--mm) * 18);
   --t-quote: calc(var(--mm) * 11);
   --t-dek: calc(var(--mm) * 5.5);
 
@@ -298,24 +298,26 @@
 
 .ed-brand__mark {
   display: flex;
-  align-items: center;
-  gap: calc(var(--mm) * 3);
+  flex-direction: column;
+  gap: calc(var(--mm) * 2);
 }
 
-.ed-brand__logo {
-  height: calc(var(--mm) * 13);
-  width: auto;                         /* mask is ~1:2 portrait, height only */
-  display: block;
-}
-
-.ed-tone--light .ed-brand__logo { filter: invert(1); }
-
+/* Brand guide: wordmark Syne 800 at 0.12em; tagline Outfit 300 at 0.35em */
 .ed-brand__wordmark {
   font-family: var(--font-display);
   font-weight: var(--weight-extrabold);
-  font-size: calc(var(--mm) * 9);
-  letter-spacing: -0.02em;
+  font-size: calc(var(--mm) * 8);
+  letter-spacing: 0.12em;
   line-height: 1;
+}
+
+.ed-brand__tagline {
+  font-family: var(--font-body);
+  font-weight: var(--weight-light);
+  font-size: var(--t-label);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--ed-ink-2);
 }
 
 .ed-brand__mantra {
@@ -429,7 +431,8 @@
   font-weight: var(--weight-extrabold);
   font-size: var(--t-mast);
   line-height: 0.9;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.12em;               /* brand guide wordmark spacing */
+  margin-right: -0.12em;                /* optical centring: trailing spacing */
   text-align: center;
 }
 
@@ -718,7 +721,7 @@ a.ed-piece__link:focus-visible {
   flex: 1;
   columns: 2;
   column-gap: var(--gutter);
-  column-fill: auto;
+  column-fill: balance;              /* even columns; overflow becomes a 3rd column, which the fit check catches */
 }
 
 
@@ -748,7 +751,7 @@ a.ed-piece__link:focus-visible {
     --t-heading: 28px;
     --t-heading-lg: 34px;
     --t-cover: 40px;
-    --t-mast: clamp(44px, 14vw, 64px);
+    --t-mast: clamp(36px, 11vw, 56px);
     --t-quote: 30px;
     --t-dek: 18px;
     --pad: 24px;
@@ -848,8 +851,7 @@ a.ed-piece__link:focus-visible {
     padding: 24px var(--pad) 8px;
     gap: 24px;
   }
-  .ed-reader .ed-brand__logo { height: 36px; }
-  .ed-reader .ed-brand__wordmark { font-size: 22px; }
+  .ed-reader .ed-brand__wordmark { font-size: 20px; }
   .ed-reader .ed-brand__media {
     height: auto;
     aspect-ratio: 4 / 3;

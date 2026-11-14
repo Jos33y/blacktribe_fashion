@@ -74,9 +74,11 @@ function Brand({ f, fitRef }) {
   return (
     <div className="ed-brand">
       <header className="ed-brand__top">
+        {/* Brand guide: the mask and wordmark never sit side by side.
+            The wordmark stands alone here, with the tagline beneath. */}
         <div className="ed-brand__mark">
-          <img src="/logo_white.png" alt="" className="ed-brand__logo" />
           <span className="ed-brand__wordmark">BLACKTRIBE</span>
+          <span className="ed-brand__tagline">Redefining Luxury</span>
         </div>
         {f.mantra && <span className="ed-brand__mantra">{f.mantra}</span>}
       </header>

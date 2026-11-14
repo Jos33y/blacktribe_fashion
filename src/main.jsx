@@ -11,7 +11,7 @@ import './styles/page-shared.css';
 import './styles/a11y.css';
 
 // Hide the inline loader once React has painted AND content is ready.
-// The 800ms minimum ensures lazy routes have resolved via Suspense.
+// The minimum delay ensures lazy routes have resolved via Suspense.
 // Without this, the loader vanishes in ~32ms while the page is still blank.
 function dismissLoader() {
   const loader = document.getElementById('bt-loader');
@@ -29,12 +29,15 @@ function dismissLoader() {
 
   function check() {
     const elapsed = performance.now() - start;
-    const hasContent = document.querySelector('.home-hero, .shop-hero, .page-hero, .pd, .checkout, .account, .lookbook, .brand-page, .oc')?.children.length > 0;
+    /* Root classes of every page type. A page missing from this list keeps
+       the loader up until the 6s safety timeout. .admin = admin layout,
+       .ed-print = editorial print view (outside StoreLayout, no .page-hero) */
+    const hasContent = document.querySelector('.home-hero, .shop-hero, .page-hero, .pd, .checkout, .account, .lookbook, .brand-page, .oc, .admin, .ed-print')?.children.length > 0;
 
     if (hasContent && elapsed >= minDelay) {
       hide();
     } else if (elapsed > 6000) {
-      // Safety: hide after 4s regardless
+      // Safety: hide after 6s regardless
       hide();
     } else {
       requestAnimationFrame(check);
