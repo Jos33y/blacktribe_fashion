@@ -27,6 +27,7 @@ import adminRouter from './server/routes/admin/index.js';
 
 // Route imports — SEO
 import sitemapRouter from './server/routes/sitemap.js';
+import { seoPages } from './server/seo/render.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -80,12 +81,14 @@ app.use('/sitemap.xml', sitemapRouter);
 
 // Serve static files in production
 if (!isDev) {
-  app.use(express.static(path.join(__dirname, 'dist')));
+  // index: false so "/" goes through seoPages instead of the raw index.html
+  app.use(express.static(path.join(__dirname, 'dist'), { index: false }));
 
+  // Every page: index.html filled with that page's title, share tags,
+  // structured data and readable content, so search engines, AI assistants
+  // and link previews see the real page (see server/seo/render.js).
   // Express 5: wildcards must be named
-  app.get('/{*splat}', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-  });
+  app.get('/{*splat}', seoPages(path.join(__dirname, 'dist', 'index.html')));
 }
 
 // Error handler (must be last)

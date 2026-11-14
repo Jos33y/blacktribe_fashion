@@ -1,12 +1,58 @@
 # BlackTribe Fashion — robots.txt
+#
+# Search engines and AI assistants are welcome on the shop, collections,
+# lookbook and magazine. Private and transactional pages stay out.
+#
+# Note: a crawler that has its own group below ignores the "*" group,
+# so every group repeats the same rules. The more specific line wins,
+# so "Allow: /api/products" beats "Disallow: /api/".
+
+# ═══ Everyone ═══
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /admin/
 Disallow: /api/
+# ...except the read-only data the pages are built from. Google renders the
+# shop with these; blocking them made /shop look empty (a "soft 404").
+Allow: /api/products
+Allow: /api/collections
+Allow: /api/categories
+Allow: /api/homepage
+Allow: /api/editorial
 Disallow: /auth
+Disallow: /account
 Disallow: /checkout
 Disallow: /pay/
+# Print versions of magazine issues duplicate the web pages
+Disallow: /editorial/*/print
 
-# Sitemap
+# ═══ AI search and answers (ChatGPT, Claude, Perplexity, Apple, Google AI) ═══
+# Named so BlackTribe can be found and cited when people ask AI assistants
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: ClaudeBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+Disallow: /api/
+# ...except the read-only data the pages are built from. Google renders the
+# shop with these; blocking them made /shop look empty (a "soft 404").
+Allow: /api/products
+Allow: /api/collections
+Allow: /api/categories
+Allow: /api/homepage
+Allow: /api/editorial
+Disallow: /auth
+Disallow: /account
+Disallow: /checkout
+Disallow: /pay/
+Disallow: /editorial/*/print
+
+# ═══ Sitemap ═══
 Sitemap: https://blacktribefashion.com/sitemap.xml

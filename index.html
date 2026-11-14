@@ -5,14 +5,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-  <!-- Title + SEO -->
+  <!-- Title + SEO. Between the markers, the server writes each page's own
+       title, description, canonical, share tags and structured data
+       (server/seo/render.js). This default is what dev mode shows. -->
+  <!--seo-head-->
   <title>BlackTribe Fashion. Redefining Luxury.</title>
   <meta name="description"
     content="Premium streetwear and luxury fashion. Shop limited collections, pre-order new drops, worldwide shipping. Born from culture, refined by craft." />
-  <meta name="theme-color" content="#0C0C0C" />
-  <meta name="color-scheme" content="dark" />
-  <meta name="robots" content="index, follow" />
-  <meta name="author" content="BlackTribe Fashion" />
   <link rel="canonical" href="https://blacktribefashion.com" />
 
   <!-- Open Graph -->
@@ -35,6 +34,10 @@
     content="Premium streetwear and luxury fashion. Shop limited collections, pre-order new drops, worldwide shipping." />
   <meta name="twitter:image" content="https://blacktribefashion.com/og-image.png" />
   <meta name="twitter:image:alt" content="BlackTribe Fashion. Redefining Luxury." />
+  <!--/seo-head-->
+  <meta name="theme-color" content="#0C0C0C" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="author" content="BlackTribe Fashion" />
 
   <!-- Favicons -->
   <link rel="icon" href="/dark/favicon.ico" sizes="any" />
@@ -182,6 +185,19 @@
     #root:empty {
       display: none;
     }
+
+    /* Server-written page content (for search engines, AI assistants and
+       link previews). Sits under the loader; React replaces it on mount. */
+    .seo-content {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      line-height: 1.6;
+    }
+
+    .seo-content a { color: #EDEBE8; }
+    .seo-content img { max-width: 100%; height: auto; }
   </style>
   <!-- Paystack loaded dynamically on checkout/payment pages only (see src/utils/loadPaystack.js) -->
 </head>
@@ -195,8 +211,9 @@
     <div class="bt-loader__line"></div>
   </div>
 
-  <!-- React mount point -->
-  <div id="root"></div>
+  <!-- React mount point. The server writes the page's content into it
+       for bots; React replaces it when it mounts. -->
+  <div id="root"><!--seo-body--></div>
 
   <!-- App entry -->
   <script type="module" src="/src/main.jsx"></script>

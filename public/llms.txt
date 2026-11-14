@@ -1,0 +1,47 @@
+# BlackTribe Fashion
+
+> BlackTribe Fashion is a unisex premium streetwear and luxury fashion label from Lagos, Nigeria. It grew out of Black Tribe, a Lagos community of art shows and parties founded in 2017; the fashion arm launched in 2021. Collections are made in limited runs, sold by pre-order, and shipped worldwide. Tagline: Redefining Luxury.
+
+Key facts:
+
+- Founded: 2017 in Lagos, Nigeria (as Black Tribe, a creative community and events brand). Fashion label launched 2021.
+- CEO: Daniel Blaq, CEO of Black Tribe Lifestyle.
+- What it makes: unisex streetwear and luxury pieces, including crystal-embellished jackets, denim, knitwear, tees, caps and accessories.
+- How it sells: limited drops, pre-order only, no restocks and no sale section.
+- Where: born in Lagos; the community reaches Portugal, Germany, the UK, Turkey, Paris and beyond. Ships worldwide.
+- Prices: in Nigerian Naira (₦). Payment at checkout through Paystack.
+- Current collection: Alkebulan.
+- Related brand: Black Tribe Lifestyle (events and nightlife).
+
+## Shop
+
+- [Shop all pieces](https://blacktribefashion.com/shop): every piece currently available to pre-order
+- [Collections](https://blacktribefashion.com/collections): the brand's collections, newest first
+- [Alkebulan collection](https://blacktribefashion.com/collections/alkebulan): the current collection
+- [Lookbook](https://blacktribefashion.com/lookbook): styled photography of the collections
+
+## Magazine
+
+- [Editorial](https://blacktribefashion.com/editorial): BlackTribe's magazine, on the web and in print
+- [Issue 01: Born in Lagos](https://blacktribefashion.com/editorial/born-in-lagos): where the brand comes from, the Alkebulan collection and the community worldwide
+
+## About and help
+
+- [About](https://blacktribefashion.com/about): the story of BlackTribe
+- [FAQ](https://blacktribefashion.com/faq): common questions about orders, sizing and pre-orders
+- [Shipping and returns](https://blacktribefashion.com/shipping-returns): delivery and returns policy
+- [Refund policy](https://blacktribefashion.com/refund-policy)
+- [Track an order](https://blacktribefashion.com/track)
+- [Contact](https://blacktribefashion.com/contact)
+
+## Contact
+
+- Website: https://blacktribefashion.com
+- Email: support@blacktribefashion.com
+- Instagram: [@blacktribe_fashion](https://www.instagram.com/blacktribe_fashion/) and [@blacktribe_lifestyle](https://www.instagram.com/blacktribe_lifestyle/)
+
+## Optional
+
+- [Sitemap](https://blacktribefashion.com/sitemap.xml): every public page, product and magazine issue
+- [Terms](https://blacktribefashion.com/terms)
+- [Privacy](https://blacktribefashion.com/privacy)
