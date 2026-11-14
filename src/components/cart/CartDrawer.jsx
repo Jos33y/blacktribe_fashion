@@ -74,7 +74,7 @@ export default function CartDrawer() {
           <>
             <div className="cart-drawer__items">
               {items.map((item) => (
-                <CartItem key={`${item.productId}::${item.size}`} item={item} />
+                <CartItem key={`${item.productId}::${item.color || ''}::${item.size}`} item={item} />
               ))}
             </div>
             <CartSummary />

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router';
 import Badge from '../ui/Badge';
 import SizeSelector from './SizeSelector';
+import ColorSelector from './ColorSelector';
 import QuantitySelector from './QuantitySelector';
 import WishlistHeart from './WishlistHeart';
 import { useToast } from '../ui/Toast';
@@ -9,12 +10,14 @@ import useCartStore from '../../store/cartStore';
 import useUIStore from '../../store/uiStore';
 import useScrollLock from '../../hooks/useScrollLock';
 import { formatPrice } from '../../utils/formatPrice';
+import { getVariant, colorName } from '../../utils/variants';
 import '../../styles/product/QuickView.css';
 import '../../styles/product/WishlistHeart.css';
 
 export default function QuickView({ product, isOpen, onClose }) {
   const [activeImage, setActiveImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [sizeError, setSizeError] = useState('');
   const touchStartY = useRef(0);
@@ -31,10 +34,25 @@ export default function QuickView({ product, isOpen, onClose }) {
     if (product) {
       setActiveImage(0);
       setSelectedSize('');
+      setSelectedColor(product.colors?.length ? colorName(product.colors[0]) : '');
       setQuantity(1);
       setSizeError('');
     }
   }, [product?.id]);
+
+  /* Photos + sizes for the chosen colour */
+  const variant = useMemo(() => getVariant(product, selectedColor), [product, selectedColor]);
+  const images = variant.images;
+
+  const handleColorSelect = (name) => {
+    setSelectedColor(name);
+    setActiveImage(0);
+    const next = getVariant(product, name);
+    setSelectedSize((cur) => {
+      const s = next.sizes.find((x) => (x.size || x.name) === cur);
+      return s && s.stock > 0 ? cur : '';
+    });
+  };
 
   /* ─── Keyboard: Escape to close ─── */
   useEffect(() => {
@@ -49,15 +67,15 @@ export default function QuickView({ product, isOpen, onClose }) {
 
   /* ─── Stock for selected size ─── */
   const selectedSizeStock = useMemo(() => {
-    if (!product?.sizes?.length || !selectedSize) return null;
-    const sizeObj = product.sizes.find((s) => (s.size || s.name) === selectedSize);
+    if (!variant.sizes.length || !selectedSize) return null;
+    const sizeObj = variant.sizes.find((s) => (s.size || s.name) === selectedSize);
     return sizeObj ? sizeObj.stock : null;
-  }, [product, selectedSize]);
+  }, [variant, selectedSize]);
 
   const isSoldOut = useMemo(() => {
-    if (!product?.sizes?.length) return false;
-    return product.sizes.every((s) => s.stock === 0);
-  }, [product]);
+    if (!variant.sizes.length) return false;
+    return variant.sizes.every((s) => s.stock === 0);
+  }, [variant]);
 
   /* Reset quantity on size change */
   useEffect(() => { setQuantity(1); }, [selectedSize]);
@@ -69,16 +87,16 @@ export default function QuickView({ product, isOpen, onClose }) {
 
   const handleImgTouchStart = (e) => { imgTouchStartX.current = e.changedTouches[0].screenX; };
   const handleImgTouchEnd = (e) => {
-    if (!product?.images) return;
+    if (!images?.length) return;
     const diff = imgTouchStartX.current - e.changedTouches[0].screenX;
-    if (diff > 50 && activeImage < product.images.length - 1) setActiveImage((p) => p + 1);
+    if (diff > 50 && activeImage < images.length - 1) setActiveImage((p) => p + 1);
     else if (diff < -50 && activeImage > 0) setActiveImage((p) => p - 1);
   };
 
   const handleAddToBag = () => {
     if (isSoldOut) return;
 
-    if (product?.sizes?.length > 0 && !selectedSize) {
+    if (variant.sizes.length > 0 && !selectedSize) {
       setSizeError('Select a size');
       return;
     }
@@ -90,8 +108,8 @@ export default function QuickView({ product, isOpen, onClose }) {
       slug: product.slug,
       price: product.price,
       size: selectedSize,
-      color: product.colors?.[0]?.name || '',
-      image: product.images?.[0] || '',
+      color: selectedColor,
+      image: images?.[0] || '',
       badge: product.badge || null,
       quantity,
       maxStock: selectedSizeStock,
@@ -143,11 +161,11 @@ export default function QuickView({ product, isOpen, onClose }) {
           {/* Gallery */}
           <div className="qv-gallery">
             <div className="qv-image-main" onTouchStart={handleImgTouchStart} onTouchEnd={handleImgTouchEnd}>
-              <img src={product.images?.[activeImage]} alt={product.name} className="qv-image" draggable="false" />
+              <img src={images?.[activeImage]} alt={product.name} className="qv-image" draggable="false" />
             </div>
-            {product.images?.length > 1 && (
+            {images?.length > 1 && (
               <div className="qv-thumbs">
-                {product.images.map((img, i) => (
+                {images.map((img, i) => (
                   <button
                     key={i}
                     className={`qv-thumb ${i === activeImage ? 'qv-thumb--active' : ''}`}
@@ -175,10 +193,18 @@ export default function QuickView({ product, isOpen, onClose }) {
               <p className="qv-description">{product.short_description || product.shortDescription}</p>
             )}
 
-            {product.sizes?.length > 0 && (
+            {product.colors?.length > 0 && (
+              <ColorSelector
+                colors={product.colors}
+                selectedColor={selectedColor}
+                onSelect={handleColorSelect}
+              />
+            )}
+
+            {variant.sizes.length > 0 && (
               <>
                 <SizeSelector
-                  sizes={product.sizes}
+                  sizes={variant.sizes}
                   selectedSize={selectedSize}
                   onSelect={(size) => { setSelectedSize(size); setSizeError(''); }}
                 />
@@ -187,7 +213,7 @@ export default function QuickView({ product, isOpen, onClose }) {
             )}
 
             {/* Quantity — show when size is selected or no sizes */}
-            {(!product.sizes?.length || selectedSize) && !isSoldOut && (
+            {(!variant.sizes.length || selectedSize) && !isSoldOut && (
               <div className="qv-quantity">
                 <QuantitySelector
                   quantity={quantity}

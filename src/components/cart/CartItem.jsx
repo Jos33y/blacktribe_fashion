@@ -23,7 +23,7 @@ export default function CartItem({ item }) {
     else if (diff < -40) setSwiped(false);
   };
 
-  const handleRemove = () => removeItem(item.productId, item.size);
+  const handleRemove = () => removeItem(item.productId, item.size, item.color);
   const lineTotal = item.price * item.quantity;
 
   return (
@@ -72,7 +72,7 @@ export default function CartItem({ item }) {
             <QuantitySelector
               quantity={item.quantity}
               maxStock={item.maxStock}
-              onQuantityChange={(qty) => updateQuantity(item.productId, item.size, qty)}
+              onQuantityChange={(qty) => updateQuantity(item.productId, item.size, qty, item.color)}
               compact
             />
           </div>

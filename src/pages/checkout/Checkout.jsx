@@ -342,6 +342,15 @@ export default function Checkout() {
       // Save pending order for recovery
       savePendingOrder(orderId, orderNumber, reference);
 
+      // ─── Server total differs (a price changed since it was added) ───
+      // Update the bag and let the customer see the real total before paying.
+      // Only stops when a bag price actually changed, so it can never loop.
+      if (amount !== total && useCartStore.getState().syncPrices(result.data.items || [])) {
+        setSubmitting(false);
+        setPaymentError(`Some prices changed since you added them. Your bag is updated: the total is now ${formatPrice(amount)}. Tap Pay to continue.`);
+        return;
+      }
+
       // ─── 2. Open Paystack inline popup (v2 API) ───
       let PaystackPop;
       try {

@@ -425,29 +425,16 @@ router.post('/orders/walk-in', requirePermission('orders'), async (req, res, nex
 
     if (itemsErr) throw itemsErr;
 
-    /* Deduct stock */
+    /* Deduct stock (colour-aware, row-locked in the database) */
     for (const item of items) {
       if (!item.product_id) continue;
-
-      const { data: product } = await supabaseAdmin
-        .from('products')
-        .select('sizes')
-        .eq('id', item.product_id)
-        .single();
-
-      if (product?.sizes) {
-        const updatedSizes = product.sizes.map((s) => {
-          if (s.size === item.size) {
-            return { ...s, stock: Math.max(0, (s.stock || 0) - item.quantity) };
-          }
-          return s;
-        });
-
-        await supabaseAdmin
-          .from('products')
-          .update({ sizes: updatedSizes, updated_at: new Date().toISOString() })
-          .eq('id', item.product_id);
-      }
+      const { error: stockErr } = await supabaseAdmin.rpc('decrement_product_stock', {
+        p_product_id: item.product_id,
+        p_size: item.size || '',
+        p_color: item.color || null,
+        p_qty: item.quantity || 0,
+      });
+      if (stockErr) console.error(`[walk-in] Stock deduction failed for ${item.name}:`, stockErr.message);
     }
 
     /* Increment discount times_used if discount was applied */

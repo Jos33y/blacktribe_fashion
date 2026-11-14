@@ -818,3 +818,58 @@
 .img-uploader__ctrl-btn--delete:hover {
   color: var(--bt-error);
 }
+
+
+/* ═══ COLOUR VARIANTS ═══
+   One block per colour: swatch + name, photos, stock per size. */
+
+.product-form__variant {
+  border: 1px solid var(--bt-border);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.product-form__variant-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.product-form__variant-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: var(--weight-medium);
+  color: var(--bt-text);
+}
+
+.product-form__variant-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--bt-text-secondary);
+  border: 1px solid var(--bt-border-hover);
+  padding: 2px 8px;
+}
+
+.product-form__variant-btn {
+  min-height: 32px;
+  padding: 0 10px;
+  background: none;
+  border: 1px solid var(--bt-border);
+  color: var(--bt-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.product-form__variant-btn:hover { border-color: var(--bt-border-hover); color: var(--bt-text); }
+.product-form__variant-btn:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+
+.product-form__variant-head .product-form__color-remove {
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+}

@@ -3,6 +3,7 @@
  */
 
 import express from 'express';
+import { normalizeVariantFields } from '../../utils/variants.js';
 import { requirePermission } from '../../middleware/auth.js';
 import { supabaseAdmin } from '../../config/database.js';
 import { createError } from '../../middleware/errorHandler.js';
@@ -65,10 +66,13 @@ router.post('/products', requirePermission('products'), async (req, res, next) =
   try {
     const {
       name, slug, short_description, description, price, compare_at_price,
-      category_id, collection_id, images, sizes, colors, badge,
+      category_id, collection_id, badge,
       video_url, is_featured, is_active, show_inventory,
       total_inventory, preorder_deadline,
     } = req.body;
+
+    /* Colour variants: per-colour photos + stock; images/sizes derived */
+    const { images, sizes, colors } = normalizeVariantFields(req.body);
 
     if (!name?.trim()) return next(createError(400, 'Product name is required.'));
     if (!slug?.trim()) return next(createError(400, 'Slug is required.'));
@@ -98,7 +102,7 @@ router.post('/products', requirePermission('products'), async (req, res, next) =
         images: images || [],
         sizes: sizes || [],
         colors: colors || null,
-        tags: [],
+        tags: Array.isArray(req.body.tags) ? req.body.tags : [],
         badge: badge || null,
         video_url: video_url || null,
         is_featured: is_featured || false,
@@ -142,9 +146,17 @@ router.put('/products/:id', requirePermission('products'), async (req, res, next
     if (compare_at_price !== undefined) updates.compare_at_price = compare_at_price || null;
     if (category_id !== undefined) updates.category_id = category_id || null;
     if (collection_id !== undefined) updates.collection_id = collection_id || null;
-    if (images !== undefined) updates.images = images;
-    if (sizes !== undefined) updates.sizes = sizes;
-    if (colors !== undefined) updates.colors = colors || null;
+    if (colors !== undefined) {
+      /* Colour variants: per-colour photos + stock; images/sizes derived */
+      const v = normalizeVariantFields({ images, sizes, colors });
+      updates.colors = v.colors;
+      if (v.images !== undefined) updates.images = v.images;
+      if (v.sizes !== undefined) updates.sizes = v.sizes;
+    } else {
+      if (images !== undefined) updates.images = images;
+      if (sizes !== undefined) updates.sizes = sizes;
+    }
+    if (req.body.tags !== undefined) updates.tags = Array.isArray(req.body.tags) ? req.body.tags : [];
     if (badge !== undefined) updates.badge = badge || null;
     if (video_url !== undefined) updates.video_url = video_url || null;
     if (is_featured !== undefined) updates.is_featured = is_featured;

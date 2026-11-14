@@ -41,7 +41,7 @@ export default function OrderSummary({
       {expanded && (
         <div className="checkout-summary__items">
           {items.map((item) => (
-            <div className="checkout-summary__item" key={`${item.productId}::${item.size}`}>
+            <div className="checkout-summary__item" key={`${item.productId}::${item.color || ''}::${item.size}`}>
               <div className="checkout-summary__item-image">
                 <img src={item.image} alt={item.name} loading="lazy" />
                 {item.quantity > 1 && (

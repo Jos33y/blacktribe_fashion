@@ -149,6 +149,21 @@ router.get('/:slug', async (req, res, next) => {
       .single();
 
     if (error || !product) {
+      /* Merged or renamed pieces: old URL → current product (+ colour) */
+      const { data: redirect } = await supabaseAdmin
+        .from('product_redirects')
+        .select('color, products!inner(slug, is_active)')
+        .eq('old_slug', req.params.slug)
+        .maybeSingle();
+
+      if (redirect?.products?.is_active) {
+        return res.status(404).json({
+          success: false,
+          error: 'Product moved.',
+          redirect: { slug: redirect.products.slug, color: redirect.color || null },
+        });
+      }
+
       return res.status(404).json({ success: false, error: 'Product not found.' });
     }
 

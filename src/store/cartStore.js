@@ -5,7 +5,7 @@
  * Cart item shape:
  *   { productId, name, slug, price, size, color, image, badge, quantity, maxStock }
  *
- * Unique key: productId + size
+ * Unique key: productId + colour + size (same piece in two colours = two lines)
  * All prices in kobo. maxStock enforced on add + update.
  *
  * Event tracking: fires add_to_cart / remove_from_cart events.
@@ -31,8 +31,12 @@ function saveCart(items) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {}
 }
 
-function itemKey(productId, size) {
-  return `${productId}::${size || 'one-size'}`;
+function itemKey(productId, size, color) {
+  return `${productId}::${(color || '').toLowerCase()}::${size || 'one-size'}`;
+}
+
+export function cartItemKey(item) {
+  return itemKey(item.productId, item.size, item.color);
 }
 
 const useCartStore = create((set, get) => ({
@@ -41,9 +45,9 @@ const useCartStore = create((set, get) => ({
   addItem: ({ productId, name, slug, price, size, color, image, badge, quantity = 1, maxStock = null }) => {
     if (!productId || !name || !price) return false;
 
-    const key = itemKey(productId, size);
+    const key = itemKey(productId, size, color);
     const current = get().items;
-    const existing = current.find((i) => itemKey(i.productId, i.size) === key);
+    const existing = current.find((i) => cartItemKey(i) === key);
 
     let next;
     if (existing) {
@@ -51,7 +55,7 @@ const useCartStore = create((set, get) => ({
       const capped = maxStock != null ? Math.min(newQty, maxStock) : newQty;
       if (capped === existing.quantity) return false;
       next = current.map((i) =>
-        itemKey(i.productId, i.size) === key
+        cartItemKey(i) === key
           ? { ...i, quantity: capped, maxStock: maxStock ?? i.maxStock }
           : i
       );
@@ -77,10 +81,10 @@ const useCartStore = create((set, get) => ({
     return true;
   },
 
-  removeItem: (productId, size) => {
-    const key = itemKey(productId, size);
-    const removed = get().items.find((i) => itemKey(i.productId, i.size) === key);
-    const next = get().items.filter((i) => itemKey(i.productId, i.size) !== key);
+  removeItem: (productId, size, color = '') => {
+    const key = itemKey(productId, size, color);
+    const removed = get().items.find((i) => cartItemKey(i) === key);
+    const next = get().items.filter((i) => cartItemKey(i) !== key);
     set({ items: next });
     saveCart(next);
 
@@ -91,16 +95,29 @@ const useCartStore = create((set, get) => ({
     announce(removed ? `${removed.name} removed from bag.` : 'Item removed from bag.');
   },
 
-  updateQuantity: (productId, size, quantity) => {
-    if (quantity <= 0) { get().removeItem(productId, size); return; }
-    const key = itemKey(productId, size);
+  updateQuantity: (productId, size, quantity, color = '') => {
+    if (quantity <= 0) { get().removeItem(productId, size, color); return; }
+    const key = itemKey(productId, size, color);
     const next = get().items.map((i) => {
-      if (itemKey(i.productId, i.size) !== key) return i;
+      if (cartItemKey(i) !== key) return i;
       const capped = i.maxStock != null ? Math.min(quantity, i.maxStock) : quantity;
       return { ...i, quantity: capped };
     });
     set({ items: next });
     saveCart(next);
+  },
+
+  /* Replace stored prices with the server's (prices can change after adding) */
+  syncPrices: (lines = []) => {
+    const priceOf = new Map(lines.map((l) => [itemKey(l.productId, l.size, l.color), l.price]));
+    let changed = false;
+    const next = get().items.map((i) => {
+      const p = priceOf.get(cartItemKey(i));
+      if (p != null && p !== i.price) { changed = true; return { ...i, price: p }; }
+      return i;
+    });
+    if (changed) { set({ items: next }); saveCart(next); }
+    return changed;
   },
 
   clearCart: () => {

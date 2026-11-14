@@ -55,7 +55,40 @@ const BADGE_OPTIONS = [
   { value: 'LIMITED', label: 'Limited' },
 ];
 
-const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL', 'ONE SIZE'];
+const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'One Size'];
+
+/*
+ * Colour variants: every colour carries its own photos and stock per size.
+ * Older products saved colours as { name, hex } only; those are upgraded on
+ * load: the first colour takes the product's photos and stock, the rest
+ * start empty so nothing is double-counted.
+ */
+function toVariantColors(p) {
+  const colors = Array.isArray(p.colors) ? p.colors : [];
+  const sizes = Array.isArray(p.sizes) ? p.sizes : [];
+  return colors
+    .filter((c) => c && (c.name || typeof c === 'string'))
+    .map((c, i) => {
+      const name = typeof c === 'string' ? c : c.name;
+      const hex = (typeof c === 'object' && c.hex) || '#0C0C0C';
+      if (typeof c === 'object' && Array.isArray(c.sizes)) {
+        return { name, hex, images: c.images || [], sizes: c.sizes };
+      }
+      return {
+        name,
+        hex,
+        images: i === 0 ? (p.images || []) : [],
+        sizes: sizes.map((sz) => ({ size: sz.size, stock: i === 0 ? sz.stock || 0 : 0 })),
+      };
+    });
+}
+
+function sumSizes(colors, sizeList) {
+  return sizeList.map((s) => ({
+    size: s.size,
+    stock: colors.reduce((sum, c) => sum + (c.sizes.find((x) => x.size === s.size)?.stock || 0), 0),
+  }));
+}
 
 const EMPTY_PRODUCT = {
   name: '',
@@ -172,7 +205,7 @@ export default function AdminProductForm() {
           collection_id: p.collection_id || '',
           images: p.images || [],
           sizes: p.sizes || [],
-          colors: p.colors || [],
+          colors: toVariantColors(p),
           tags: p.tags || [],
           badge: p.badge || '',
           video_url: p.video_url || '',
@@ -217,11 +250,25 @@ export default function AdminProductForm() {
 
   function addSize(sizeName) {
     if (form.sizes.find((s) => s.size === sizeName)) return;
-    update('sizes', [...form.sizes, { size: sizeName, stock: 0 }]);
+    const order = (x) => { const i = SIZE_OPTIONS.indexOf(x.size); return i === -1 ? 99 : i; };
+    const sorted = [...form.sizes, { size: sizeName, stock: 0 }].sort((a, b) => order(a) - order(b));
+    setForm((prev) => ({
+      ...prev,
+      sizes: sorted,
+      colors: prev.colors.map((c) => ({
+        ...c,
+        sizes: sorted.map((sz) => c.sizes.find((x) => x.size === sz.size) || { size: sz.size, stock: 0 }),
+      })),
+    }));
+    if (errors.sizes) setErrors((prev) => ({ ...prev, sizes: null }));
   }
 
   function removeSize(sizeName) {
-    update('sizes', form.sizes.filter((s) => s.size !== sizeName));
+    setForm((prev) => ({
+      ...prev,
+      sizes: prev.sizes.filter((s) => s.size !== sizeName),
+      colors: prev.colors.map((c) => ({ ...c, sizes: c.sizes.filter((x) => x.size !== sizeName) })),
+    }));
   }
 
   function updateSizeStock(sizeName, stock) {
@@ -235,13 +282,39 @@ export default function AdminProductForm() {
 
   function addColor() {
     if (!newColor.name.trim()) return;
-    if (form.colors.find((c) => c.name.toLowerCase() === newColor.name.toLowerCase())) return;
-    update('colors', [...form.colors, { name: newColor.name.trim(), hex: newColor.hex }]);
+    if (form.colors.find((c) => c.name.toLowerCase() === newColor.name.trim().toLowerCase())) return;
+    const first = form.colors.length === 0;
+    update('colors', [...form.colors, {
+      name: newColor.name.trim(),
+      hex: newColor.hex,
+      /* The first colour starts with the product's current photos and stock */
+      images: first ? form.images : [],
+      sizes: form.sizes.map((sz) => ({ size: sz.size, stock: first ? sz.stock || 0 : 0 })),
+    }]);
     setNewColor({ name: '', hex: '#000000' });
   }
 
   function removeColor(name) {
     update('colors', form.colors.filter((c) => c.name !== name));
+  }
+
+  function updateColor(name, patch) {
+    update('colors', form.colors.map((c) => (c.name === name ? { ...c, ...patch } : c)));
+    if (errors.colors) setErrors((prev) => ({ ...prev, colors: null }));
+  }
+
+  function updateColorStock(name, sizeName, stock) {
+    update('colors', form.colors.map((c) => (c.name !== name ? c : {
+      ...c,
+      sizes: c.sizes.map((x) => (x.size === sizeName ? { ...x, stock: Math.max(0, parseInt(stock, 10) || 0) } : x)),
+    })));
+  }
+
+  function moveColorUp(index) {
+    if (index <= 0) return;
+    const next = [...form.colors];
+    [next[index - 1], next[index]] = [next[index], next[index - 1]];
+    update('colors', next);
   }
 
   /* ─── Tag management ─── */
@@ -265,7 +338,12 @@ export default function AdminProductForm() {
     if (!form.name.trim()) e.name = 'Name is required.';
     if (!form.slug.trim()) e.slug = 'Slug is required.';
     if (!form.price || nairaToKobo(form.price) <= 0) e.price = 'Price must be greater than 0.';
-    if (form.images.length === 0) e.images = 'At least one image is required.';
+    if (form.colors.length > 0) {
+      const noPhotos = form.colors.filter((c) => !c.images?.length).map((c) => c.name);
+      if (noPhotos.length) e.colors = `Add photos for: ${noPhotos.join(', ')}.`;
+    } else if (form.images.length === 0) {
+      e.images = 'At least one image is required.';
+    }
     if (form.sizes.length === 0) e.sizes = 'At least one size is required.';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -276,7 +354,7 @@ export default function AdminProductForm() {
   async function handleSave() {
     if (!validate()) {
       /* Scroll to first error */
-      const firstError = document.querySelector('.input-group--error, .img-uploader--error, .sizes-error');
+      const firstError = document.querySelector('.input-group--error, .img-uploader--error, .sizes-error, .colors-error');
       firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
@@ -293,8 +371,10 @@ export default function AdminProductForm() {
         compare_at_price: form.compare_at_price ? nairaToKobo(form.compare_at_price) : null,
         category_id: form.category_id || null,
         collection_id: form.collection_id || null,
-        images: form.images,
-        sizes: form.sizes,
+        /* With colours: main photos = first colour, stock = total per size.
+           The server derives the same; sent here so the list view is right immediately. */
+        images: form.colors.length > 0 ? form.colors[0].images : form.images,
+        sizes: form.colors.length > 0 ? sumSizes(form.colors, form.sizes) : form.sizes,
         colors: form.colors.length > 0 ? form.colors : null,
         tags: form.tags.length > 0 ? form.tags : null,
         badge: form.badge || null,
@@ -446,6 +526,12 @@ export default function AdminProductForm() {
               {errors.images && (
                 <p className="product-form__field-error">{errors.images}</p>
               )}
+              {form.colors.length > 0 ? (
+                <p className="admin-form-section__desc">
+                  This piece has colours, so photos are set per colour below.
+                  The first colour's photos are used on cards and the homepage.
+                </p>
+              ) : (
               <ImageUploader
                 images={form.images}
                 onChange={(urls) => {
@@ -454,6 +540,7 @@ export default function AdminProductForm() {
                 }}
                 folder={`products/${form.slug || 'new'}`}
               />
+              )}
             </div>
           </div>
 
@@ -509,8 +596,14 @@ export default function AdminProductForm() {
                 })}
               </div>
 
-              {/* Stock inputs for selected sizes */}
-              {form.sizes.length > 0 && (
+              {form.colors.length > 0 && form.sizes.length > 0 && (
+                <p className="admin-form-section__desc" style={{ marginTop: 12 }}>
+                  Stock is set per colour below. Total: {sumSizes(form.colors, form.sizes).map((s) => `${s.size} ${s.stock}`).join(' · ')}
+                </p>
+              )}
+
+              {/* Stock inputs for selected sizes (no colours) */}
+              {form.colors.length === 0 && form.sizes.length > 0 && (
                 <div className="product-form__size-stock">
                   {form.sizes.map((s) => (
                     <div key={s.size} className="product-form__size-row">
@@ -535,28 +628,65 @@ export default function AdminProductForm() {
           <div className="admin-card">
             <div className="admin-form-section">
               <h3 className="admin-form-section__title">Colors</h3>
-              <p className="admin-form-section__desc">Optional. Add color variants if the product comes in multiple colors.</p>
-
-              {form.colors.length > 0 && (
-                <div className="product-form__colors-list">
-                  {form.colors.map((c) => (
-                    <div key={c.name} className="product-form__color-chip">
-                      <span
-                        className="product-form__color-swatch"
-                        style={{ background: c.hex }}
-                      />
-                      <span>{c.name}</span>
-                      <button
-                        className="product-form__color-remove"
-                        onClick={() => removeColor(c.name)}
-                        aria-label={`Remove ${c.name}`}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
+              <p className="admin-form-section__desc">
+                Optional. One piece in several colours: each colour gets its own photos and stock.
+                Shoppers pick a colour and the photos and sizes switch with it.
+              </p>
+              {errors.colors && (
+                <p className="product-form__field-error colors-error">{errors.colors}</p>
               )}
+
+              {form.colors.map((c, i) => (
+                <div key={c.name} className="product-form__variant">
+                  <div className="product-form__variant-head">
+                    <span className="product-form__color-swatch" style={{ background: c.hex }} />
+                    <span className="product-form__variant-name">{c.name}</span>
+                    {i === 0
+                      ? <span className="product-form__variant-tag">Main</span>
+                      : (
+                        <button type="button" className="product-form__variant-btn" onClick={() => moveColorUp(i)} aria-label={`Move ${c.name} up`}>
+                          Move up
+                        </button>
+                      )}
+                    <button
+                      type="button"
+                      className="product-form__color-remove"
+                      onClick={() => removeColor(c.name)}
+                      aria-label={`Remove ${c.name}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <ImageUploader
+                    images={c.images || []}
+                    onChange={(urls) => updateColor(c.name, { images: urls })}
+                    folder={`products/${form.slug || 'new'}/${slugify(c.name) || 'colour'}`}
+                  />
+
+                  {form.sizes.length > 0 ? (
+                    <div className="product-form__size-stock">
+                      {c.sizes.map((x) => (
+                        <div key={x.size} className="product-form__size-row">
+                          <span className="product-form__size-label">{x.size}</span>
+                          <input
+                            type="number"
+                            className="product-form__stock-input"
+                            value={x.stock}
+                            onChange={(e) => updateColorStock(c.name, x.size, e.target.value)}
+                            min="0"
+                            placeholder="0"
+                            aria-label={`${c.name} ${x.size} stock`}
+                          />
+                          <span className="product-form__stock-unit">units</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="admin-form-section__desc">Pick sizes above to set stock for {c.name}.</p>
+                  )}
+                </div>
+              ))}
 
               <div className="product-form__color-add">
                 <input

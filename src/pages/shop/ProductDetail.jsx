@@ -5,11 +5,16 @@
  *   GET /api/products/:slug          — single product
  *   GET /api/products/:slug/related  — related products
  *
+ * Colour variants: the chosen colour drives the gallery, sizes and stock
+ * (src/utils/variants.js). ?color=White in the URL preselects a colour and
+ * is kept in sync, so a colour can be shared or linked to directly.
+ * Merged/renamed pieces: the API answers with a redirect and the page
+ * replaces the URL with the current product (and colour).
 
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router';
 import ImageGallery from '../../components/product/ImageGallery';
 import SizeSelector from '../../components/product/SizeSelector';
 import ColorSelector from '../../components/product/ColorSelector';
@@ -25,6 +30,7 @@ import useScrollReveal from '../../hooks/useScrollReveal';
 import useCartStore from '../../store/cartStore';
 import useUIStore from '../../store/uiStore';
 import { formatPrice } from '../../utils/formatPrice';
+import { getVariant, findColor, colorName } from '../../utils/variants';
 import { trackProductView } from '../../utils/tracker';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import JsonLd, { buildProductSchema, buildBreadcrumbSchema } from '../../components/seo/JsonLd';
@@ -123,6 +129,8 @@ function MobileStickyBar({ product, onAddToBag, visible, isSoldOut }) {
 
 export default function ProductDetail() {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedSize, setSelectedSize] = useState('');
@@ -153,12 +161,20 @@ export default function ProductDetail() {
         const res = await fetch(`/api/products/${slug}`);
         const json = await res.json();
 
+        /* Old URL of a merged or renamed piece: go to its current page */
+        if (!json.success && json.redirect?.slug) {
+          const qs = json.redirect.color ? `?color=${encodeURIComponent(json.redirect.color)}` : '';
+          navigate(`/product/${json.redirect.slug}${qs}`, { replace: true });
+          return;
+        }
+
         if (json.success && json.data) {
           const p = json.data;
           setProduct(p);
           trackProductView(p.id, p.name);
           if (p.colors?.length > 0) {
-            setSelectedColor(p.colors[0].name || p.colors[0]);
+            const fromUrl = findColor(p, searchParams.get('color'));
+            setSelectedColor(colorName(fromUrl || p.colors[0]));
           }
 
           /* Fetch related products */
@@ -215,19 +231,37 @@ export default function ProductDetail() {
     return () => obs.disconnect();
   }, [loading, product]);
 
+  /* ─── Photos + sizes for the chosen colour ─── */
+  const variant = useMemo(() => getVariant(product, selectedColor), [product, selectedColor]);
+
+  /* ─── Colour change: keep URL in sync, drop a size this colour doesn't have ─── */
+  const handleColorSelect = useCallback((name) => {
+    setSelectedColor(name);
+    const next = getVariant(product, name);
+    setSelectedSize((cur) => {
+      const s = next.sizes.find((x) => (x.size || x.name) === cur);
+      return s && s.stock > 0 ? cur : '';
+    });
+    setSearchParams((prev) => {
+      const sp = new URLSearchParams(prev);
+      sp.set('color', name);
+      return sp;
+    }, { replace: true });
+  }, [product, setSearchParams]);
+
   /* ─── Stock for selected size ─── */
   const selectedSizeStock = useMemo(() => {
-    if (!product?.sizes?.length) return null;
+    if (!variant.sizes.length) return null;
     if (!selectedSize) return null;
-    const sizeObj = product.sizes.find((s) => (s.size || s.name) === selectedSize);
+    const sizeObj = variant.sizes.find((s) => (s.size || s.name) === selectedSize);
     return sizeObj ? sizeObj.stock : null;
-  }, [product, selectedSize]);
+  }, [variant, selectedSize]);
 
-  /* ─── Is entire product sold out? ─── */
+  /* ─── Is the chosen colour sold out? ─── */
   const isSoldOut = useMemo(() => {
-    if (!product?.sizes?.length) return false;
-    return product.sizes.every((s) => s.stock === 0);
-  }, [product]);
+    if (!variant.sizes.length) return false;
+    return variant.sizes.every((s) => s.stock === 0);
+  }, [variant]);
 
   /* ─── Reset quantity when size changes ─── */
   useEffect(() => {
@@ -244,7 +278,7 @@ export default function ProductDetail() {
   const handleAddToBag = useCallback(() => {
     if (isSoldOut) return;
 
-    if (product?.sizes?.length > 0 && !selectedSize) {
+    if (variant.sizes.length > 0 && !selectedSize) {
       setSizeError('Select a size');
       const el = document.querySelector('.size-selector');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -259,7 +293,7 @@ export default function ProductDetail() {
       price: product.price,
       size: selectedSize,
       color: selectedColor,
-      image: product.images?.[0] || '',
+      image: variant.images?.[0] || product.images?.[0] || '',
       badge: product.badge || null,
       quantity,
       maxStock: selectedSizeStock,
@@ -271,7 +305,7 @@ export default function ProductDetail() {
     } else {
       addToast('Maximum stock reached for this size.', 'info');
     }
-  }, [product, selectedSize, selectedColor, quantity, selectedSizeStock, isSoldOut, addItem, addToast, openCartDrawer]);
+  }, [product, variant, selectedSize, selectedColor, quantity, selectedSizeStock, isSoldOut, addItem, addToast, openCartDrawer]);
 
 
   /* ═══ LOADING ═══ */
@@ -361,7 +395,8 @@ export default function ProductDetail() {
         {/* LEFT: Gallery */}
         <div className="pd-gallery-col">
           <ImageGallery
-            images={product.images}
+            key={selectedColor || 'default'}
+            images={variant.images}
             videoUrl={product.video_url || null}
             productName={product.name}
           />
@@ -404,13 +439,13 @@ export default function ProductDetail() {
                 <ColorSelector
                   colors={product.colors}
                   selectedColor={selectedColor}
-                  onSelect={setSelectedColor}
+                  onSelect={handleColorSelect}
                 />
               )}
-              {product.sizes?.length > 0 && (
+              {variant.sizes.length > 0 && (
                 <>
                   <SizeSelector
-                    sizes={product.sizes}
+                    sizes={variant.sizes}
                     selectedSize={selectedSize}
                     onSelect={(s) => { setSelectedSize(s); setSizeError(''); }}
                   />
@@ -419,7 +454,7 @@ export default function ProductDetail() {
               )}
 
               {/* Quantity — only show when a size is selected (or no sizes exist) */}
-              {(!product.sizes?.length || selectedSize) && !isSoldOut && (
+              {(!variant.sizes.length || selectedSize) && !isSoldOut && (
                 <div className="pd-quantity">
                   <QuantitySelector
                     quantity={quantity}
@@ -446,11 +481,13 @@ export default function ProductDetail() {
 
             {/* BLOCK 4: Details */}
             <div className="pd-details">
-              <ExpandableSection title="Materials and Care" defaultOpen={false}>
-                <div className="pd-expand-content">
-                  <p>100% heavyweight cotton, 280gsm. Oversized fit. Machine wash cold. Hang dry. Do not bleach.</p>
-                </div>
-              </ExpandableSection>
+              {product.description && (
+                <ExpandableSection title="Details" defaultOpen={false}>
+                  <div className="pd-expand-content">
+                    <p>{product.description}</p>
+                  </div>
+                </ExpandableSection>
+              )}
               <ExpandableSection title="Size Guide" defaultOpen={false}>
                 <div className="pd-expand-content">
                   <p>Every piece runs true to size. When in doubt, size up.</p>

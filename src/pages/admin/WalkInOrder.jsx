@@ -24,6 +24,35 @@ import WalkInReceiptImage from '../../components/admin/WalkInReceiptImage';
 import { offlineQueue } from '../../utils/offlineQueue';
 import '../../styles/admin/admin-walkin.css';
 
+/*
+ * Colour variants: a piece in three colours shows as three tiles here
+ * ("Cow Print Panel Shirt, White"), each with that colour's photos and stock,
+ * so staff pick colour and size in one tap. The order line keeps the base
+ * name with the colour in its own field, and stock comes off that colour.
+ */
+function expandVariants(products) {
+  const out = [];
+  for (const p of products || []) {
+    const variants = Array.isArray(p.colors) ? p.colors.filter((c) => c && Array.isArray(c.sizes)) : [];
+    if (variants.length === 0) {
+      out.push({ ...p, _key: p.id, _baseName: p.name, _color: null });
+      continue;
+    }
+    for (const c of variants) {
+      out.push({
+        ...p,
+        _key: `${p.id}::${c.name}`,
+        _baseName: p.name,
+        _color: c.name,
+        name: `${p.name}, ${c.name}`,
+        images: c.images?.length ? c.images : p.images,
+        sizes: c.sizes,
+      });
+    }
+  }
+  return out;
+}
+
 /* ═══ HELPERS ═══ */
 
 function formatPrice(kobo) {
@@ -188,7 +217,7 @@ export default function WalkInOrder() {
     if (!navigator.onLine) {
       const cached = offlineQueue.getCachedProducts();
       if (cached.length > 0) {
-        setCatalog(cached);
+        setCatalog(expandVariants(cached));
         setCatalogLoading(false);
         return;
       }
@@ -201,14 +230,14 @@ export default function WalkInOrder() {
       });
       const json = await res.json();
       if (json.success) {
-        setCatalog(json.data || []);
+        setCatalog(expandVariants(json.data || []));
         /* Cache for offline use */
         offlineQueue.cacheProducts(json.data || []);
       }
     } catch {
       /* Network failed — try cache */
       const cached = offlineQueue.getCachedProducts();
-      if (cached.length > 0) setCatalog(cached);
+      if (cached.length > 0) setCatalog(expandVariants(cached));
     }
     finally { setCatalogLoading(false); }
   }
@@ -231,17 +260,18 @@ export default function WalkInOrder() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const json = await res.json();
-      if (json.success) setSearchResults(json.data || []);
+      if (json.success) setSearchResults(expandVariants(json.data || []));
     } catch { /* silent */ }
     finally { setSearching(false); }
   }
 
   /* ─── Item management ─── */
   function addItem(product, size) {
-    const existing = items.find((i) => i.product.id === product.id && i.size === size);
+    const pkey = product._key || product.id;
+    const existing = items.find((i) => (i.product._key || i.product.id) === pkey && i.size === size);
     if (existing) {
       setItems(items.map((i) =>
-        i.product.id === product.id && i.size === size
+        (i.product._key || i.product.id) === pkey && i.size === size
           ? { ...i, quantity: i.quantity + 1 }
           : i
       ));
@@ -328,7 +358,8 @@ export default function WalkInOrder() {
     const payload = {
       items: items.map((i) => ({
         product_id: i.product.id,
-        name: i.product.name,
+        name: i.product._baseName || i.product.name,
+        color: i.product._color || null,
         price: i.overridePrice !== null ? i.overridePrice : i.price,
         quantity: i.quantity,
         size: i.size,
@@ -583,7 +614,7 @@ export default function WalkInOrder() {
             {searchResults.length > 0 && (
               <div className="pos-search__dropdown">
                 {searchResults.map((product) => (
-                  <div key={product.id} className="pos-search__result">
+                  <div key={product._key || product.id} className="pos-search__result">
                     <div className="pos-search__result-info">
                       {product.images?.[0] && (
                         <img src={product.images[0]} alt="" className="pos-search__result-img" />
@@ -632,7 +663,7 @@ export default function WalkInOrder() {
           ) : (
             <div className="pos-catalog__grid">
               {catalog.map((product) => (
-                <CatalogTile key={product.id} product={product} onAdd={addItem} />
+                <CatalogTile key={product._key || product.id} product={product} onAdd={addItem} />
               ))}
               {catalog.length === 0 && (
                 <div className="pos-catalog__empty">No active products found.</div>
@@ -823,7 +854,7 @@ function OrderTicket({
           </div>
         ) : (
           items.map((item, i) => (
-            <div key={`${item.product.id}-${item.size}`} className="pos-ticket__item">
+            <div key={`${item.product._key || item.product.id}-${item.size}`} className="pos-ticket__item">
               <div className="pos-ticket__item-top">
                 {item.product.images?.[0] && (
                   <img src={item.product.images[0]} alt="" className="pos-ticket__item-img" />

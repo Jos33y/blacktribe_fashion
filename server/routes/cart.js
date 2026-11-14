@@ -4,8 +4,132 @@ import { createOrder, retryOrder, saveCheckoutProfile } from '../services/orderS
 import { sendEmail } from '../services/emailService.js';
 import { paymentLinkEmail } from '../templates/paymentLink.js';
 import { createError } from '../middleware/errorHandler.js';
+import { resolveLine } from '../utils/variants.js';
 
 const router = Router();
+
+const MAX_QTY_PER_LINE = 20;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+
+/**
+ * Resolve a discount code against a server-calculated subtotal.
+ * Shared by /validate-discount (preview) and /checkout (the real charge).
+ * Throws a 400 with a customer-facing message when the code can't be used.
+ */
+async function resolveDiscount(code, subtotal) {
+  if (!code || typeof code !== 'string') {
+    throw createError(400, 'This code is not valid.');
+  }
+
+  const trimmed = code.trim().toUpperCase();
+
+  const { data: discount, error } = await supabaseAdmin
+    .from('discounts')
+    .select('*')
+    .eq('code', trimmed)
+    .eq('is_active', true)
+    .single();
+
+  if (error || !discount) throw createError(400, 'This code is not valid.');
+
+  if (discount.expires_at && new Date(discount.expires_at) < new Date()) {
+    throw createError(400, 'This code has expired.');
+  }
+  if (discount.starts_at && new Date(discount.starts_at) > new Date()) {
+    throw createError(400, 'This code is not valid.');
+  }
+  if (discount.usage_limit !== null && discount.times_used >= discount.usage_limit) {
+    throw createError(400, 'This code has reached its usage limit.');
+  }
+  if (discount.min_order && subtotal < discount.min_order) {
+    const minFormatted = (discount.min_order / 100).toLocaleString('en-NG');
+    throw createError(400, `Minimum order of ₦${minFormatted} required for this code.`);
+  }
+
+  let amount = discount.type === 'percentage'
+    ? Math.round((subtotal || 0) * (discount.value / 100))
+    : discount.value; /* fixed amount in kobo */
+
+  /* Never discount more than the subtotal */
+  amount = Math.max(0, Math.min(amount, subtotal || 0));
+
+  return { code: discount.code, type: discount.type, value: discount.value, amount };
+}
+
+
+/**
+ * Rebuild the bag from the database. The browser only says WHAT it wants
+ * (product, colour, size, quantity); name, price, image and availability
+ * always come from the products table. Throws a 400 naming the piece if
+ * anything can't be bought as asked.
+ */
+async function priceBag(rawItems) {
+  if (!Array.isArray(rawItems) || rawItems.length === 0) {
+    throw createError(400, 'Your bag is empty.');
+  }
+
+  const ids = [...new Set(rawItems.map((i) => i?.productId).filter((id) => UUID_RE.test(String(id || ''))))];
+  if (ids.length === 0) throw createError(400, 'Your bag is empty.');
+
+  const { data: products, error } = await supabaseAdmin
+    .from('products')
+    .select('id, name, slug, price, images, sizes, colors, is_active')
+    .in('id', ids);
+
+  if (error) throw error;
+  const byId = new Map((products || []).map((p) => [p.id, p]));
+
+  /* Combine duplicate lines (same piece, colour, size) before stock checks */
+  const merged = new Map();
+  for (const raw of rawItems) {
+    const product = byId.get(raw?.productId);
+    if (!product || !product.is_active) {
+      throw createError(400, `${raw?.name || 'A piece in your bag'} is no longer available. Remove it from your bag to continue.`);
+    }
+    const qty = parseInt(raw.quantity, 10);
+    if (!Number.isFinite(qty) || qty < 1) throw createError(400, `Check the quantity for ${product.name}.`);
+
+    const line = resolveLine(product, { color: raw.color, size: raw.size || '' });
+    if (!line.ok) throw createError(400, line.error);
+
+    const key = `${product.id}::${line.color}::${raw.size || ''}`;
+    const prev = merged.get(key);
+    merged.set(key, {
+      product,
+      line,
+      size: raw.size || '',
+      quantity: (prev?.quantity || 0) + qty,
+    });
+  }
+
+  const lines = [];
+  for (const { product, line, size, quantity } of merged.values()) {
+    if (quantity > MAX_QTY_PER_LINE) {
+      throw createError(400, `You can order up to ${MAX_QTY_PER_LINE} of ${product.name} at a time.`);
+    }
+    if (line.stock !== null && line.stock < quantity) {
+      const label = [line.color, size].filter(Boolean).join(', ');
+      throw createError(400, line.stock === 0
+        ? `${product.name}${label ? ` (${label})` : ''} is sold out.`
+        : `Only ${line.stock} of ${product.name}${label ? ` (${label})` : ''} left.`);
+    }
+
+    lines.push({
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: product.price,
+      quantity,
+      size,
+      color: line.color || '',
+      image: line.image || '',
+    });
+  }
+
+  const subtotal = lines.reduce((sum, l) => sum + l.price * l.quantity, 0);
+  return { lines, subtotal };
+}
 
 
 /**
@@ -16,66 +140,23 @@ const router = Router();
  */
 router.post('/validate-discount', async (req, res, next) => {
   try {
-    const { code, subtotal } = req.body;
+    const { code, subtotal, items } = req.body;
 
-    if (!code || typeof code !== 'string') {
-      throw createError(400, 'This code is not valid.');
+    /* Price from the bag when it's sent; the client subtotal is only a fallback for the preview */
+    let base = parseInt(subtotal, 10) || 0;
+    if (Array.isArray(items) && items.length > 0) {
+      try { base = (await priceBag(items)).subtotal; } catch { /* preview only */ }
     }
 
-    const trimmed = code.trim().toUpperCase();
-
-    /* Fetch discount by code */
-    const { data: discount, error } = await supabaseAdmin
-      .from('discounts')
-      .select('*')
-      .eq('code', trimmed)
-      .eq('is_active', true)
-      .single();
-
-    if (error || !discount) {
-      throw createError(400, 'This code is not valid.');
-    }
-
-    /* Check expiry */
-    if (discount.expires_at && new Date(discount.expires_at) < new Date()) {
-      throw createError(400, 'This code has expired.');
-    }
-
-    /* Check start date */
-    if (discount.starts_at && new Date(discount.starts_at) > new Date()) {
-      throw createError(400, 'This code is not valid.');
-    }
-
-    /* Check usage limit */
-    if (discount.usage_limit !== null && discount.times_used >= discount.usage_limit) {
-      throw createError(400, 'This code has reached its usage limit.');
-    }
-
-    /* Check minimum order */
-    if (discount.min_order && subtotal < discount.min_order) {
-      const minFormatted = (discount.min_order / 100).toLocaleString('en-NG');
-      throw createError(400, `Minimum order of ₦${minFormatted} required for this code.`);
-    }
-
-    /* Calculate discount amount */
-    let discountAmount = 0;
-    if (discount.type === 'percentage') {
-      discountAmount = Math.round((subtotal || 0) * (discount.value / 100));
-    } else {
-      /* Fixed amount in kobo */
-      discountAmount = discount.value;
-    }
-
-    /* Never discount more than the subtotal */
-    discountAmount = Math.min(discountAmount, subtotal || 0);
+    const d = await resolveDiscount(code, base);
 
     res.json({
       success: true,
       data: {
-        code: discount.code,
-        type: discount.type,
-        value: discount.value,
-        discount_amount: discountAmount,
+        code: d.code,
+        type: d.type,
+        value: d.value,
+        discount_amount: d.amount,
       },
     });
   } catch (err) {
@@ -189,21 +270,25 @@ async function extractOptionalUser(req) {
  * Creates order in Supabase (pending), sends payment link email,
  * returns orderId + reference for Paystack popup.
  *
- * Shipping is calculated server-side from shipping_zones.
- * Client-sent shipping value is ignored — server is the source of truth.
+ * Server is the source of truth for every amount:
+ *   - items are re-priced from the products table (priceBag)
+ *   - colour, size and stock are checked per line
+ *   - the discount is re-validated against the server subtotal
+ *   - shipping is calculated from shipping_zones
+ * Client-sent prices, subtotal, discount amount and shipping are ignored.
  *
  * If user is authenticated, saves profile and address for faster checkout next time.
  */
 router.post('/checkout', async (req, res, next) => {
   try {
     const {
-      contact, address, items, discount, subtotal,
+      contact, address, items: rawItems, discount,
       pendingOrderId,
     } = req.body;
 
     // ─── Validate ───
     if (!contact?.email) throw createError(400, 'Email is required.');
-    if (!items?.length) throw createError(400, 'Cart is empty.');
+    if (!rawItems?.length) throw createError(400, 'Cart is empty.');
     if (!address?.fullName) throw createError(400, 'Full name is required.');
     if (!address?.street) throw createError(400, 'Street address is required.');
     if (!address?.city) throw createError(400, 'City is required.');
@@ -212,14 +297,23 @@ router.post('/checkout', async (req, res, next) => {
     // ─── Optional auth extraction (never blocks guest checkout) ───
     const userId = await extractOptionalUser(req);
 
-    // ─── Server-side shipping calculation ───
-    const calculatedShipping = await calculateShipping(address.state, subtotal || 0);
+    // ─── Re-price the bag from the database ───
+    const { lines: items, subtotal } = await priceBag(rawItems);
 
-    // ─── Discount amount (trust the validated amount from /validate-discount) ───
-    const discountAmount = discount?.amount || 0;
+    // ─── Server-side shipping calculation ───
+    const calculatedShipping = await calculateShipping(address.state, subtotal);
+
+    // ─── Discount: re-validated against the server subtotal ───
+    let discountAmount = 0;
+    let discountCode = null;
+    if (discount?.code) {
+      const d = await resolveDiscount(discount.code, subtotal);
+      discountAmount = d.amount;
+      discountCode = d.code;
+    }
 
     // ─── Calculate total server-side ───
-    const calculatedTotal = (subtotal || 0) + calculatedShipping - discountAmount;
+    const calculatedTotal = subtotal + calculatedShipping - discountAmount;
 
     if (calculatedTotal <= 0) throw createError(400, 'Invalid order total.');
 
@@ -240,10 +334,10 @@ router.post('/checkout', async (req, res, next) => {
       phone: contact.phone || address.phone || null,
       items,
       shippingAddress,
-      subtotal: subtotal || 0,
+      subtotal,
       shippingCost: calculatedShipping,
       discountAmount,
-      discountCode: discount?.code || null,
+      discountCode,
       total: calculatedTotal,
       paymentRef,
       userId,
@@ -270,10 +364,10 @@ router.post('/checkout', async (req, res, next) => {
     try {
       const orderForEmail = {
         ...order,
-        subtotal: subtotal || 0,
+        subtotal,
         shipping_cost: calculatedShipping,
         discount_amount: discountAmount,
-        discount_code: discount?.code || null,
+        discount_code: discountCode,
         total: calculatedTotal,
         shipping_address: shippingAddress,
       };
@@ -313,6 +407,10 @@ router.post('/checkout', async (req, res, next) => {
         email: contact.email,
         amount: calculatedTotal,
         shipping: calculatedShipping,
+        subtotal,
+        discount: discountAmount,
+        /* Server prices per line, so the bag can correct stale prices */
+        items: items.map((l) => ({ productId: l.productId, color: l.color, size: l.size, price: l.price })),
       },
     });
   } catch (err) {
