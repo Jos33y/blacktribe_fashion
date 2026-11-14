@@ -11,7 +11,8 @@
  * Hero image convention: /images/hero/<collection-slug>.jpg in public/.
  * It must be the piece on obsidian (not the white-background shop photo),
  * landscape, ~2400×1350. If the file is missing, the previous hero image
- * is used so the hero never shows a broken image.
+ * is used so the hero never shows a broken image. If both are missing, the
+ * hero shows the plain obsidian background, never a broken image icon.
  */
 
 import { useState } from 'react';
@@ -20,26 +21,37 @@ import { Link } from 'react-router';
 const FALLBACK_IMAGE = '/images/crystal-velvet-trucker-back.PNG';
 
 export default function ProductHero({ collection }) {
-  const [imgFailed, setImgFailed] = useState(false);
+  /*
+   * Remember WHICH image failed, not just that one did. The hero renders
+   * before /api/homepage answers; if the fallback failed during that moment,
+   * a plain true/false flag used to stay true and block the collection's
+   * image forever, leaving the hero empty.
+   */
+  const [failed, setFailed] = useState([]);
 
   const slug = collection?.slug;
-  const heroSrc = slug && !imgFailed ? `/images/hero/${slug}.jpg` : FALLBACK_IMAGE;
+  const loading = collection === undefined;
+  const candidates = [slug && `/images/hero/${slug}.jpg`, FALLBACK_IMAGE].filter(Boolean);
+  const heroSrc = candidates.find((src) => !failed.includes(src)) || null;
 
   const eyebrow = collection?.season ? `New Season. ${collection.season}` : 'New Collection';
 
   return (
     <section className="home-hero" id="home-hero">
       <div className="home-hero__bg">
-        <img
-          key={heroSrc}
-          src={heroSrc}
-          alt=""
-          className="home-hero__bg-img"
-          aria-hidden="true"
-          draggable="false"
-          fetchPriority="high"
-          onError={() => setImgFailed(true)}
-        />
+        {/* Wait for the collection before choosing, so the right image loads first */}
+        {!loading && heroSrc && (
+          <img
+            key={heroSrc}
+            src={heroSrc}
+            alt=""
+            className="home-hero__bg-img"
+            aria-hidden="true"
+            draggable="false"
+            fetchPriority="high"
+            onError={() => setFailed((list) => [...list, heroSrc])}
+          />
+        )}
       </div>
 
       <div className="home-hero__overlay" />
