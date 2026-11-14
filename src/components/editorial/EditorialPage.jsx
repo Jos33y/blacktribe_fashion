@@ -312,6 +312,134 @@ function Opener({ f }) {
   );
 }
 
+/* "A | B | C" lines → arrays of trimmed parts */
+function rows(text, max) {
+  return lines(text, max).map((l) => l.split('|').map((x) => x.trim()));
+}
+
+function Contents({ f }) {
+  const items = rows(f.items, 9);
+  return (
+    <div className="ed-contents">
+      <div className="ed-contents__media"><Img src={f.image} alt="" /></div>
+      <div className="ed-contents__text">
+        {f.heading && <h2 className="ed-heading ed-heading--large"><Accent text={f.heading} /></h2>}
+        <ol className="ed-contents__list">
+          {items.map(([pg, title, note], i) => (
+            <li key={i}>
+              <span className="ed-contents__pg">{pg}</span>
+              <span className="ed-contents__title">{title}</span>
+              {note && <span className="ed-contents__note">{note}</span>}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+function Profile({ f, fitRef }) {
+  const facts = rows(f.facts, 5);
+  return (
+    <div className="ed-profile">
+      <div className="ed-profile__media">
+        <Img src={f.image} alt={plainText(f.heading)} />
+        {/* Architect's measurement lines over the portrait */}
+        <svg className="ed-profile__lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 34 H100 M0 72 H100" strokeDasharray="0.8 1.2" />
+          <path d="M50 0 V100" strokeDasharray="0.3 1.6" />
+          <path d="M94 34 V72 M92.5 34 H95.5 M92.5 72 H95.5" />
+        </svg>
+        <span className="ed-profile__tag ed-profile__tag--a">A</span>
+        <span className="ed-profile__tag ed-profile__tag--b">B</span>
+        <span className="ed-profile__tag ed-profile__tag--dim">Eye line / 1:1</span>
+      </div>
+      <MaskBand className="ed-profile__band" />
+      <div className="ed-profile__text">
+        {f.kicker && <span className="ed-kicker">{f.kicker}</span>}
+        {f.heading && <h2 className="ed-heading ed-heading--large"><Accent text={f.heading} /></h2>}
+        <div className="ed-profile__grid">
+          {f.intro && <p className="ed-profile__intro ed-fit" ref={fitRef}>{f.intro}</p>}
+          {facts.length > 0 && (
+            <dl className="ed-profile__facts">
+              {facts.map(([k, v], i) => (
+                <div key={i}><dt>{k}</dt><dd>{v}</dd></div>
+              ))}
+            </dl>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QA({ f, fitRef }) {
+  const parts = paragraphs(f.body);
+  const quick = rows(f.quick, 8);
+  let q = 0;
+  return (
+    <div className="ed-qa">
+      <header className="ed-qa__head">
+        {f.kicker && <span className="ed-kicker">{f.kicker}</span>}
+        {f.heading && <h2 className="ed-heading ed-heading--large"><Accent text={f.heading} /></h2>}
+      </header>
+      <div className="ed-qa__body ed-fit" ref={fitRef}>
+        {parts.map((p, i) => {
+          if (/^Q:\s*/i.test(p)) {
+            q += 1;
+            return (
+              <p key={i} className="ed-qa__q">
+                <span className="ed-qa__n">{String(q).padStart(2, '0')}</span>
+                {p.replace(/^Q:\s*/i, '')}
+              </p>
+            );
+          }
+          return <p key={i} className="ed-qa__a">{p}</p>;
+        })}
+      </div>
+      {f.pull && <blockquote className="ed-qa__pull">{f.pull}<MaskEnd /></blockquote>}
+      {quick.length > 0 && (
+        <div className="ed-qa__quick">
+          <span className="ed-kicker">Quickfire</span>
+          <dl>
+            {quick.map(([k, v], i) => <div key={i}><dt>{k}</dt><dd>{v}</dd></div>)}
+          </dl>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Collage({ f }) {
+  const imgs = (Array.isArray(f.images) ? f.images : []).slice(0, 4);
+  const film = f.style === 'film';
+  const ticket = lines(f.ticket, 3);
+  return (
+    <div className={`ed-collage ${film ? 'ed-collage--film' : 'ed-collage--taped'} ed-collage--n${Math.max(imgs.length, 1)}`}>
+      <header className="ed-collage__head">
+        {f.kicker && <span className="ed-kicker">{f.kicker}</span>}
+        {f.heading && <h2 className="ed-heading ed-heading--large"><Accent text={f.heading} /></h2>}
+      </header>
+      <div className="ed-collage__stage">
+        {imgs.map((src, i) => (
+          <figure key={i} className={`ed-collage__shot ed-collage__shot--${i + 1}`}>
+            <Img src={src} alt="" />
+            {!film && <span className="ed-tape" aria-hidden="true" />}
+            {film && <span className="ed-collage__frame">{String(i + 1).padStart(2, '0')}A</span>}
+          </figure>
+        ))}
+        {ticket.length > 0 && (
+          <div className="ed-ticket" aria-hidden="true">
+            {ticket.map((l, i) => <span key={i}>{l}</span>)}
+            <MaskEnd />
+          </div>
+        )}
+      </div>
+      {f.caption && <p className="ed-collage__caption">{f.caption}</p>}
+    </div>
+  );
+}
+
 const RENDERERS = {
   brand: Brand,
   cover: Cover,
@@ -322,6 +450,10 @@ const RENDERERS = {
   story: Story,
   world: World,
   opener: Opener,
+  contents: Contents,
+  profile: Profile,
+  qa: QA,
+  collage: Collage,
 };
 
 /* Templates that carry the running folio (cover and brand page don't) */

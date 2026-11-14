@@ -5,7 +5,7 @@
  *   - EditorialPage (renderer: web, print, admin preview)
  *   - AdminEditorialEdit (builds the form for each page)
  *
- * Field types: text | textarea | lines | image | side | fit | choice | products
+ * Field types: text | textarea | lines | image | images | side | fit | choice | products
  * accent: true  → field supports *word* for a Cormorant italic accent
  * Keep keys in sync with FIELD_LIMITS in server/routes/admin/editorial.js
  *
@@ -139,6 +139,60 @@ export const TEMPLATES = {
     ],
   },
 
+  contents: {
+    label: 'Contents',
+    hint: 'What is inside: a photo and the stories with their page numbers.',
+    tone: true,
+    fields: [
+      { key: 'image', type: 'image', label: 'Photo' },
+      { key: 'treatment', type: 'choice', label: 'Photo finish', options: [{ value: '', label: 'Natural' }, { value: 'mono', label: 'Black and white, rich contrast' }, { value: 'night', label: 'Night: deep blacks, colour lifted' }, { value: 'grain', label: 'Film grain' }, { value: 'mono-grain', label: 'Black and white with film grain' }] },
+      { key: 'heading', type: 'text', label: 'Heading', placeholder: '*Inside*', max: 120, accent: true },
+      { key: 'items', type: 'lines', label: 'Stories, one per line as "Page | Title | one line about it"', placeholder: '04 | The architect | Daniel Blaq on building a tribe', max: 900, rows: 8 },
+    ],
+  },
+
+  profile: {
+    label: 'Profile',
+    hint: 'A person: portrait on top with architect-style measurement lines, name and facts below.',
+    tone: true,
+    fields: [
+      { key: 'image', type: 'image', label: 'Portrait' },
+      { key: 'treatment', type: 'choice', label: 'Photo finish', options: [{ value: '', label: 'Natural' }, { value: 'mono', label: 'Black and white, rich contrast' }, { value: 'night', label: 'Night: deep blacks, colour lifted' }, { value: 'grain', label: 'Film grain' }, { value: 'mono-grain', label: 'Black and white with film grain' }] },
+      { key: 'kicker', type: 'text', label: 'Kicker', placeholder: 'The profile', max: 60 },
+      { key: 'heading', type: 'text', label: 'Name', placeholder: 'Daniel *Blaq*', max: 120, accent: true },
+      { key: 'intro', type: 'textarea', label: 'Line about them', max: 300, rows: 3 },
+      { key: 'facts', type: 'lines', label: 'Facts, one per line as "Label | Value" (up to 5)', placeholder: 'Role | CEO, Black Tribe Lifestyle', max: 600, rows: 5 },
+    ],
+  },
+
+  qa: {
+    label: 'Q&A',
+    hint: 'An interview. Start each question with "Q:" on its own paragraph; the answer follows. Quickfire rows sit at the bottom.',
+    tone: true,
+    fields: [
+      { key: 'kicker', type: 'text', label: 'Kicker', placeholder: 'In his words', max: 60 },
+      { key: 'heading', type: 'text', label: 'Heading', placeholder: 'Show up. *Properly.*', max: 120, accent: true },
+      { key: 'body', type: 'textarea', label: 'Questions and answers', placeholder: 'Q: What was Lagos like in 2017?\n\nSmall. Friends of friends.', max: 6000, rows: 14 },
+      { key: 'pull', type: 'textarea', label: 'Pull quote, set big below the answers (optional)', max: 200, rows: 2 },
+      { key: 'quick', type: 'lines', label: 'Quickfire, one per line as "Question | Answer" (optional)', max: 900, rows: 6 },
+    ],
+  },
+
+  collage: {
+    label: 'Collage',
+    hint: 'Two to four photos: taped to the page like a scrapbook, or as a strip of film.',
+    tone: true,
+    fields: [
+      { key: 'images', type: 'images', label: 'Photos (2 to 4)', max: 4 },
+      { key: 'style', type: 'choice', label: 'Style', options: [{ value: '', label: 'Taped scrapbook' }, { value: 'film', label: 'Film strip' }] },
+      { key: 'treatment', type: 'choice', label: 'Photo finish', options: [{ value: '', label: 'Natural' }, { value: 'mono', label: 'Black and white, rich contrast' }, { value: 'night', label: 'Night: deep blacks, colour lifted' }, { value: 'grain', label: 'Film grain' }, { value: 'mono-grain', label: 'Black and white with film grain' }] },
+      { key: 'kicker', type: 'text', label: 'Kicker', placeholder: 'After dark', max: 60 },
+      { key: 'heading', type: 'text', label: 'Heading', placeholder: 'Everybody left with the *bag*', max: 120, accent: true },
+      { key: 'caption', type: 'textarea', label: 'Caption', max: 300, rows: 2 },
+      { key: 'ticket', type: 'lines', label: 'Ticket stub, one line each (optional, up to 3)', placeholder: 'Black Tribe night\nAdmit one\nLagos', max: 200, rows: 3 },
+    ],
+  },
+
   story: {
     label: 'Story',
     hint: 'Long text in two columns, with an optional image at the top. Ends with the small mask.',
@@ -180,6 +234,7 @@ export function newPage(template) {
     tone: 'dark',
     contact: template === 'brand',
     fields: template === 'products' ? { products: [] }
+      : template === 'collage' ? { images: [] }
       : template === 'split' ? { side: 'left', fit: 'canvas' }
       : ['cover', 'image', 'story', 'brand', 'world'].includes(template) ? { fit: 'canvas' }
       : {},

@@ -96,6 +96,21 @@ function Field({ field, value, onChange, featureId, productOptions }) {
         </div>
       );
 
+    case 'images':
+      return (
+        <div className="admin-form-row">
+          <label className="input-group__label">{field.label}</label>
+          <ImageUploader
+            images={Array.isArray(value) ? value : []}
+            onChange={(urls) => onChange(urls)}
+            folder={featureId}
+            bucket="editorial"
+            max={field.max || 4}
+            maxEdge={EDITORIAL_MAX_EDGE}
+          />
+        </div>
+      );
+
     case 'side':
       return (
         <div className="admin-form-row">

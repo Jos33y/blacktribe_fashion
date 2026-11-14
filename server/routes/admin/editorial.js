@@ -21,7 +21,7 @@ import { logActivity, getRequestIp } from '../../utils/activityLog.js';
 
 const router = express.Router();
 
-const TEMPLATES = ['brand', 'cover', 'image', 'split', 'products', 'statement', 'story', 'world', 'opener'];
+const TEMPLATES = ['brand', 'cover', 'image', 'split', 'products', 'statement', 'story', 'world', 'opener', 'contents', 'profile', 'qa', 'collage'];
 const TONES = ['dark', 'light'];
 const MAX_PAGES = 24;
 const MAX_PRODUCTS = 4;
@@ -48,6 +48,12 @@ const FIELD_LIMITS = {
   headline: 120,
   marks: 10,
   ink: 10,
+  items: 900,
+  facts: 600,
+  quick: 900,
+  pull: 200,
+  style: 10,
+  ticket: 200,
   heading: 120,
   intro: 600,
   body: 6000,
@@ -97,6 +103,14 @@ function cleanPages(input) {
       if (fields.side && !['left', 'right'].includes(fields.side)) fields.side = 'left';
       if (fields.fit && !['fill', 'canvas'].includes(fields.fit)) fields.fit = 'fill';
 
+      if (fields.style && fields.style !== 'film') delete fields.style;
+
+      if (Array.isArray(src.images)) {
+        fields.images = src.images
+          .filter((u) => typeof u === 'string' && u.length <= 1000 && /^https:\/\//i.test(u))
+          .slice(0, 4);
+      }
+
       if (Array.isArray(src.products)) {
         fields.products = src.products
           .filter((id) => typeof id === 'string' && UUID_RE.test(id))
@@ -114,8 +128,8 @@ function cleanPages(input) {
 }
 
 function deriveCover(pages) {
-  const withImage = pages.find((p) => p.fields?.image);
-  return withImage ? withImage.fields.image : null;
+  const withImage = pages.find((p) => p.fields?.image || p.fields?.images?.length);
+  return withImage ? (withImage.fields.image || withImage.fields.images[0]) : null;
 }
 
 

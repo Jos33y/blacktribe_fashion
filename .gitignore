@@ -42,6 +42,7 @@ docs/
 # Product photo folders uploaded via scripts/upload-images.js
 drop-*/
 product-export-*/
+issue-*/
 # Folder listings and file bundles sent for review
 structure_*.txt
 public_structure.txt
