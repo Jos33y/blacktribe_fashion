@@ -3,14 +3,18 @@
  *
  * Route: /editorial/:slug
  *
- * Desktop: pages shown as A4 magazine pages, stacked.
- * Mobile:  same pages reflowed into a readable column (.ed-reader).
+ * Two ways to read, switched at the top (Flip is the default):
+ *   Flip  the magazine as a flipbook: spreads on wide screens, one page
+ *         at a time on phones, pages turning on a 3D hinge (FlipBook.jsx)
+ *   Read  the pages stacked; on phones they reflow into a readable column
+ * The choice lives in the URL (?view=read), so a shared link opens the same way.
  * "Download print PDF" opens the print view at /editorial/:slug/print.
  */
 
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useSearchParams } from 'react-router';
 import EditorialPage from '../../components/editorial/EditorialPage';
+import FlipBook from '../../components/editorial/FlipBook';
 import Accent from '../../components/editorial/Accent';
 import { plainText } from '../../components/editorial/templates';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
@@ -21,6 +25,15 @@ export default function EditorialFeature() {
   const { slug } = useParams();
   const [feature, setFeature] = useState(null);
   const [status, setStatus] = useState('loading'); /* loading | ready | missing */
+  const [params, setParams] = useSearchParams();
+  const view = params.get('view') === 'read' ? 'read' : 'flip';
+
+  const setView = (next) => {
+    const nextParams = new URLSearchParams(params);
+    if (next === 'read') nextParams.set('view', 'read');
+    else nextParams.delete('view');
+    setParams(nextParams, { replace: true });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -94,20 +107,28 @@ export default function EditorialFeature() {
           </span>
           <h1 className="page-headline ed-feature-headline"><Accent text={feature.title} /></h1>
           {feature.dek && <p className="page-intro page-intro--serif">{feature.dek}</p>}
+          <div className="ed-viewswitch" role="group" aria-label="How to read">
+            <button type="button" aria-pressed={view === 'flip'} onClick={() => setView('flip')}>Flip</button>
+            <button type="button" aria-pressed={view === 'read'} onClick={() => setView('read')}>Read</button>
+          </div>
         </div>
       </section>
 
-      <div className="ed-reader">
-        {pages.map((page, i) => (
-          <EditorialPage
-            key={page.id}
-            page={page}
-            number={i + 1}
-            feature={feature}
-            products={feature.products}
-          />
-        ))}
-      </div>
+      {view === 'flip' ? (
+        <FlipBook pages={pages} feature={feature} products={feature.products} />
+      ) : (
+        <div className="ed-reader">
+          {pages.map((page, i) => (
+            <EditorialPage
+              key={page.id}
+              page={page}
+              number={i + 1}
+              feature={feature}
+              products={feature.products}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="ed-feature-actions">
         <Link to={`/editorial/${feature.slug}/print`}>Download print PDF</Link>

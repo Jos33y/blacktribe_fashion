@@ -1,0 +1,248 @@
+/* ═══════════════════════════════════════════════════════════
+   FLIPBOOK — the magazine as an object (components/editorial/FlipBook.jsx)
+   Pages are fixed A4 EditorialPages; the book turns them on a 3D hinge.
+   ═══════════════════════════════════════════════════════════ */
+
+.flip {
+  --flip-ease: cubic-bezier(0.32, 0.08, 0.2, 1);
+  position: relative;
+  padding: var(--space-4) var(--content-padding) var(--space-5);
+  background:
+    radial-gradient(ellipse at 50% 40%, #1A1A1A 0%, var(--bt-bg) 70%);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.flip--full {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  background: #050505;
+}
+
+.flip__stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 2800px;
+  perspective-origin: 50% 40%;
+  touch-action: pan-y pinch-zoom;   /* horizontal swipes turn pages; vertical scroll and pinch still work */
+  cursor: grab;
+}
+
+.flip__stage:active { cursor: grabbing; }
+
+.flip__book {
+  position: relative;
+  display: flex;
+  transform-style: preserve-3d;
+  transition: transform 0.6s var(--flip-ease);
+}
+
+/* The book's shadow on the table (a filter here would flatten the 3D turn) */
+.flip__half { box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5); }
+
+/* Each half holds one page lying flat */
+.flip__half {
+  position: relative;
+  width: var(--page-w);
+  height: 100%;
+  overflow: hidden;
+}
+
+.flip__book--single .flip__half--right { width: 100%; }
+
+.flip__half .ed-frame,
+.flip__face .ed-frame {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+
+/* Shadow cast on the page underneath by the page in the air */
+.flip__shadow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.flip__shadow--right { background: linear-gradient(to right, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 45%); }
+.flip__shadow--left { background: linear-gradient(to left, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 45%); }
+
+/* The page in the air */
+.flip__leaf {
+  position: absolute;
+  top: 0;
+  width: var(--page-w);
+  height: 100%;
+  transform-style: preserve-3d;
+  transition-property: transform;
+  transition-timing-function: var(--flip-ease);
+  will-change: transform;
+  z-index: 5;
+}
+
+.flip__leaf--right { left: 50%; transform-origin: left center; }
+.flip__leaf--left { left: 0; transform-origin: right center; }
+.flip__leaf--single { left: 0; width: 100%; transform-origin: left center; }
+
+.flip__face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip__face--back { transform: rotateY(180deg); }
+
+/* Paper sheen: light catches the page as it lifts */
+.flip__gloss {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.15) 30%, rgba(255, 255, 255, 0.08) 60%, rgba(0, 0, 0, 0) 100%);
+}
+
+.flip__leaf--left .flip__gloss,
+.flip__gloss--back {
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.15) 30%, rgba(255, 255, 255, 0.08) 60%, rgba(0, 0, 0, 0) 100%);
+}
+
+.flip__leaf--left .flip__gloss--back {
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.15) 30%, rgba(255, 255, 255, 0.08) 60%, rgba(0, 0, 0, 0) 100%);
+}
+
+/* The back of a page turned in single view */
+.flip__paper {
+  position: absolute;
+  inset: 0;
+  background: #F5F3F0;
+}
+
+/* The fold in the middle of a spread */
+.flip__spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 8%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 4;
+  background: linear-gradient(to right,
+    rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.18) 38%, rgba(0, 0, 0, 0.42) 50%,
+    rgba(0, 0, 0, 0.18) 62%, rgba(0, 0, 0, 0) 100%);
+}
+
+
+/* ─── Controls ─── */
+
+.flip__bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  max-width: 560px;
+  margin: var(--space-4) auto 0;
+}
+
+.flip__btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--bt-border-hover);
+  color: var(--bt-text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.flip__btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.flip__btn:hover:not(:disabled) { border-color: var(--bt-text); }
+.flip__btn:disabled { opacity: 0.3; cursor: default; }
+.flip__btn:focus-visible { outline: 2px solid var(--bt-border-active); outline-offset: 2px; }
+
+.flip__scrub {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.flip__count {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--bt-text);
+}
+
+.flip__of { color: var(--bt-text-muted); }
+
+.flip__range {
+  width: 100%;
+  accent-color: var(--bt-text);
+  cursor: pointer;
+}
+
+.flip__hint {
+  margin: var(--space-3) 0 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bt-text-muted);
+}
+
+.flip--full .flip__hint { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .flip__book,
+  .flip__leaf { transition: none !important; }
+}
+
+
+/* ─── Flip / Read switch (on the issue page) ─── */
+
+.ed-viewswitch {
+  display: inline-flex;
+  margin-top: var(--space-4);
+  border: 1px solid var(--bt-border-hover);
+}
+
+.ed-viewswitch button {
+  min-width: 88px;
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  background: transparent;
+  border: 0;
+  color: var(--bt-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.ed-viewswitch button[aria-pressed='true'] {
+  background: var(--bt-text);
+  color: var(--bt-text-inverse);
+}
+
+.ed-viewswitch button:focus-visible { outline: 2px solid var(--bt-border-active); outline-offset: 2px; }

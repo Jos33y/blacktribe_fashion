@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router';
-import Navbar from '../components/layout/Navbar';
+import Navbar, { navLinks } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import MobileNav from '../components/layout/MobileNav';
 import SearchOverlay from '../components/layout/SearchOverlay';
@@ -12,12 +12,8 @@ import useCartStore from '../store/cartStore';
 import { trackPageView } from '../utils/tracker';
 import { announceRouteChange } from '../utils/announcer';
 
-const navLinks = [
-  { to: '/shop', label: 'Shop' },
-  { to: '/collections', label: 'Collections' },
-  { to: '/lookbook', label: 'Lookbook' },
-  { to: '/about', label: 'About' },
-];
+/* One list for both menus: the desktop Navbar and the mobile menu share
+   navLinks from Navbar.jsx, so a new link (like Editorial) shows in both */
 
 /* Routes where the cart drawer should not render */
 const NO_CART_DRAWER_ROUTES = ['/checkout', '/order-confirmation', '/pay'];
