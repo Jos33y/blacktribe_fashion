@@ -13,13 +13,27 @@
   -webkit-user-select: none;
 }
 
+/* Full screen: a layer over the whole site (iPhone), or the browser's own
+   full screen (desktop, Android). Respects the notch and home bar. */
 .flip--full {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  padding:
+    max(var(--space-3), env(safe-area-inset-top))
+    max(var(--space-3), env(safe-area-inset-right))
+    max(var(--space-3), env(safe-area-inset-bottom))
+    max(var(--space-3), env(safe-area-inset-left));
   background: #050505;
+  overscroll-behavior: contain;
 }
+
+.flip--full .flip__bar { margin-top: var(--space-3); }
 
 .flip__stage {
   position: relative;

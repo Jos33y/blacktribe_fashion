@@ -64,6 +64,8 @@ export default function FlipBook({ pages, feature, products }) {
   const [view, setView] = useState(0);              /* spread index (spread mode) or page index */
   const [turn, setTurn] = useState(null);           /* { dir: 1 | -1, p: 0..1, settle: bool } */
   const [isFull, setIsFull] = useState(false);
+  const fullRef = useRef(false);
+  fullRef.current = isFull;
 
   const spreads = useMemo(() => buildSpreads(count), [count]);
   const spreadMode = size.spread;
@@ -78,8 +80,8 @@ export default function FlipBook({ pages, feature, products }) {
       const availW = box.width;
       /* Fit the screen height (minus the site header and the controls), not the
          space left below the title: the reader scrolls the book into view */
-      const full = !!document.fullscreenElement;
-      const availH = Math.max(320, window.innerHeight - (full ? 120 : 190));
+      const full = fullRef.current;
+      const availH = Math.max(320, window.innerHeight - (full ? 96 : 190));
       const spread = availW >= 900 && availW > availH;
       const pagesAcross = spread ? 2 : 1;
       let w = availW / pagesAcross;
@@ -91,8 +93,13 @@ export default function FlipBook({ pages, feature, products }) {
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     window.addEventListener('resize', measure);
-    return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
-  }, []);
+    window.addEventListener('orientationchange', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('orientationchange', measure);
+    };
+  }, [isFull]);
 
   /* Switching between spread and single keeps the reader on the same page */
   const prevMode = useRef(spreadMode);
@@ -194,18 +201,54 @@ export default function FlipBook({ pages, feature, products }) {
     go(e.clientX - box.left > box.width / 2 ? 1 : -1);
   };
 
-  /* ─── Fullscreen (where the browser allows it) ─── */
-  const fullscreenOk = typeof document !== 'undefined' && !!document.documentElement.requestFullscreen;
+  /* ─── Full screen, on every device ───
+     Browsers that allow it (desktop, Android) get true full screen.
+     iPhone Safari only allows that for video, so there the book opens as a
+     full-screen layer over the site instead: same look, closes with the
+     button or by turning the phone back. Escape closes it everywhere. */
   const shellRef = useRef(null);
+  const nativeFull = useRef(false);
+
   useEffect(() => {
-    const onChange = () => setIsFull(!!document.fullscreenElement);
+    const onChange = () => {
+      if (!document.fullscreenElement && nativeFull.current) {
+        nativeFull.current = false;
+        setIsFull(false);
+      }
+    };
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
-  const toggleFull = () => {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else shellRef.current?.requestFullscreen?.();
+
+  const toggleFull = async () => {
+    if (isFull) {
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
+      nativeFull.current = false;
+      setIsFull(false);
+      return;
+    }
+    setIsFull(true);
+    const el = shellRef.current;
+    if (el?.requestFullscreen) {
+      try {
+        await el.requestFullscreen({ navigationUI: 'hide' });
+        nativeFull.current = true;
+      } catch { /* not allowed here: the full-screen layer is already showing */ }
+    }
   };
+
+  /* While full screen: no page scroll behind it, Escape closes it */
+  useEffect(() => {
+    if (!isFull) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => { if (e.key === 'Escape' && !document.fullscreenElement) setIsFull(false); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [isFull]);
 
   /* ─── What is on screen ─── */
   const page = (i) => (i == null || i < 0 || i >= count ? null : (
@@ -260,7 +303,13 @@ export default function FlipBook({ pages, feature, products }) {
   const settling = turn?.settle;
 
   return (
-    <div className={`flip ${isFull ? 'flip--full' : ''}`} ref={shellRef}>
+    <div
+      className={`flip ${isFull ? 'flip--full' : ''}`}
+      ref={shellRef}
+      role={isFull ? 'dialog' : undefined}
+      aria-modal={isFull ? 'true' : undefined}
+      aria-label={isFull ? 'Magazine, full screen' : undefined}
+    >
       <div
         className="flip__stage"
         ref={stageRef}
@@ -343,15 +392,13 @@ export default function FlipBook({ pages, feature, products }) {
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
         </button>
 
-        {fullscreenOk && (
-          <button type="button" className="flip__btn flip__btn--full" onClick={toggleFull} aria-label={isFull ? 'Exit full screen' : 'Full screen'}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              {isFull
-                ? <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
-                : <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />}
-            </svg>
-          </button>
-        )}
+        <button type="button" className="flip__btn flip__btn--full" onClick={toggleFull} aria-label={isFull ? 'Exit full screen' : 'Full screen'}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            {isFull
+              ? <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+              : <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />}
+          </svg>
+        </button>
       </div>
 
       <p className="flip__hint">
