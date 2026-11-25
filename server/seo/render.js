@@ -117,6 +117,29 @@ const ORGANIZATION = {
   slogan: 'Redefining Luxury',
   email: 'support@blacktribefashion.com',
   sameAs: [INSTAGRAM, 'https://www.instagram.com/blacktribe_lifestyle/'],
+  location: { '@id': `${SITE}/#store` },
+};
+
+/* The physical store. Mirrors src/config/store.js: keep the two in step. */
+const STORE_ADDRESS = 'Shop 31, 2nd Floor, Admiralty Mall, 1 Olawale Cole-Onitiri Avenue, Off Admiralty Road, Lekki Phase 1, Lagos';
+
+const STORE = {
+  '@context': 'https://schema.org',
+  '@type': 'ClothingStore',
+  '@id': `${SITE}/#store`,
+  name: BRAND,
+  url: `${SITE}/contact`,
+  image: `${SITE}/logo512.png`,
+  email: 'support@blacktribefashion.com',
+  parentOrganization: { '@type': 'Organization', name: BRAND, url: SITE },
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Shop 31, 2nd Floor, Admiralty Mall, 1 Olawale Cole-Onitiri Avenue, Off Admiralty Road',
+    addressLocality: 'Lekki Phase 1',
+    addressRegion: 'Lagos',
+    addressCountry: 'NG',
+  },
+  hasMap: 'https://www.google.com/maps/search/?api=1&query=Admiralty+Mall%2C+Admiralty+Road%2C+Lekki+Phase+1%2C+Lagos',
 };
 
 function breadcrumbs(items) {
@@ -148,7 +171,7 @@ function productList(products) {
 }
 
 function shell(inner) {
-  return `<div class="seo-content">${nav()}<main>${inner}</main><footer><p>${BRAND}. Redefining Luxury. Founded in Lagos, 2017. <a href="mailto:support@blacktribefashion.com">support@blacktribefashion.com</a> · <a href="${INSTAGRAM}">Instagram</a></p></footer></div>`;
+  return `<div class="seo-content">${nav()}<main>${inner}</main><footer><p>${BRAND}. Redefining Luxury. Founded in Lagos, 2017. Store: ${STORE_ADDRESS}. <a href="mailto:support@blacktribefashion.com">support@blacktribefashion.com</a> · <a href="${INSTAGRAM}">Instagram</a></p></footer></div>`;
 }
 
 
@@ -170,7 +193,7 @@ async function activeProducts(limit = 60, filter) {
 const STATIC = {
   '/about': ['About', 'BlackTribe started in Lagos in 2017 as a gathering: art shows, warehouse parties, a community of creatives. The clothes came later. The identity was always there.'],
   '/lookbook': ['Lookbook', 'BlackTribe Fashion collections, styled and photographed.'],
-  '/contact': ['Contact', 'Get in touch with BlackTribe Fashion. Email support@blacktribefashion.com or message us on Instagram.'],
+  '/contact': ['Contact', 'Visit the BlackTribe store at Shop 31, 2nd Floor, Admiralty Mall, Lekki Phase 1, Lagos. Or email support@blacktribefashion.com and message us on Instagram.'],
   '/faq': ['FAQ', 'Answers about BlackTribe orders, pre-orders, sizing, shipping and payment.'],
   '/shipping-returns': ['Shipping and Returns', 'How BlackTribe Fashion ships worldwide and handles returns.'],
   '/refund-policy': ['Refund Policy', 'BlackTribe Fashion refund policy.'],
@@ -197,7 +220,7 @@ async function resolve(path) {
         title: DEFAULT_TITLE,
         description: DEFAULT_DESC,
         path: '/',
-        ld: [ORGANIZATION, { '@context': 'https://schema.org', '@type': 'WebSite', name: BRAND, url: SITE }],
+        ld: [ORGANIZATION, STORE, { '@context': 'https://schema.org', '@type': 'WebSite', name: BRAND, url: SITE }],
       }),
       body: shell(`<h1>${BRAND}. Redefining Luxury.</h1><p>${esc(DEFAULT_DESC)}</p>${collection ? `<h2><a href="/collections/${esc(collection.slug)}">${esc(collection.name)}</a>: the new collection</h2>${collection.description ? `<p>${esc(collection.description)}</p>` : ''}` : ''}<h2>New pieces</h2>${productList(newest)}`),
     };
@@ -412,7 +435,7 @@ async function resolve(path) {
   if (STATIC[path]) {
     const [name, description] = STATIC[path];
     return {
-      head: headTags({ title: `${name}. ${BRAND}`, description, path, ld: path === '/about' ? [ORGANIZATION] : [] }),
+      head: headTags({ title: `${name}. ${BRAND}`, description, path, ld: path === '/about' ? [ORGANIZATION] : path === '/contact' ? [STORE] : [] }),
       body: shell(`<h1>${esc(name)}</h1><p>${esc(description)}</p>`),
     };
   }

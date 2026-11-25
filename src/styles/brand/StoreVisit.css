@@ -1,0 +1,96 @@
+/* Store address: footer column and Contact page block */
+.store-address {
+  font-style: normal;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.5;
+}
+.footer__column--store .store-address {
+  font-size: 0.875rem;
+  color: inherit;
+  opacity: 0.8;
+  margin-bottom: 10px;
+}
+.store-directions { text-decoration: underline; text-underline-offset: 3px; }
+
+.store-visit {
+  display: grid;
+  gap: 32px;
+  margin-block: 56px;
+  align-items: end;
+}
+@media (min-width: 768px) {
+  .store-visit { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 48px; }
+}
+
+.store-visit__media {
+  position: relative;
+  margin: 0;
+  padding-bottom: 12%;
+}
+.store-visit__photo {
+  display: block;
+  width: 82%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  background: #0C0C0C;
+}
+.store-visit__photo--inset {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 38%;
+  border: 6px solid var(--bt-bg, #F5F3F0);
+}
+
+.store-visit__text {
+  border-top: 2px solid currentColor;
+  padding-top: 20px;
+}
+.store-visit__lede { font-size: 1.0625rem; line-height: 1.5; margin: 0 0 20px; max-width: 36ch; }
+.store-visit__eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin: 0 0 8px;
+}
+.store-visit__title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  line-height: 0.95;
+  margin: 0 0 16px;
+}
+.store-visit__title em {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+}
+.store-visit__address { font-size: 1rem; margin-bottom: 16px; }
+.store-visit__address strong { font-family: 'Syne', sans-serif; font-weight: 700; }
+.store-visit__hours { margin: 0 0 20px; font-size: 0.9375rem; }
+.store-visit__hours div { display: flex; gap: 16px; }
+.store-visit__hours dt { min-width: 96px; opacity: 0.7; }
+.store-visit__hours dd { margin: 0; }
+.store-visit__cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 24px;
+  background: #0C0C0C;
+  color: #F5F3F0;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.store-visit__cta:hover { background: #2A2A2A; }
+.store-visit__cta:focus-visible { outline: 2px solid #0C0C0C; outline-offset: 3px; }

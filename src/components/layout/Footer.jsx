@@ -1,5 +1,7 @@
 import { Link } from 'react-router';
 import '../../styles/layout/Footer.css';
+import '../../styles/brand/StoreVisit.css';
+import { STORE, storeLines } from '../../config/store';
 
 const shopLinks = [
   { to: '/shop', label: 'All Pieces' },
@@ -74,6 +76,21 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="footer__column footer__column--store">
+            <h3 className="footer__column-title">Visit</h3>
+            <address className="store-address">
+              {storeLines.map((line) => <span key={line}>{line}</span>)}
+            </address>
+            <a
+              href={STORE.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer__link store-directions"
+            >
+              Get directions
+            </a>
           </div>
         </div>
       </div>
