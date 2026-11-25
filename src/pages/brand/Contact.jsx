@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import StoreVisit from '../../components/brand/StoreVisit';
+import { STORE } from '../../config/store';
 import { setPageMeta, clearPageMeta } from '../../utils/pageMeta';
 import '../../styles/pages/Contact.css';
 
@@ -14,7 +16,7 @@ export default function Contact() {
   useEffect(() => {
     setPageMeta({
       title: 'Contact. BlackTribe Fashion.',
-      description: 'Questions about orders, sizing, or collaborations. We respond within 24 hours.',
+      description: 'Visit the BlackTribe store at Admiralty Mall, Lekki Phase 1, Lagos, or reach us about orders, sizing and collaborations. We respond within 24 hours.',
       path: '/contact',
     });
     return () => clearPageMeta();
@@ -122,7 +124,7 @@ export default function Contact() {
           <span className="page-eyebrow">Get in Touch</span>
           <h1 className="page-headline contact-headline">Contact</h1>
           <p className="page-intro">
-            Have a question about an order, sizing, or a collaboration? Reach out. We respond within 24 hours.
+            Visit the store in Lekki, or reach out about an order, sizing or a collaboration. We respond within 24 hours.
           </p>
         </div>
       </section>
@@ -152,6 +154,18 @@ export default function Contact() {
                 className="contact-channel-value contact-channel-link"
               >
                 @blacktribe_fashion
+              </a>
+            </div>
+
+            <div className="contact-channel">
+              <span className="contact-channel-label">Store</span>
+              <a
+                href={STORE.mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="contact-channel-value contact-channel-link"
+              >
+                {STORE.unit}, {STORE.place}, {STORE.area}
               </a>
             </div>
 
@@ -222,6 +236,9 @@ export default function Contact() {
           </div>
         </div>
       </section>
+
+      {/* ═══ THE STORE ═══ */}
+      <StoreVisit />
 
     </article>
   );

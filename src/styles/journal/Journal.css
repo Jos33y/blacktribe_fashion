@@ -68,8 +68,10 @@
 /* ═══ HERO ═══ */
 .jr-hero {
   position: relative;
-  min-height: 560px;
-  height: min(88svh, 860px);
+  /* Grows with the title, never hides under the fixed navbar */
+  min-height: max(560px, min(88svh, 860px));
+  padding-top: 128px;
+  box-sizing: border-box;
   display: flex;
   align-items: flex-end;
   isolation: isolate;
@@ -99,7 +101,7 @@
 .jr-hero__caption {
   position: absolute;
   right: var(--content-padding);
-  top: calc(var(--content-padding) + 64px);
+  top: 128px;
   margin: 0;
   font-family: var(--font-mono);
   font-size: 11px;
@@ -121,16 +123,17 @@
 
 .jr-title {
   margin: 0;
-  max-width: 14ch;
+  max-width: 16ch;
   font-family: var(--font-display);
   font-weight: var(--weight-extrabold, 800);
-  font-size: clamp(40px, 7.4vw, 96px);
+  font-size: clamp(30px, min(8.4vw, 6vw + 8px), 84px);
+  overflow-wrap: break-word;
   line-height: 0.92;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   text-wrap: balance;
 }
-.jr-title .jr-accent { font-size: 1.12em; line-height: 0.8; }
+.jr-title .jr-accent { font-size: 1.1em; line-height: 0.9; }
 
 .jr-dek {
   margin: 22px 0 0;
