@@ -11,6 +11,7 @@ import {
   Auth, Account,
   About, Contact, Lookbook, FAQ,
   EditorialIndex, EditorialFeature, EditorialPrint,
+  JournalIndex, JournalArticle,
   Terms, Privacy, ShippingReturns, RefundPolicy,
   Dashboard, Analytics, Products, ProductForm, AdminCategories,
   Orders, OrderDetail, WalkInOrder, Customers, Discounts,
@@ -65,6 +66,8 @@ export default function App() {
               <Route path="lookbook" element={<Lookbook />} />
               <Route path="editorial" element={<EditorialIndex />} />
               <Route path="editorial/:slug" element={<EditorialFeature />} />
+              <Route path="journal" element={<JournalIndex />} />
+              <Route path="journal/:slug" element={<JournalArticle />} />
               <Route path="about" element={<About />} />
               <Route path="contact" element={<Contact />} />
               <Route path="faq" element={<FAQ />} />

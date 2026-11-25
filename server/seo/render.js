@@ -25,6 +25,7 @@
 
 import fs from 'fs';
 import { supabaseAdmin } from '../config/database.js';
+import { journalPage } from './journal.js';
 
 const SITE = (process.env.SITE_URL || 'https://blacktribefashion.com').replace(/\/$/, '');
 const BRAND = 'BlackTribe Fashion';
@@ -121,7 +122,7 @@ const ORGANIZATION = {
 };
 
 /* The physical store. Mirrors src/config/store.js: keep the two in step. */
-const STORE_ADDRESS = 'Shop 31, 2nd Floor, Admiralty Mall, 1 Olawale Cole-Onitiri Avenue, Off Admiralty Road, Lekki Phase 1, Lagos';
+const STORE_ADDRESS = 'Shop 31, 2nd Floor, Admiralty Mall, 1 Olawale Cole Onitiri Avenue, Off Admiralty Road, Lekki Phase 1, Lagos 106104';
 
 const STORE = {
   '@context': 'https://schema.org',
@@ -134,12 +135,13 @@ const STORE = {
   parentOrganization: { '@type': 'Organization', name: BRAND, url: SITE },
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Shop 31, 2nd Floor, Admiralty Mall, 1 Olawale Cole-Onitiri Avenue, Off Admiralty Road',
+    streetAddress: 'Shop 31, 2nd Floor, Admiralty Mall, 1 Olawale Cole Onitiri Avenue, Off Admiralty Road',
     addressLocality: 'Lekki Phase 1',
     addressRegion: 'Lagos',
+    postalCode: '106104',
     addressCountry: 'NG',
   },
-  hasMap: 'https://www.google.com/maps/search/?api=1&query=Admiralty+Mall%2C+Admiralty+Road%2C+Lekki+Phase+1%2C+Lagos',
+  hasMap: 'https://maps.app.goo.gl/CXbfzP5LnLXqbEtD8',
 };
 
 function breadcrumbs(items) {
@@ -159,7 +161,7 @@ function breadcrumbs(items) {
 /* ─── Body HTML (plain, semantic; React replaces it on mount) ─── */
 
 function nav() {
-  return `<nav><a href="/">${BRAND}</a> · <a href="/shop">Shop</a> · <a href="/collections">Collections</a> · <a href="/lookbook">Lookbook</a> · <a href="/editorial">Editorial</a> · <a href="/about">About</a></nav>`;
+  return `<nav><a href="/">${BRAND}</a> · <a href="/shop">Shop</a> · <a href="/collections">Collections</a> · <a href="/lookbook">Lookbook</a> · <a href="/editorial">Editorial</a> · <a href="/journal">Journal</a> · <a href="/about">About</a></nav>`;
 }
 
 function productList(products) {
@@ -208,7 +210,12 @@ const NOINDEX = [/^\/admin/, /^\/account/, /^\/auth/, /^\/checkout/, /^\/pay\//,
 
 /* ─── Route resolvers: return { status, head, body } or { redirect } ─── */
 
-async function resolve(path) {
+async function resolve(path, { preview = false } = {}) {
+  /* Journal: articles live in server/content/journal */
+  if (path === '/journal' || path.startsWith('/journal/')) {
+    return journalPage(path, { preview, deps: { SITE, BRAND, esc, headTags, breadcrumbs, shell } });
+  }
+
   /* Home */
   if (path === '/') {
     const { data: collection } = await supabaseAdmin
@@ -459,12 +466,14 @@ export function seoPages(indexPath) {
       if (!template) template = fs.readFileSync(indexPath, 'utf8');
 
       const path = req.path.length > 1 ? req.path.replace(/\/+$/, '') : '/';
-      const key = path;
+      /* ?preview=1 shows Journal drafts (noindex); cached separately */
+      const preview = req.query?.preview === '1' && path.startsWith('/journal');
+      const key = preview ? `${path}?preview` : path;
       const hit = cache.get(key);
       let page = hit && Date.now() - hit.at < CACHE_MS ? hit.page : null;
 
       if (!page) {
-        const resolved = await resolve(path).catch((err) => {
+        const resolved = await resolve(path, { preview }).catch((err) => {
           console.error('[seo] resolve failed:', path, err?.message);
           return { fallback: true };
         });

@@ -31,6 +31,10 @@ export const EditorialIndex = lazy(() => import('../pages/editorial/EditorialInd
 export const EditorialFeature = lazy(() => import('../pages/editorial/EditorialFeature'));
 export const EditorialPrint = lazy(() => import('../pages/editorial/EditorialPrint'));
 
+// Journal pages
+export const JournalIndex = lazy(() => import('../pages/journal/JournalIndex'));
+export const JournalArticle = lazy(() => import('../pages/journal/JournalArticle'));
+
 // Legal pages
 export const Terms = lazy(() => import('../pages/legal/Terms'));
 export const Privacy = lazy(() => import('../pages/legal/Privacy'));

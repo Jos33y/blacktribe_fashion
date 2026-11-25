@@ -14,6 +14,7 @@
 
 import { Router } from 'express';
 import { supabaseAdmin } from '../config/database.js';
+import { journalSitemapEntries } from '../seo/journal.js';
 
 const router = Router();
 
@@ -30,6 +31,7 @@ const STATIC_PAGES = [
   { path: '/collections',       changefreq: 'weekly',  priority: '0.8' },
   { path: '/lookbook',          changefreq: 'weekly',  priority: '0.6' },
   { path: '/editorial',         changefreq: 'weekly',  priority: '0.6' },
+  { path: '/journal',           changefreq: 'weekly',  priority: '0.7' },
   { path: '/about',             changefreq: 'monthly', priority: '0.5' },
   { path: '/contact',           changefreq: 'monthly', priority: '0.4' },
   { path: '/faq',               changefreq: 'monthly', priority: '0.4' },
@@ -145,6 +147,11 @@ async function generateSitemap() {
     }
   } catch (err) {
     console.error('[sitemap] Error fetching editorial:', err.message);
+  }
+
+  /* Journal articles (published only, from server/content/journal) */
+  for (const entry of journalSitemapEntries()) {
+    urls.push(urlEntry({ path: entry.path, lastmod: formatDate(entry.lastmod), changefreq: 'monthly', priority: '0.7' }));
   }
 
   /* Categories as shop filter URLs */

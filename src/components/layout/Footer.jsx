@@ -8,6 +8,7 @@ const shopLinks = [
   { to: '/collections', label: 'Collections' },
   { to: '/lookbook', label: 'Lookbook' },
   { to: '/editorial', label: 'Editorial' },
+  { to: '/journal', label: 'Journal' },
 ];
 
 const companyLinks = [
