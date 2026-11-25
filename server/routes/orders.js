@@ -6,6 +6,7 @@ import { createError } from '../middleware/errorHandler.js';
 import { requireAuth } from '../middleware/auth.js';
 import { supabaseAdmin } from '../config/database.js';
 import { env } from '../config/env.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 const router = Router();
 
@@ -112,34 +113,40 @@ router.get('/', requireAuth, async (req, res, next) => {
     const userEmail = req.user.email;
     const { status } = req.query;
 
-    /* Build query — match by user_id OR guest_email */
-    let query = supabaseAdmin
-      .from('orders')
-      .select('*, order_items(*)')
-      .or(`user_id.eq.${userId},guest_email.ilike.${userEmail}`)
-      .order('created_at', { ascending: false });
+    /* Guest orders are matched by email only for a confirmed email, and the
+       email is escaped so characters like % or _ cannot match other people */
+    const canMatchEmail = req.user.emailConfirmed && /^[^\s@]+@[^\s@]+$/.test(userEmail || '');
+    const emailPattern = canMatchEmail ? userEmail.replace(/[\\%_]/g, (c) => `\\${c}`) : null;
 
-    /* Filter by status if provided */
-    if (status) {
-      const statuses = status.split(',').map((s) => s.trim()).filter(Boolean);
-      if (statuses.length > 0) {
-        query = query.in('status', statuses);
-      }
-    }
+    const statuses = String(status || '').split(',').map((x) => x.trim()).filter(Boolean);
+    const build = () => {
+      let q = supabaseAdmin.from('orders').select('*, order_items(*)');
+      if (statuses.length) q = q.in('status', statuses);
+      return q;
+    };
 
-    const { data, error } = await query;
-
+    /* Two plain queries (own orders, then guest orders by email) merged.
+       Avoids building a filter string out of the user's email. */
+    const [own, guest] = await Promise.all([
+      build().eq('user_id', userId),
+      emailPattern ? build().is('user_id', null).ilike('guest_email', emailPattern) : Promise.resolve({ data: [] }),
+    ]);
+    const error = own.error || guest.error;
     if (error) {
       console.error('[orders] List error:', error);
       throw createError(500, 'Could not fetch orders.');
     }
+    const seen = new Set();
+    const data = [...(own.data || []), ...(guest.data || [])]
+      .filter((o) => (seen.has(o.id) ? false : seen.add(o.id)))
+      .sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)));
 
-    /* Auto-link: claim any guest orders matching this user's email (fire-and-forget) */
-    supabaseAdmin
+    /* Auto-link: claim guest orders with this (confirmed) email, fire-and-forget */
+    if (emailPattern) supabaseAdmin
       .from('orders')
       .update({ user_id: userId, guest_email: null, updated_at: new Date().toISOString() })
       .is('user_id', null)
-      .ilike('guest_email', userEmail)
+      .ilike('guest_email', emailPattern)
       .then(({ error: linkErr }) => {
         if (linkErr) console.warn('[orders] Auto-link failed:', linkErr.message);
         else console.log(`[orders] Auto-linked guest orders for ${userEmail}`);
@@ -168,7 +175,14 @@ router.get('/:id', async (req, res, next) => {
   try {
     const order = await getOrderById(req.params.id);
     if (!order) throw createError(404, 'Order not found.');
-    res.json({ success: true, data: order });
+    /* Public by order id (the confirmation page). Leave out internals and
+       the phone number; everything the page shows stays. */
+    const { notes, payment_reference, user_id, ...publicOrder } = order;
+    if (publicOrder.shipping_address) {
+      const { phone, ...addr } = publicOrder.shipping_address;
+      publicOrder.shipping_address = addr;
+    }
+    res.json({ success: true, data: publicOrder });
   } catch (err) {
     next(err);
   }
@@ -180,7 +194,7 @@ router.get('/:id', async (req, res, next) => {
  * Sends the abandoned payment reminder email with payment page link.
  * Only sends once per order (tracked via notes field).
  */
-router.post('/:id/remind', async (req, res, next) => {
+router.post('/:id/remind', rateLimit({ name: 'remind', max: 5, windowMs: 10 * 60 * 1000 }), async (req, res, next) => {
   try {
     const order = await getOrderById(req.params.id);
     if (!order) throw createError(404, 'Order not found.');
@@ -200,7 +214,7 @@ router.post('/:id/remind', async (req, res, next) => {
         if (userData?.user?.email) email = userData.user.email;
       } catch { /* silent */ }
     }
-    if (!email) email = req.body.email || '';
+    /* Never send to an address taken from the request: only the order's own */
     if (!email) throw createError(400, 'No email address available.');
 
     const paymentUrl = `${env.siteUrl}/pay/${order.order_number}?token=${order.tracking_token}`;
@@ -231,12 +245,13 @@ router.post('/:id/remind', async (req, res, next) => {
  * Called by the payment page before opening Paystack popup
  * so the webhook can match the new reference.
  */
-router.post('/:id/update-ref', async (req, res, next) => {
+router.post('/:id/update-ref', rateLimit({ name: 'update-ref', max: 20, windowMs: 10 * 60 * 1000 }), async (req, res, next) => {
   try {
-    const { reference } = req.body;
-    if (!reference) throw createError(400, 'Reference is required.');
+    const { reference, token } = req.body;
+    if (!reference || !/^bt_[A-Za-z0-9_]{6,60}$/.test(String(reference))) throw createError(400, 'Reference is required.');
+    if (!token) throw createError(400, 'Token is required.');
 
-    const { error } = await supabaseAdmin
+    const { data: updated, error } = await supabaseAdmin
       .from('orders')
       .update({
         payment_reference: reference,
@@ -244,8 +259,11 @@ router.post('/:id/update-ref', async (req, res, next) => {
         updated_at: new Date().toISOString(),
       })
       .eq('id', req.params.id)
-      .eq('payment_status', 'pending');
+      .eq('tracking_token', String(token))
+      .eq('payment_status', 'pending')
+      .select('id');
 
+    if (!error && !updated?.length) throw createError(404, 'Order not found.');
     if (error) {
       console.warn('[orders] Failed to update reference:', error.message);
       throw createError(500, 'Failed to update payment reference.');

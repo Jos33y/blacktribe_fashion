@@ -104,11 +104,12 @@ export async function retryOrder({
   discountCode,
   total,
   paymentRef,
+  userId = null,
 }) {
   // Verify order exists and is still pending
   const { data: existing, error: fetchError } = await supabaseAdmin
     .from('orders')
-    .select('id, status, payment_status, user_id')
+    .select('id, status, payment_status, user_id, guest_email')
     .eq('id', orderId)
     .single();
 
@@ -118,6 +119,16 @@ export async function retryOrder({
 
   if (existing.payment_status === 'paid') {
     throw new Error('This order has already been paid.');
+  }
+
+  /* Only the person who placed the order may change it: the same signed-in
+     account, or the same email for a guest order. Anything else starts a
+     fresh order instead (the caller falls back to createOrder). */
+  const sameUser = existing.user_id && userId && existing.user_id === userId;
+  const sameGuest = !existing.user_id && existing.guest_email && email
+    && existing.guest_email.trim().toLowerCase() === email.trim().toLowerCase();
+  if (!sameUser && !sameGuest) {
+    throw new Error('Order does not belong to this customer.');
   }
 
   /* Try to link user by email if not already linked */

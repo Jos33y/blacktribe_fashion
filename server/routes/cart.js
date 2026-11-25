@@ -4,6 +4,8 @@ import { createOrder, retryOrder, saveCheckoutProfile } from '../services/orderS
 import { sendEmail } from '../services/emailService.js';
 import { paymentLinkEmail } from '../templates/paymentLink.js';
 import { createError } from '../middleware/errorHandler.js';
+import { rateLimit } from '../middleware/rateLimit.js';
+import { cleanText } from '../utils/escape.js';
 import { resolveLine } from '../utils/variants.js';
 
 const router = Router();
@@ -138,7 +140,7 @@ async function priceBag(rawItems) {
  * Public endpoint — no auth required.
  * Validates a discount code and returns the discount amount.
  */
-router.post('/validate-discount', async (req, res, next) => {
+router.post('/validate-discount', rateLimit({ name: 'discount', max: 20, windowMs: 10 * 60 * 1000 }), async (req, res, next) => {
   try {
     const { code, subtotal, items } = req.body;
 
@@ -279,7 +281,7 @@ async function extractOptionalUser(req) {
  *
  * If user is authenticated, saves profile and address for faster checkout next time.
  */
-router.post('/checkout', async (req, res, next) => {
+router.post('/checkout', rateLimit({ name: 'checkout', max: 20, windowMs: 10 * 60 * 1000 }), async (req, res, next) => {
   try {
     const {
       contact, address, items: rawItems, discount,
@@ -320,18 +322,23 @@ router.post('/checkout', async (req, res, next) => {
     // ─── Fresh payment reference every attempt ───
     const paymentRef = `bt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
+    /* Customer text goes into emails and the admin: no tags, sane lengths */
+    if (String(contact.email).length > 200 || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(String(contact.email).trim())) {
+      throw createError(400, 'Enter a valid email address.');
+    }
+    contact.email = String(contact.email).trim();
     const shippingAddress = {
-      name: address.fullName,
-      street: address.street,
-      city: address.city,
-      state: address.state,
-      lga: address.lga || null,
-      phone: address.phone || contact.phone || null,
+      name: cleanText(address.fullName, 120),
+      street: cleanText(address.street, 250),
+      city: cleanText(address.city, 80),
+      state: cleanText(address.state, 60),
+      lga: cleanText(address.lga, 80) || null,
+      phone: cleanText(address.phone || contact.phone, 30) || null,
     };
 
     const orderData = {
       email: contact.email,
-      phone: contact.phone || address.phone || null,
+      phone: cleanText(contact.phone || address.phone, 30) || null,
       items,
       shippingAddress,
       subtotal,
@@ -390,8 +397,8 @@ router.post('/checkout', async (req, res, next) => {
     if (userId) {
       saveCheckoutProfile({
         userId,
-        fullName: address.fullName,
-        phone: contact.phone || address.phone || null,
+        fullName: shippingAddress.name,
+        phone: shippingAddress.phone,
         address: shippingAddress,
       }).catch((err) => {
         console.error('[checkout] Profile save error:', err.message);

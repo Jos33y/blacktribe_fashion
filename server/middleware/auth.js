@@ -81,6 +81,7 @@ export async function requireAuth(req, res, next) {
       permissions: profile?.permissions || [],
       full_name: profile?.full_name || null,
       phone: profile?.phone || null,
+      emailConfirmed: Boolean(user.email_confirmed_at || user.confirmed_at),
     };
 
     next();

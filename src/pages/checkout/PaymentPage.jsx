@@ -108,7 +108,7 @@ export default function PaymentPage() {
       await fetch(`/api/orders/${order.id}/update-ref`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reference }),
+        body: JSON.stringify({ reference, token }),
       });
     } catch {
       // Non-blocking — webhook might not match but payment still works
@@ -127,7 +127,6 @@ export default function PaymentPage() {
       },
 
       onSuccess: (transaction) => {
-        console.log('[pay] Payment success:', transaction.reference);
         paymentComplete.current = true;
 
         // Clear cart (same items may exist if same device)

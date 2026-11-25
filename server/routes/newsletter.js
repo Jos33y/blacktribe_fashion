@@ -6,13 +6,14 @@
 
 import express from 'express';
 import { supabaseAdmin } from '../config/database.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 const router = express.Router();
 
 
 /* ─── Subscribe ─── */
 
-router.post('/subscribe', async (req, res, next) => {
+router.post('/subscribe', rateLimit({ name: 'newsletter', max: 10, windowMs: 10 * 60 * 1000 }), async (req, res, next) => {
   try {
     const { email } = req.body;
 
@@ -21,6 +22,9 @@ router.post('/subscribe', async (req, res, next) => {
     }
 
     const trimmed = email.trim().toLowerCase();
+    if (trimmed.length > 200) {
+      return res.status(400).json({ success: false, error: 'Enter a valid email address.' });
+    }
 
     /* Basic email validation */
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {

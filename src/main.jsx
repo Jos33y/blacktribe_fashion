@@ -25,7 +25,7 @@ function dismissLoader() {
 
   // Wait for the actual page content to be in the DOM
   // Lazy routes + Suspense mean React mounts before content exists
-  const minDelay = 2000;
+  const minDelay = 600;
   const start = performance.now();
 
   function check() {
@@ -33,7 +33,7 @@ function dismissLoader() {
     /* Root classes of every page type. A page missing from this list keeps
        the loader up until the 6s safety timeout. .admin = admin layout,
        .ed-print = editorial print view (outside StoreLayout, no .page-hero) */
-    const hasContent = document.querySelector('.home-hero, .shop-hero, .page-hero, .pd, .checkout, .account, .lookbook, .brand-page, .oc, .admin, .ed-print')?.children.length > 0;
+    const hasContent = document.querySelector('.home-hero, .shop-hero, .page-hero, .pd, .checkout, .account, .lookbook, .brand-page, .oc, .admin, .ed-print, .collection-detail, .jr, .jr-index, .auth, .pay-page, .not-found')?.children.length > 0;
 
     if (hasContent && elapsed >= minDelay) {
       hide();
@@ -70,7 +70,6 @@ function registerServiceWorker() {
           if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
             // New version available — the next navigation will use it.
             // No disruptive "refresh" prompts. Premium experience.
-            console.log('[sw] New version available. Will activate on next visit.');
           }
         });
       });

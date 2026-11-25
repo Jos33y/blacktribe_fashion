@@ -169,8 +169,8 @@ export default function AdminAnalytics() {
                     <stop offset="100%" stopColor="#EDEBE8" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="date" tickFormatter={formatDateShort} tick={{ fill: '#6A6662', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={{ stroke: '#2A2A2A' }} tickLine={false} />
-                <YAxis tickFormatter={formatShortPrice} tick={{ fill: '#6A6662', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} width={60} />
+                <XAxis dataKey="date" tickFormatter={formatDateShort} tick={{ fill: '#A6A29D', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={{ stroke: '#2A2A2A' }} tickLine={false} />
+                <YAxis tickFormatter={formatShortPrice} tick={{ fill: '#A6A29D', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} width={60} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(val) => [formatPrice(val), 'Revenue']} labelFormatter={formatDateShort} />
                 <Area type="monotone" dataKey="total" stroke="#EDEBE8" strokeWidth={2} fill="url(#revGrad)" />
               </AreaChart>
@@ -189,8 +189,8 @@ export default function AdminAnalytics() {
             <div className="analytics-chart">
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={ordersByDay}>
-                  <XAxis dataKey="date" tickFormatter={formatDateShort} tick={{ fill: '#6A6662', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={{ stroke: '#2A2A2A' }} tickLine={false} />
-                  <YAxis tick={{ fill: '#6A6662', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} width={30} allowDecimals={false} />
+                  <XAxis dataKey="date" tickFormatter={formatDateShort} tick={{ fill: '#A6A29D', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={{ stroke: '#2A2A2A' }} tickLine={false} />
+                  <YAxis tick={{ fill: '#A6A29D', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} width={30} allowDecimals={false} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Bar dataKey="count" fill="#EDEBE8" radius={[2, 2, 0, 0]} />
                 </BarChart>
@@ -257,8 +257,8 @@ export default function AdminAnalytics() {
             <div className="analytics-chart">
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={customerGrowth}>
-                  <XAxis dataKey="date" tickFormatter={formatDateShort} tick={{ fill: '#6A6662', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={{ stroke: '#2A2A2A' }} tickLine={false} />
-                  <YAxis tick={{ fill: '#6A6662', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} width={30} allowDecimals={false} />
+                  <XAxis dataKey="date" tickFormatter={formatDateShort} tick={{ fill: '#A6A29D', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={{ stroke: '#2A2A2A' }} tickLine={false} />
+                  <YAxis tick={{ fill: '#A6A29D', fontSize: 10, fontFamily: "'DM Mono', monospace" }} axisLine={false} tickLine={false} width={30} allowDecimals={false} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Line type="monotone" dataKey="count" stroke="#EDEBE8" strokeWidth={2} dot={false} />
                 </LineChart>

@@ -108,7 +108,10 @@ router.post('/paystack', async (req, res) => {
       .update(JSON.stringify(req.body))
       .digest('hex');
 
-    if (hash !== req.headers['x-paystack-signature']) {
+    const given = String(req.headers['x-paystack-signature'] || '');
+    const valid = given.length === hash.length
+      && crypto.timingSafeEqual(Buffer.from(given), Buffer.from(hash));
+    if (!valid) {
       console.warn('[webhook] Invalid Paystack signature');
       return res.sendStatus(400);
     }

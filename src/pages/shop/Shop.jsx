@@ -7,7 +7,7 @@
  *
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSearchParams, useParams } from 'react-router';
 import ProductGrid from '../../components/product/ProductGrid';
 import QuickView from '../../components/product/QuickView';
@@ -94,7 +94,12 @@ export default function Shop() {
     fetchProducts(1, true);
   }, [activeFilters.category.join(','), activeFilters.size.join(','), activeFilters.price.join(','), sortValue]);
 
+  const requestId = useRef(0);
+
   async function fetchProducts(pageNum = 1, replace = false) {
+    /* Only the newest request may update the grid: fast filter taps
+       otherwise let an older, slower response overwrite the right one */
+    const id = ++requestId.current;
     if (replace) setLoading(true);
     else setLoadingMore(true);
 
@@ -123,6 +128,7 @@ export default function Shop() {
 
       const res = await fetch(`/api/products?${params}`);
       const json = await res.json();
+      if (id !== requestId.current) return;
 
       if (json.success) {
         if (replace) {
@@ -135,8 +141,10 @@ export default function Shop() {
     } catch (err) {
       console.error('[Shop] products fetch error:', err);
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (id === requestId.current) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }
 
@@ -202,7 +210,7 @@ export default function Shop() {
     }
     activeFilters.size.forEach((size) => chips.push({ type: 'size', value: size, label: size }));
     activeFilters.price.forEach((range) => {
-      const labels = { '0-25000': 'Under ₦25,000', '25000-50000': '₦25,000 — ₦50,000', '50000-100000': '₦50,000 — ₦100,000', '100000-up': 'Over ₦100,000' };
+      const labels = { '0-25000': 'Under ₦25,000', '25000-50000': '₦25,000 to ₦50,000', '50000-100000': '₦50,000 to ₦100,000', '100000-up': 'Over ₦100,000' };
       chips.push({ type: 'price', value: range, label: labels[range] || range });
     });
     return chips;

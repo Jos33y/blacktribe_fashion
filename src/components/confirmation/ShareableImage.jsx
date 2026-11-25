@@ -170,7 +170,7 @@ export default function ShareableImage({ orderNumber, items = [], onReady }) {
 
 
     /* ─── Order number ─── */
-    ctx.fillStyle = '#9B9894';
+    ctx.fillStyle = '#B5B1AC';
     ctx.font = '400 20px "DM Mono", "Courier New", monospace';
     setLetterSpacing(ctx, '3px');
     ctx.fillText(orderNumber || '', W / 2, BAR_Y + 210);
@@ -178,7 +178,7 @@ export default function ShareableImage({ orderNumber, items = [], onReady }) {
 
 
     /* ─── Tagline (anchored near bottom) ─── */
-    ctx.fillStyle = '#6A6662';
+    ctx.fillStyle = '#A6A29D';
     ctx.font = '300 16px "Outfit", "Helvetica Neue", Arial, sans-serif';
     setLetterSpacing(ctx, '10px');
     ctx.fillText('REDEFINING LUXURY', W / 2, BAR_Y + BAR_H - 48);

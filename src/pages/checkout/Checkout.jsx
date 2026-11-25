@@ -87,6 +87,10 @@ export default function Checkout() {
   const items = useCartStore((s) => s.items);
   const subtotal = useCartStore((s) => s.getSubtotal());
   const clearCart = useCartStore((s) => s.clearCart);
+  const refreshFromShop = useCartStore((s) => s.refreshFromShop);
+
+  /* Fresh prices and stock before the customer reviews the order */
+  useEffect(() => { refreshFromShop({ force: true }); }, [refreshFromShop]);
   const closeCartDrawer = useUIStore((s) => s.closeCartDrawer);
   const { isAuthenticated, email: userEmail, profile } = useAuth();
 
@@ -377,7 +381,6 @@ export default function Checkout() {
         },
 
         onSuccess: (transaction) => {
-          console.log('[paystack] Payment success:', transaction.reference);
           // Set flag BEFORE clearing cart to prevent redirect race
           paymentComplete.current = true;
           clearCart();
@@ -391,7 +394,6 @@ export default function Checkout() {
         },
 
         onCancel: () => {
-          console.log('[paystack] Popup closed — order preserved for retry');
           setSubmitting(false);
           setPaymentError('Payment was cancelled. Your order has been saved. You can try again anytime.');
           /* Reminder email is NOT sent here. The server handles abandoned order

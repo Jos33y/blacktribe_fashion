@@ -18,8 +18,8 @@
 
   /* ─── Text: Warm Neutrals ─── */
   --bt-text: #EDEBE8;              /* 13.8:1 AAA — headlines, prices, CTAs */
-  --bt-text-secondary: #9B9894;    /* 5.7:1 AA — body, descriptions */
-  --bt-text-muted: #6A6662;        /* 3.6:1 AA-large only — labels, hints, 14px+ bold or 18px+ */
+  --bt-text-secondary: #B5B1AC;    /* 9.2:1 on #0C0C0C, 8.5:1 on #161616: AAA. Body, descriptions */
+  --bt-text-muted: #A6A29D;        /* 7.7:1 on #0C0C0C, 7.1:1 on #161616: AAA. Labels, hints, meta */
   --bt-text-inverse: #0C0C0C;      /* dark text on light backgrounds */
 
   /* ─── Product Canvas ─── */

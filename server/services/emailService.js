@@ -7,7 +7,7 @@ const resend = new Resend(env.resendApiKey);
  * Send a transactional email via Resend.
  * Returns { id } on success, throws on failure.
  */
-export async function sendEmail({ to, subject, html }) {
+export async function sendEmail({ to, subject, html, replyTo }) {
   if (!env.resendApiKey) {
     console.warn('[email] RESEND_API_KEY not set. Skipping email.');
     return null;
@@ -19,6 +19,7 @@ export async function sendEmail({ to, subject, html }) {
       to: Array.isArray(to) ? to : [to],
       subject,
       html,
+      ...(replyTo ? { replyTo } : {}),
     });
 
     if (error) {

@@ -33,9 +33,9 @@ export default function FilterDrawer({
 
   const toggleFilter = (type, value) => {
     const current = activeFilters[type] || [];
-    const updated = current.includes(value)
-      ? current.filter((v) => v !== value)
-      : [...current, value];
+    /* One choice per filter: the shop API filters by a single category,
+       size and price range, so a second tick would be silently ignored */
+    const updated = current.includes(value) ? [] : [value];
     onFilterChange(type, updated);
   };
 

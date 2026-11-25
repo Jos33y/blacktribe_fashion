@@ -13,13 +13,15 @@ import express from 'express';
 import { supabaseAdmin } from '../config/database.js';
 import { sendEmail } from '../services/emailService.js';
 import { requireAuth, requirePermission } from '../middleware/auth.js';
+import { rateLimit } from '../middleware/rateLimit.js';
+import { escapeHtml } from '../utils/escape.js';
 
 const router = express.Router();
 
 
 /* ─── Public: submit contact form ─── */
 
-router.post('/', async (req, res, next) => {
+router.post('/', rateLimit({ name: 'contact', max: 5, windowMs: 10 * 60 * 1000 }), async (req, res, next) => {
   try {
     const { name, email, message } = req.body;
 
@@ -31,6 +33,9 @@ router.post('/', async (req, res, next) => {
     }
     if (!message?.trim()) {
       return res.status(400).json({ success: false, error: 'Message is required.' });
+    }
+    if (String(name).length > 120 || String(email).length > 200 || String(message).length > 5000) {
+      return res.status(400).json({ success: false, error: 'Keep your message under 5,000 characters.' });
     }
 
     /* Save to database (primary record) */
@@ -60,22 +65,23 @@ router.post('/', async (req, res, next) => {
     /* Send email to support (fire-and-forget backup) */
     let emailSent = false;
     try {
-      await sendEmail({
+      const sent = await sendEmail({
         to: 'support@blacktribefashion.com',
-        subject: `Contact form: ${name.trim()}`,
+        replyTo: email.trim(),
+        subject: `Contact form: ${name.trim().replace(/[\r\n]+/g, ' ').slice(0, 80)}`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px;">
             <h2 style="margin: 0 0 16px;">New contact form submission</h2>
-            <p><strong>Name:</strong> ${name.trim()}</p>
-            <p><strong>Email:</strong> ${email.trim()}</p>
+            <p><strong>Name:</strong> ${escapeHtml(name.trim())}</p>
+            <p><strong>Email:</strong> ${escapeHtml(email.trim())}</p>
             <p><strong>Message:</strong></p>
-            <p style="white-space: pre-wrap; background: #f5f5f5; padding: 16px; border-radius: 4px;">${message.trim()}</p>
+            <p style="white-space: pre-wrap; background: #f5f5f5; padding: 16px; border-radius: 4px;">${escapeHtml(message.trim())}</p>
             <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
             <p style="font-size: 12px; color: #999;">Reply directly to this email to respond to the customer.</p>
           </div>
         `,
       });
-      emailSent = true;
+      emailSent = Boolean(sent);
     } catch (emailErr) {
       console.error('[contact] Email send failed:', emailErr.message);
     }

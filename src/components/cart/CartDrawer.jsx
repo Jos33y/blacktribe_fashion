@@ -13,6 +13,12 @@ export default function CartDrawer() {
   const items = useCartStore((s) => s.items);
   const isOpen = useUIStore((s) => s.cartDrawerOpen);
   const closeCartDrawer = useUIStore((s) => s.closeCartDrawer);
+  const refreshFromShop = useCartStore((s) => s.refreshFromShop);
+
+  /* ─── Fresh prices and stock each time the bag opens ─── */
+  useEffect(() => {
+    if (isOpen) refreshFromShop();
+  }, [isOpen, refreshFromShop]);
 
   const isEmpty = items.length === 0;
   const itemCount = useCartStore((s) => s.getItemCount());

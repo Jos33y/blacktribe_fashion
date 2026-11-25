@@ -15,8 +15,11 @@
 import { create } from 'zustand';
 import { trackAddToCart, trackRemoveFromCart } from '../utils/tracker';
 import { announce } from '../utils/announcer';
+import { getVariant } from '../utils/variants';
 
 const STORAGE_KEY = 'bt-cart';
+const REFRESH_EVERY = 60 * 1000;
+let lastRefresh = 0;
 
 function loadCart() {
   try {
@@ -117,6 +120,49 @@ const useCartStore = create((set, get) => ({
       return i;
     });
     if (changed) { set({ items: next }); saveCart(next); }
+    return changed;
+  },
+
+  /* Pull current prices and stock from the shop, so the bag never shows an
+     old price. Runs when the bag opens (at most once a minute). Checkout
+     still confirms the final total with the server. */
+  refreshFromShop: async ({ force = false } = {}) => {
+    const items = get().items;
+    if (!items.length || (!force && Date.now() - lastRefresh < REFRESH_EVERY)) return false;
+    lastRefresh = Date.now();
+
+    const slugs = [...new Set(items.map((i) => i.slug).filter(Boolean))];
+    const products = new Map();
+    await Promise.all(slugs.map(async (slug) => {
+      try {
+        const res = await fetch(`/api/products/${encodeURIComponent(slug)}`);
+        const json = await res.json();
+        if (json.success && json.data) products.set(slug, json.data);
+      } catch { /* offline or gone: keep what we have */ }
+    }));
+    if (!products.size) return false;
+
+    let changed = false;
+    const next = get().items.map((i) => {
+      const p = products.get(i.slug);
+      if (!p) return i;
+      let line = i;
+      if (Number.isFinite(p.price) && p.price !== i.price) {
+        line = { ...line, price: p.price };
+      }
+      const sizes = getVariant(p, i.color).sizes || [];
+      const s = sizes.find((x) => (x.size || x.name) === i.size);
+      if (s && Number.isFinite(s.stock) && s.stock > 0 && s.stock !== i.maxStock) {
+        line = { ...line, maxStock: s.stock, quantity: Math.min(line.quantity, s.stock) };
+      }
+      if (line !== i) changed = true;
+      return line;
+    });
+    if (changed) {
+      set({ items: next });
+      saveCart(next);
+      announce('Bag updated with current prices.');
+    }
     return changed;
   },
 
